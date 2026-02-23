@@ -7,7 +7,7 @@ import SearchBar from './SearchBar'
 
 interface Variante {
   talla: string
-  color: string
+  colegio: string
   stock: number
 }
 
@@ -20,6 +20,8 @@ interface Producto {
   imagen_url?: string
   variantes: Variante[]
   stock_total: number
+  descuento_porcentaje?: number
+  en_oferta?: boolean
 }
 
 interface ClientProductListProps {

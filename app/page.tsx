@@ -6,7 +6,7 @@ export const revalidate = 0
 
 interface Variante {
   talla: string
-  color: string
+  colegio: string
   stock: number
 }
 
@@ -17,8 +17,11 @@ interface ProductoConVariantes {
   precio: number
   categoria: string
   imagen_url?: string
+  imagenes?: string[]
   variantes: Variante[]
   stock_total: number
+  descuento_porcentaje?: number
+  en_oferta?: boolean
 }
 
 async function getProductos() {
@@ -33,7 +36,7 @@ async function getProductos() {
     productosData.map(async (producto) => {
       const { data: variantes } = await supabase
         .from('variantes')
-        .select('talla, color, stock')
+        .select('talla, colegio, stock')
         .eq('producto_id', producto.id)
 
       const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
