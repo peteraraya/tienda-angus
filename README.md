@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tienda de Confecciones - Next.js + Supabase
 
-## Getting Started
+Sistema de gestión de inventario para tienda de confecciones con panel de administración y catálogo público.
 
-First, run the development server:
+## Configuración
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Configurar Supabase
+
+1. Crea un proyecto en [Supabase](https://supabase.com)
+2. En el SQL Editor, ejecuta los scripts de la carpeta `supabase/` en orden (01 al 12)
+   - Lee las instrucciones en `supabase/README.md`
+3. Copia las credenciales de tu proyecto
+
+### 2. Variables de Entorno
+
+Edita `.env.local` con tus credenciales de Supabase:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=tu-url-de-supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Crear Usuario Admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+En Supabase Dashboard > Authentication > Users, crea un usuario con email y contraseña.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Instalar y Ejecutar
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Abre [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/` - Catálogo público de productos
+- `/admin` - Panel de administración (requiere login, solo accesible por URL)
+- `/admin/nuevo` - Crear nuevo producto
+- `/admin/editar/[id]` - Editar producto existente
 
-## Deploy on Vercel
+## Características
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Autenticación con Supabase Auth
+- CRUD completo de productos
+- Sistema de variantes: múltiples tallas y colores por producto
+- Tallas disponibles: 6, 8, 10, 12, 14, 16, S, M, L, XL
+- Colores predefinidos: Blanco, Negro, Azul, Rojo, Verde, Amarillo, Rosa, Gris, Beige, Morado
+- Control de stock individual por variante (talla + color)
+- Visualización pública del catálogo con tallas y colores disponibles
+- Gestión de imágenes de productos
+- Responsive design con Tailwind CSS
+- Panel admin accesible solo por URL (sin botón en página principal)

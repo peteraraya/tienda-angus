@@ -1,65 +1,127 @@
-import Image from "next/image";
+import { supabase } from '@/lib/supabase'
+import ClientProductList from './components/ClientProductList'
+import ThemeToggle from './components/ThemeToggle'
 
-export default function Home() {
+export const revalidate = 0
+
+interface Variante {
+  talla: string
+  color: string
+  stock: number
+}
+
+interface ProductoConVariantes {
+  id: string
+  nombre: string
+  descripcion: string
+  precio: number
+  categoria: string
+  imagen_url?: string
+  variantes: Variante[]
+  stock_total: number
+}
+
+async function getProductos() {
+  const { data: productosData } = await supabase
+    .from('productos')
+    .select('*')
+    .order('created_at', { ascending: false })
+  
+  if (!productosData) return []
+
+  const productosConVariantes = await Promise.all(
+    productosData.map(async (producto) => {
+      const { data: variantes } = await supabase
+        .from('variantes')
+        .select('talla, color, stock')
+        .eq('producto_id', producto.id)
+
+      const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
+
+      return {
+        ...producto,
+        variantes: variantes || [],
+        stock_total
+      }
+    })
+  )
+
+  return productosConVariantes as ProductoConVariantes[]
+}
+
+export default async function Home() {
+  const productos = await getProductos()
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 transition-colors duration-300">
+      {/* Header */}
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Confecciones
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Moda y estilo</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-6 text-sm mr-4">
+                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Inicio</a>
+                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Catálogo</a>
+                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Contacto</a>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h2 className="text-5xl md:text-6xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+              Descubre
+            </span>
+            <br />
+            <span className="text-gray-900 dark:text-white">Nuestra Colección</span>
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Encuentra las mejores prendas con la calidad que mereces
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {productos.length === 0 ? (
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+            <div className="inline-block p-6 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+              <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-xl font-semibold">No hay productos disponibles</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Vuelve pronto para ver nuestras novedades</p>
+          </div>
+        ) : (
+          <ClientProductList productos={productos} />
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-20 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center text-gray-600 dark:text-gray-400 text-sm">
+            <p>© 2024 Tienda de Confecciones. Todos los derechos reservados.</p>
+          </div>
         </div>
-      </main>
-    </div>
-  );
+      </footer>
+    </main>
+  )
 }
