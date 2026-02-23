@@ -10,7 +10,16 @@ export default function ThemeToggle() {
     setMounted(true)
     const theme = localStorage.getItem('theme')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setIsDark(theme === 'dark' || (!theme && prefersDark))
+    const shouldBeDark = theme === 'dark' || (!theme && prefersDark)
+    
+    setIsDark(shouldBeDark)
+    
+    // Asegurar que la clase se aplique correctamente
+    if (shouldBeDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -19,11 +28,9 @@ export default function ThemeToggle() {
     
     if (newTheme) {
       document.documentElement.classList.add('dark')
-      try { document.body.classList.add('dark') } catch (e) {}
       localStorage.setItem('theme', 'dark')
     } else {
       document.documentElement.classList.remove('dark')
-      try { document.body.classList.remove('dark') } catch (e) {}
       localStorage.setItem('theme', 'light')
     }
   }
@@ -38,7 +45,8 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm hover:shadow-md"
-      aria-label="Toggle theme"
+      aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={isDark ? 'Modo claro' : 'Modo oscuro'}
     >
       {isDark ? (
         <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">

@@ -74,9 +74,8 @@ export default async function Home() {
             
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-6 text-sm mr-4">
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Inicio</a>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Catálogo</a>
-                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Contacto</a>
+                <a href="#catalogo" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Catálogo</a>
+                <a href="#contacto" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Contacto</a>
               </div>
               <ThemeToggle />
             </div>
@@ -85,14 +84,14 @@ export default async function Home() {
       </div>
 
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-12" id="catalogo">
         <div className="text-center mb-12">
           <h2 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              Descubre
+              Catálogo
             </span>
             <br />
-            <span className="text-gray-900 dark:text-white">Nuestra Colección</span>
+            <span className="text-gray-900 dark:text-white">de Productos</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Encuentra las mejores prendas con la calidad que mereces
@@ -115,9 +114,31 @@ export default async function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-20 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-center text-gray-600 dark:text-gray-400 text-sm">
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-20 transition-colors duration-300" id="contacto">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Confecciones</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Tu tienda de confianza para las mejores prendas de calidad.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Contacto</h3>
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <p>Email: contacto@confecciones.com</p>
+                <p>Teléfono: +1 234 567 890</p>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Horario</h3>
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <p>Lunes a Viernes: 9:00 - 18:00</p>
+                <p>Sábados: 10:00 - 14:00</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-center text-gray-600 dark:text-gray-400 text-sm pt-8 border-t border-gray-200 dark:border-gray-700">
             <p>© 2024 Tienda de Confecciones. Todos los derechos reservados.</p>
           </div>
         </div>
