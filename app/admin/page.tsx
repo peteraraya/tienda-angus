@@ -35,6 +35,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedColegio, setSelectedColegio] = useState('')
+  const [selectedTalla, setSelectedTalla] = useState('')
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
   const router = useRouter()
@@ -181,6 +183,18 @@ export default function AdminPage() {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
 
+  const colegios = useMemo(() => {
+    const allColegios = productos.flatMap(p => p.variantes?.map(v => v.colegio) || [])
+    return [...new Set(allColegios)].sort()
+  }, [productos])
+
+  const tallas = useMemo(() => {
+    const allTallas = productos.flatMap(p => p.variantes?.map(v => v.talla) || [])
+    const uniqueTallas = [...new Set(allTallas)]
+    const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
+    return uniqueTallas.sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  }, [productos])
+
   const filteredProducts = useMemo(() => {
     return productos.filter(producto => {
       const matchesSearch = searchTerm === '' || 
@@ -189,9 +203,37 @@ export default function AdminPage() {
       
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
 
-      return matchesSearch && matchesCategory
+      const matchesColegio = selectedColegio === '' || 
+        producto.variantes?.some(v => v.colegio === selectedColegio)
+
+      const matchesTalla = selectedTalla === '' || 
+        producto.variantes?.some(v => v.talla === selectedTalla)
+
+      return matchesSearch && matchesCategory && matchesColegio && matchesTalla
     })
-  }, [productos, searchTerm, selectedCategory])
+  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla])
+
+  // Calcular stock específico según filtros de colegio y talla
+  const stockEspecifico = useMemo(() => {
+    if (!selectedColegio && !selectedTalla) return null
+
+    let totalStock = 0
+    let variantesEncontradas = 0
+
+    filteredProducts.forEach(producto => {
+      producto.variantes?.forEach(variante => {
+        const matchColegio = !selectedColegio || variante.colegio === selectedColegio
+        const matchTalla = !selectedTalla || variante.talla === selectedTalla
+        
+        if (matchColegio && matchTalla) {
+          totalStock += variante.stock
+          variantesEncontradas++
+        }
+      })
+    })
+
+    return { totalStock, variantesEncontradas }
+  }, [filteredProducts, selectedColegio, selectedTalla])
 
   const calcularPrecioFinal = (precio: number, descuento?: number) => {
     if (!descuento || descuento === 0) return precio
@@ -330,37 +372,154 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-8">
-        {/* Buscador */}
+        {/* Buscador y Filtros */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+          <div className="flex flex-col gap-4">
+            {/* Primera fila: Búsqueda y Categoría */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar por nombre o descripción..."
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
               </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar productos..."
-                className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="md:w-64 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="md:w-64 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+
+            {/* Segunda fila: Colegio y Talla */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <select
+                value={selectedColegio}
+                onChange={(e) => setSelectedColegio(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Todos los colegios</option>
+                {colegios.map(colegio => (
+                  <option key={colegio} value={colegio}>{colegio}</option>
+                ))}
+              </select>
+              <select
+                value={selectedTalla}
+                onChange={(e) => setSelectedTalla(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Todas las tallas</option>
+                {tallas.map(talla => (
+                  <option key={talla} value={talla}>{talla}</option>
+                ))}
+              </select>
+              {/* Botón para limpiar filtros */}
+              {(searchTerm || selectedCategory || selectedColegio || selectedTalla) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedCategory('')
+                    setSelectedColegio('')
+                    setSelectedTalla('')
+                  }}
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold whitespace-nowrap"
+                >
+                  Limpiar Filtros
+                </button>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-            Mostrando {filteredProducts.length} de {productos.length} productos
-          </p>
+
+          {/* Contador de resultados y filtros activos */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Mostrando <span className="font-bold text-gray-900 dark:text-white">{filteredProducts.length}</span> de {productos.length} productos
+            </p>
+            {selectedCategory && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
+                Categoría: {selectedCategory}
+                <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100"></button>
+              </span>
+            )}
+            {selectedColegio && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold">
+                Colegio: {selectedColegio}
+                <button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100"></button>
+              </span>
+            )}
+            {selectedTalla && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
+                Talla: {selectedTalla}
+                <button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100"></button>
+              </span>
+            )}
+          </div>
+
+          {/* Mensaje de stock específico según filtros */}
+          {stockEspecifico && (
+            <div className={`mt-4 p-4 rounded-xl border-2 ${
+              stockEspecifico.totalStock > 0 
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700' 
+                : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
+            }`}>
+              <div className="flex items-start gap-3">
+                {stockEspecifico.totalStock > 0 ? (
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <div className="flex-1">
+                  <p className={`font-bold text-base ${
+                    stockEspecifico.totalStock > 0 
+                      ? 'text-green-900 dark:text-green-100' 
+                      : 'text-red-900 dark:text-red-100'
+                  }`}>
+                    {stockEspecifico.totalStock > 0 ? (
+                      <>
+                        {stockEspecifico.totalStock === 1 
+                          ? 'Hay 1 unidad disponible' 
+                          : `Hay ${stockEspecifico.totalStock} unidades disponibles`}
+                      </>
+                    ) : (
+                      'No hay stock disponible'
+                    )}
+                  </p>
+                  <p className={`text-sm mt-1 ${
+                    stockEspecifico.totalStock > 0 
+                      ? 'text-green-700 dark:text-green-300' 
+                      : 'text-red-700 dark:text-red-300'
+                  }`}>
+                    {selectedTalla && selectedColegio ? (
+                      <>de talla <span className="font-semibold">{selectedTalla}</span> para <span className="font-semibold">{selectedColegio}</span></>
+                    ) : selectedTalla ? (
+                      <>de talla <span className="font-semibold">{selectedTalla}</span></>
+                    ) : selectedColegio ? (
+                      <>para <span className="font-semibold">{selectedColegio}</span></>
+                    ) : null}
+                    {stockEspecifico.variantesEncontradas > 0 && (
+                      <> ({stockEspecifico.variantesEncontradas} {stockEspecifico.variantesEncontradas === 1 ? 'variante' : 'variantes'})</>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
