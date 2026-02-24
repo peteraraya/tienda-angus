@@ -8,7 +8,6 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '../components/ui'
-import { type } from '../../.next/dev/types/routes';
 
 interface Variante {
   id: string
