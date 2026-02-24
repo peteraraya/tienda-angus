@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/app/components/ui/ToastContainer'
+import { useConfirm } from '@/app/hooks/useConfirm'
+import { Button, Input } from '@/app/components/ui'
 
 interface Colegio {
   id: string
@@ -14,25 +18,14 @@ interface Colegio {
 
 export default function ColegiosPage() {
   const router = useRouter()
+  const toast = useToast()
+  const { confirm, ConfirmDialog } = useConfirm()
   const [colegios, setColegios] = useState<Colegio[]>([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [nuevoColegio, setNuevoColegio] = useState({ nombre: '', insignia_url: '' })
   const [editando, setEditando] = useState<string | null>(null)
   const [colegioEditado, setColegioEditado] = useState({ nombre: '', insignia_url: '' })
-
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession()
-    setIsAuthenticated(!!session)
-    if (session) {
-      loadColegios()
-    }
-    setLoading(false)
-  }
 
   async function loadColegios() {
     const { data } = await supabase
@@ -45,9 +38,25 @@ export default function ColegiosPage() {
     }
   }
 
+  async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession()
+    setIsAuthenticated(!!session)
+    if (session) {
+      loadColegios()
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    async function run() {
+      await checkAuth()
+    }
+    run()
+  }, [])
+
   async function agregarColegio() {
     if (!nuevoColegio.nombre.trim()) {
-      alert('Ingresa el nombre del colegio')
+      toast.error('Ingresa el nombre del colegio')
       return
     }
 
@@ -61,34 +70,46 @@ export default function ColegiosPage() {
 
     if (error) {
       if (error.code === '23505') {
-        alert('Este colegio ya existe')
+        toast.error('Este colegio ya existe')
       } else {
-        alert('Error al agregar colegio')
+        toast.error('Error al agregar colegio')
       }
       return
     }
 
+    toast.success('Colegio agregado exitosamente')
     setNuevoColegio({ nombre: '', insignia_url: '' })
     loadColegios()
   }
 
   async function toggleActivo(id: string, activo: boolean) {
+    const confirmed = await confirm({
+      title: activo ? '¿Desactivar colegio?' : '¿Activar colegio?',
+      message: activo 
+        ? 'Los productos con este colegio seguirán existiendo pero no aparecerá en los selectores'
+        : 'El colegio volverá a estar disponible en los selectores',
+      variant: 'warning'
+    })
+
+    if (!confirmed) return
+
     const { error } = await supabase
       .from('colegios')
       .update({ activo: !activo })
       .eq('id', id)
 
     if (error) {
-      alert('Error al actualizar colegio')
+      toast.error('Error al actualizar colegio')
       return
     }
 
+    toast.success(activo ? 'Colegio desactivado' : 'Colegio activado')
     loadColegios()
   }
 
   async function actualizarColegio(id: string) {
     if (!colegioEditado.nombre.trim()) {
-      alert('Ingresa un nombre válido')
+      toast.error('Ingresa un nombre válido')
       return
     }
 
@@ -102,22 +123,28 @@ export default function ColegiosPage() {
 
     if (error) {
       if (error.code === '23505') {
-        alert('Este nombre ya existe')
+        toast.error('Este nombre ya existe')
       } else {
-        alert('Error al actualizar colegio')
+        toast.error('Error al actualizar colegio')
       }
       return
     }
 
+    toast.success('Colegio actualizado exitosamente')
     setEditando(null)
     setColegioEditado({ nombre: '', insignia_url: '' })
     loadColegios()
   }
 
   async function eliminarColegio(id: string) {
-    if (!confirm('¿Eliminar este colegio? Los productos con este colegio podrían verse afectados.')) {
-      return
-    }
+    const confirmed = await confirm({
+      title: '¿Eliminar colegio?',
+      message: 'Los productos con este colegio podrían verse afectados. Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      variant: 'danger'
+    })
+
+    if (!confirmed) return
 
     const { error } = await supabase
       .from('colegios')
@@ -125,10 +152,11 @@ export default function ColegiosPage() {
       .eq('id', id)
 
     if (error) {
-      alert('Error al eliminar colegio. Puede que esté en uso.')
+      toast.error('Error al eliminar colegio. Puede que esté en uso.')
       return
     }
 
+    toast.success('Colegio eliminado exitosamente')
     loadColegios()
   }
 
@@ -148,14 +176,14 @@ export default function ColegiosPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <button
+              <Button
                 onClick={() => router.push('/admin')}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-              </button>
+              </Button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Colegios</h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Administra los colegios disponibles para los productos</p>
@@ -167,43 +195,40 @@ export default function ColegiosPage() {
           <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl border-2 border-blue-200 dark:border-blue-800">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Agregar Nuevo Colegio</h2>
             <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nombre del Colegio</label>
-                <input
-                  type="text"
-                  value={nuevoColegio.nombre}
-                  onChange={(e) => setNuevoColegio({...nuevoColegio, nombre: e.target.value})}
-                  placeholder="Ej: Colegio San José"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">URL de Insignia</label>
-                <input
-                  type="url"
-                  value={nuevoColegio.insignia_url}
-                  onChange={(e) => setNuevoColegio({...nuevoColegio, insignia_url: e.target.value})}
-                  placeholder="https://ejemplo.com/insignia.png"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+              <Input
+                label="Nombre del Colegio"
+                value={nuevoColegio.nombre}
+                onChange={(e) => setNuevoColegio({...nuevoColegio, nombre: e.target.value})}
+                placeholder="Ej: Colegio San José"
+              />
+              <Input
+                label="URL de Insignia"
+                type="url"
+                value={nuevoColegio.insignia_url}
+                onChange={(e) => setNuevoColegio({...nuevoColegio, insignia_url: e.target.value})}
+                placeholder="https://ejemplo.com/insignia.png"
+              />
               {nuevoColegio.insignia_url && (
                 <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                  <img 
-                    src={nuevoColegio.insignia_url} 
-                    alt="Vista previa" 
+                  <Image
+                    src={nuevoColegio.insignia_url}
+                    alt="Vista previa"
+                    width={64}
+                    height={64}
                     className="w-16 h-16 object-contain rounded-lg border border-gray-300 dark:border-gray-600"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                    unoptimized
                   />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Vista previa de la insignia</span>
                 </div>
               )}
-              <button
+              <Button
+                variant="primary"
+                fullWidth
                 onClick={agregarColegio}
-                className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
               >
                 Agregar Colegio
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -231,16 +256,19 @@ export default function ColegiosPage() {
                 <div key={colegio.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <div className="flex items-center gap-4">
                     {/* Insignia */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {colegio.insignia_url ? (
-                        <img 
-                          src={colegio.insignia_url} 
+                        <Image
+                          src={colegio.insignia_url}
                           alt={`Insignia ${colegio.nombre}`}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-1"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
                           }}
+                          unoptimized
                         />
                       ) : null}
                       <div className={`w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center ${colegio.insignia_url ? 'hidden' : ''}`}>
@@ -254,7 +282,7 @@ export default function ColegiosPage() {
                     <div className="flex-1">
                       {editando === colegio.id ? (
                         <div className="space-y-2">
-                          <input
+                          <Input
                             type="text"
                             value={colegioEditado.nombre}
                             onChange={(e) => setColegioEditado({...colegioEditado, nombre: e.target.value})}
@@ -262,12 +290,12 @@ export default function ColegiosPage() {
                             className="w-full p-2 border border-blue-500 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             autoFocus
                           />
-                          <input
+                          <Input
                             type="url"
                             value={colegioEditado.insignia_url}
                             onChange={(e) => setColegioEditado({...colegioEditado, insignia_url: e.target.value})}
                             placeholder="URL de insignia"
-                            className="w-full p-2 border border-blue-500 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full p-2 border border-blue-500 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white "
                           />
                         </div>
                       ) : (
@@ -283,7 +311,7 @@ export default function ColegiosPage() {
                             </span>
                           </div>
                           {colegio.insignia_url && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs truncate whitespace-nowrap ">
                               {colegio.insignia_url}
                             </p>
                           )}
@@ -295,25 +323,29 @@ export default function ColegiosPage() {
                     <div className="flex gap-2">
                       {editando === colegio.id ? (
                         <>
-                          <button
+                          <Button
+                            variant="success"
+                            size="sm"
                             onClick={() => actualizarColegio(colegio.id)}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
                           >
                             ✓ Guardar
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => {
                               setEditando(null)
                               setColegioEditado({ nombre: '', insignia_url: '' })
                             }}
-                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-semibold"
                           >
                             ✕ Cancelar
-                          </button>
+                          </Button>
                         </>
                       ) : (
                         <>
-                          <button
+                          <Button
+                            variant="info"
+                            size="sm"
                             onClick={() => {
                               setEditando(colegio.id)
                               setColegioEditado({ 
@@ -321,26 +353,23 @@ export default function ColegiosPage() {
                                 insignia_url: colegio.insignia_url || '' 
                               })
                             }}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold"
                           >
                             Editar
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant={colegio.activo ? 'warning' : 'success'}
+                            size="sm"
                             onClick={() => toggleActivo(colegio.id, colegio.activo)}
-                            className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
-                              colegio.activo
-                                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                                : 'bg-green-500 text-white hover:bg-green-600'
-                            }`}
                           >
                             {colegio.activo ? 'Desactivar' : 'Activar'}
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
                             onClick={() => eliminarColegio(colegio.id)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold"
                           >
                             Eliminar
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>
@@ -351,6 +380,8 @@ export default function ColegiosPage() {
           )}
         </div>
       </div>
+      
+      <ConfirmDialog />
     </div>
   )
 }

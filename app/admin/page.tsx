@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useEffect, useMemo, Fragment } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
+import { useToast } from '@/app/components/ui/ToastContainer'
+import { useConfirm } from '@/app/hooks/useConfirm'
+import { Button, Input } from '../components/ui'
+import { type } from '../../.next/dev/types/routes';
 
 interface Variante {
   id: string
@@ -40,19 +45,20 @@ export default function AdminPage() {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
   const router = useRouter()
+  const toast = useToast()
+  const { confirm, ConfirmDialog } = useConfirm()
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession()
-    setIsAuthenticated(!!session)
-    setLoading(false)
-    if (session) {
-      loadProductos()
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setIsAuthenticated(!!session)
+      setLoading(false)
+      if (session) {
+        loadProductos()
+      }
     }
-  }
+    checkAuth()
+  }, []) // No dependencies needed
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -60,8 +66,9 @@ export default function AdminPage() {
     if (!error) {
       setIsAuthenticated(true)
       loadProductos()
+      toast.success('Sesión iniciada correctamente')
     } else {
-      alert('Error al iniciar sesión')
+      toast.error('Error al iniciar sesión')
     }
   }
 
@@ -102,10 +109,18 @@ export default function AdminPage() {
   }
 
   async function deleteProducto(id: string) {
-    if (confirm('¿Eliminar este producto y todas sus variantes?')) {
-      await supabase.from('productos').delete().eq('id', id)
-      loadProductos()
-    }
+    const confirmed = await confirm({
+      title: '¿Eliminar producto?',
+      message: 'Se eliminará este producto y todas sus variantes. Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      variant: 'danger'
+    })
+
+    if (!confirmed) return
+
+    await supabase.from('productos').delete().eq('id', id)
+    toast.success('Producto eliminado exitosamente')
+    loadProductos()
   }
 
   async function toggleOferta(id: string, currentState: boolean) {
@@ -118,7 +133,7 @@ export default function AdminPage() {
 
   async function updateDescuento(id: string, descuento: number) {
     if (descuento < 0 || descuento > 100) {
-      alert('El descuento debe estar entre 0 y 100')
+      toast.error('El descuento debe estar entre 0 y 100')
       return
     }
     
@@ -131,7 +146,7 @@ export default function AdminPage() {
 
   async function updateVarianteStock(varianteId: string, newStock: number) {
     if (newStock < 0) {
-      alert('El stock no puede ser negativo')
+      toast.error('El stock no puede ser negativo')
       return
     }
     
@@ -145,34 +160,42 @@ export default function AdminPage() {
   }
 
   async function duplicateProduct(producto: Producto) {
-    if (confirm('¿Duplicar este producto con todas sus variantes?')) {
-      const { data: newProduct } = await supabase
-        .from('productos')
-        .insert({
-          nombre: `${producto.nombre} (Copia)`,
-          descripcion: producto.descripcion,
-          precio: producto.precio,
-          categoria: producto.categoria,
-          imagen_url: producto.imagen_url,
-          descuento_porcentaje: producto.descuento_porcentaje,
-          en_oferta: producto.en_oferta
-        })
-        .select()
-        .single()
+    const confirmed = await confirm({
+      title: '¿Duplicar producto?',
+      message: 'Se creará una copia de este producto con todas sus variantes',
+      confirmText: 'Duplicar',
+      variant: 'info'
+    })
 
-      if (newProduct && producto.variantes) {
-        const variantesToInsert = producto.variantes.map(v => ({
-          producto_id: newProduct.id,
-          talla: v.talla,
-          colegio: v.colegio,
-          stock: v.stock
-        }))
-        
-        await supabase.from('variantes').insert(variantesToInsert)
-      }
+    if (!confirmed) return
+
+    const { data: newProduct } = await supabase
+      .from('productos')
+      .insert({
+        nombre: `${producto.nombre} (Copia)`,
+        descripcion: producto.descripcion,
+        precio: producto.precio,
+        categoria: producto.categoria,
+        imagen_url: producto.imagen_url,
+        descuento_porcentaje: producto.descuento_porcentaje,
+        en_oferta: producto.en_oferta
+      })
+      .select()
+      .single()
+
+    if (newProduct && producto.variantes) {
+      const variantesToInsert = producto.variantes.map(v => ({
+        producto_id: newProduct.id,
+        talla: v.talla,
+        colegio: v.colegio,
+        stock: v.stock
+      }))
       
-      loadProductos()
+      await supabase.from('variantes').insert(variantesToInsert)
     }
+    
+    toast.success('Producto duplicado exitosamente')
+    loadProductos()
   }
 
   function toggleExpandProduct(productId: string) {
@@ -299,12 +322,12 @@ export default function AdminPage() {
               </div>
             </div>
             
-            <button 
+            <Button 
               type="submit" 
               className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Iniciar Sesión
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -330,7 +353,7 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => router.push('/')}
                 className="bg-linear-to-br from-gray-600 to-gray-700 dark:from-gray-700 dark:to-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -338,8 +361,8 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 Ver Tienda
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => router.push('/admin/colegios')}
                 className="bg-linear-to-br from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -347,8 +370,8 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
                 Colegios
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => router.push('/admin/categorias')}
                 className="bg-linear-to-br from-indigo-600 to-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -356,8 +379,8 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 Categorías
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => router.push('/admin/nuevo')}
                 className="bg-linear-to-br from-green-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -365,8 +388,8 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Nuevo Producto
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleLogout}
                 className="bg-linear-to-br from-red-600 to-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-red-700 hover:to-rose-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -374,7 +397,7 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 Cerrar Sesión
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -436,7 +459,7 @@ export default function AdminPage() {
               </select>
               {/* Botón para limpiar filtros */}
               {(searchTerm || selectedCategory || selectedColegio || selectedTalla) && (
-                <button
+                <Button
                   onClick={() => {
                     setSearchTerm('')
                     setSelectedCategory('')
@@ -446,7 +469,7 @@ export default function AdminPage() {
                   className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold whitespace-nowrap"
                 >
                   Limpiar Filtros
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -459,19 +482,21 @@ export default function AdminPage() {
             {selectedCategory && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
                 Categoría: {selectedCategory}
-                <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100"></button>
+                <Button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
+                  ✕
+                </Button>
               </span>
             )}
             {selectedColegio && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold">
                 Colegio: {selectedColegio}
-                <button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100"></button>
+                <Button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</Button>
               </span>
             )}
             {selectedTalla && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
                 Talla: {selectedTalla}
-                <button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100"></button>
+                <Button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</Button>
               </span>
             )}
           </div>
@@ -485,11 +510,11 @@ export default function AdminPage() {
             }`}>
               <div className="flex items-start gap-3">
                 {stockEspecifico.totalStock > 0 ? (
-                  <svg className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 ) : (
-                  <svg className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -553,10 +578,14 @@ export default function AdminPage() {
                     <td className="p-4">
                       <div className="w-20 h-20 rounded-xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shadow-sm">
                         {producto.imagen_url ? (
-                          <img 
-                            src={producto.imagen_url} 
+                          <Image
+                            src={producto.imagen_url}
                             alt={producto.nombre}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
+                            style={{ objectFit: 'cover' }}
+                            unoptimized // Remove this line if you want Next.js optimization
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -615,7 +644,7 @@ export default function AdminPage() {
                       )}
                     </td>
                     <td className="p-4">
-                      <button
+                      <Button
                         onClick={() => toggleOferta(producto.id, producto.en_oferta || false)}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md ${
                           producto.en_oferta
@@ -624,7 +653,7 @@ export default function AdminPage() {
                         }`}
                       >
                         {producto.en_oferta ? '🔥 Oferta' : 'Sin oferta'}
-                      </button>
+                      </Button>
                     </td>
                     <td className="p-4">
                       <div className="text-center">
@@ -637,37 +666,37 @@ export default function AdminPage() {
                         }`}>
                           {producto.stock_total || 0}
                         </span>
-                        <button
+                        <Button
                           onClick={() => toggleExpandProduct(producto.id)}
                           className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 block"
                         >
                           {expandedProduct === producto.id ? '▼' : '▶'} {producto.variantes_count || 0} variantes
-                        </button>
+                        </Button>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2 flex-wrap">
-                        <button
+                        <Button
                           onClick={() => router.push(`/admin/editar/${producto.id}`)}
                           className="bg-linear-to-br from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
                           title="Editar producto"
                         >
                           ✏️
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => duplicateProduct(producto)}
                           className="bg-linear-to-br from-purple-500 to-purple-600 text-white px-3 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
                           title="Duplicar producto"
                         >
                           📋
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => deleteProducto(producto.id)}
                           className="bg-linear-to-br from-red-500 to-red-600 text-white px-3 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
                           title="Eliminar producto"
                         >
                           🗑️
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -713,7 +742,7 @@ export default function AdminPage() {
                                 <div className="flex gap-2 mt-3">
                                   {editingVariant === variante.id ? (
                                     <>
-                                      <input
+                                      <Input
                                         type="number"
                                         min="0"
                                         defaultValue={variante.stock}
@@ -725,42 +754,48 @@ export default function AdminPage() {
                                         className="flex-1 px-2 py-1 border border-blue-500 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500"
                                         autoFocus
                                       />
-                                      <button
+                                      <Button
+                                        type="button"
+                                        variant="success"
                                         onClick={() => {
                                           const input = document.querySelector(`input[type="number"]`) as HTMLInputElement
                                           updateVarianteStock(variante.id, parseInt(input.value) || 0)
                                         }}
-                                        className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition-colors text-xs font-bold"
+                                        className=""
                                       >
                                         ✓
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
+                                        variant="danger"
                                         onClick={() => setEditingVariant(null)}
                                         className="bg-gray-500 text-white px-3 py-1 rounded-lg hover:bg-gray-600 transition-colors text-xs font-bold"
                                       >
                                         ✕
-                                      </button>
+                                      </Button>
                                     </>
                                   ) : (
                                     <>
-                                      <button
+                                      <Button
+                                        variant="danger"
                                         onClick={() => updateVarianteStock(variante.id, Math.max(0, variante.stock - 1))}
                                         className="flex-1 bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
                                       >
                                         -1
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
+                                        variant="info"
                                         onClick={() => setEditingVariant(variante.id)}
                                         className="flex-1 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
                                       >
                                         ✏️
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
+                                        variant="success"
                                         onClick={() => updateVarianteStock(variante.id, variante.stock + 1)}
                                         className="flex-1 bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
                                       >
                                         +1
-                                      </button>
+                                      </Button>
                                     </>
                                   )}
                                 </div>
@@ -790,6 +825,8 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+      
+      <ConfirmDialog />
     </div>
   )
 }

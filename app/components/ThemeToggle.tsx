@@ -3,22 +3,25 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // Solo accede a window/localStorage en cliente
+  const getInitialTheme = () => {
+    if (typeof window === 'undefined') return false;
     const theme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = theme === 'dark' || (!theme && prefersDark);
-    setIsDark(shouldBeDark);
-    if (shouldBeDark) {
+    return theme === 'dark' || (!theme && prefersDark);
+  };
+
+  const [isDark, setIsDark] = useState(getInitialTheme);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (isDark) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-  }, []);
+  }, [isDark]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -32,7 +35,7 @@ export default function ThemeToggle() {
     }
   };
 
-  if (!mounted) {
+  if (typeof window === 'undefined') {
     return <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />;
   }
 

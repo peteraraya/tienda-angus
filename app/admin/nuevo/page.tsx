@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
+import { useToast } from '@/app/components/ui/ToastContainer'
+import { Button, Input } from '@/app/components/ui'
 
 const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
 const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
@@ -16,6 +19,7 @@ interface Variante {
 
 export default function NuevoProducto() {
   const router = useRouter()
+  const toast = useToast()
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -34,11 +38,6 @@ export default function NuevoProducto() {
     colegio: '',
     stock: ''
   })
-
-  useEffect(() => {
-    loadColegios()
-    loadCategorias()
-  }, [])
 
   async function loadColegios() {
     const { data } = await supabase
@@ -64,6 +63,14 @@ export default function NuevoProducto() {
     }
   }
 
+  useEffect(() => {
+    async function fetchData() {
+      await loadColegios()
+      await loadCategorias()
+    }
+    fetchData()
+  }, [])
+
   function agregarImagen() {
     if (imagenes.length < 5) {
       setImagenes([...imagenes, ''])
@@ -82,7 +89,7 @@ export default function NuevoProducto() {
 
   function agregarVariante() {
     if (!nuevaVariante.talla || !nuevaVariante.colegio || !nuevaVariante.stock) {
-      alert('Completa todos los campos de la variante')
+      toast.error('Completa todos los campos de la variante')
       return
     }
 
@@ -91,7 +98,7 @@ export default function NuevoProducto() {
     )
 
     if (existe) {
-      alert('Ya existe una variante con esa talla y colegio')
+      toast.error('Ya existe una variante con esa talla y colegio')
       return
     }
 
@@ -112,7 +119,7 @@ export default function NuevoProducto() {
     e.preventDefault()
     
     if (variantes.length === 0) {
-      alert('Debes agregar al menos una variante (talla/colegio/stock)')
+      toast.error('Debes agregar al menos una variante (talla/colegio/stock)')
       return
     }
 
@@ -136,7 +143,7 @@ export default function NuevoProducto() {
       .single()
 
     if (errorProducto || !producto) {
-      alert('Error al crear producto')
+      toast.error('Error al crear producto')
       return
     }
 
@@ -153,10 +160,11 @@ export default function NuevoProducto() {
       .insert(variantesConProductoId)
 
     if (errorVariantes) {
-      alert('Error al crear variantes')
+      toast.error('Error al crear variantes')
       return
     }
 
+    toast.success('Producto creado exitosamente')
     router.push('/admin')
   }
 
@@ -164,21 +172,21 @@ export default function NuevoProducto() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl">
         <div className="flex items-center gap-4 mb-8">
-          <button
+          <Button
             onClick={() => router.push('/admin')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-          </button>
+          </Button>
           <h1 className="text-4xl font-bold text-gray-900">Nuevo Producto</h1>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block mb-2 font-semibold text-gray-700">Nombre del Producto</label>
-            <input
+            <Input
               type="text"
               value={formData.nombre}
               onChange={(e) => setFormData({...formData, nombre: e.target.value})}
@@ -203,7 +211,7 @@ export default function NuevoProducto() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-2 font-semibold text-gray-700">Precio (CLP)</label>
-              <input
+              <Input
                 type="number"
                 step="1"
                 value={formData.precio}
@@ -229,14 +237,14 @@ export default function NuevoProducto() {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
-                <button
-                  type="button"
+                <Button
+                  variant="info"
                   onClick={() => router.push('/admin/categorias')}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold whitespace-nowrap"
                   title="Gestionar Categorías"
                 >
                   ⚙️
-                </button>
+                </Button>
               </div>
               <p className="text-xs text-gray-500 mt-1">Selecciona una categoría o gestiona las categorías disponibles</p>
             </div>
@@ -247,7 +255,7 @@ export default function NuevoProducto() {
             <div className="space-y-3">
               {imagenes.map((img, index) => (
                 <div key={index} className="flex gap-2">
-                  <input
+                  <Input
                     type="url"
                     value={img}
                     onChange={(e) => actualizarImagen(index, e.target.value)}
@@ -255,35 +263,38 @@ export default function NuevoProducto() {
                     placeholder={`URL de imagen ${index + 1}`}
                   />
                   {imagenes.length > 1 && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="danger"
                       onClick={() => eliminarImagen(index)}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                     >
                       ✕
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}
               {imagenes.length < 5 && (
-                <button
-                  type="button"
+                <Button
+                  variant='ghost'
                   onClick={agregarImagen}
                   className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-gray-600 hover:text-blue-600 font-semibold"
                 >
                   + Agregar otra imagen
-                </button>
+                </Button>
               )}
             </div>
             {imagenes.some(img => img) && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {imagenes.filter(img => img).map((img, index) => (
                   <div key={index} className="relative group">
-                    <img 
-                      src={img} 
-                      alt={`Preview ${index + 1}`} 
+                    <Image
+                      src={img}
+                      alt={`Preview ${index + 1}`}
+                      width={300}
+                      height={300}
                       className="w-full aspect-square object-cover rounded-lg border-2 border-gray-300"
-                      onError={(e) => e.currentTarget.style.display = 'none'}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      unoptimized
                     />
                     <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
                       {index + 1}
@@ -300,7 +311,7 @@ export default function NuevoProducto() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Descuento (%)</label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   max="100"
@@ -342,13 +353,14 @@ export default function NuevoProducto() {
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">Variantes (Tallas y Colegios)</h2>
-              <button
+              <Button
                 type="button"
+                variant='info'
                 onClick={() => router.push('/admin/colegios')}
                 className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-semibold"
               >
                 Gestionar Colegios
-              </button>
+              </Button>
             </div>
             
             <div className="bg-blue-50 p-4 rounded-lg mb-4">
@@ -384,7 +396,7 @@ export default function NuevoProducto() {
 
                 <div>
                   <label className="block mb-2 font-semibold text-gray-700 text-sm">Stock</label>
-                  <input
+                  <Input
                     type="number"
                     value={nuevaVariante.stock}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, stock: e.target.value})}
@@ -395,13 +407,14 @@ export default function NuevoProducto() {
                 </div>
 
                 <div className="flex items-end">
-                  <button
+                  <Button
                     type="button"
+                    variant="success"
                     onClick={agregarVariante}
                     className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 font-semibold"
                   >
                     Agregar
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -424,13 +437,13 @@ export default function NuevoProducto() {
                         <td className="p-3">{v.colegio}</td>
                         <td className="p-3 font-semibold text-green-600">{v.stock}</td>
                         <td className="p-3">
-                          <button
-                            type="button"
+                          <Button
+                            variant="danger"
                             onClick={() => eliminarVariante(index)}
                             className="text-red-600 hover:text-red-800 font-semibold"
                           >
                             Eliminar
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -445,19 +458,19 @@ export default function NuevoProducto() {
           </div>
 
           <div className="flex gap-4 pt-4">
-            <button
+            <Button
               type="submit"
               className="flex-1 bg-linear-to-br from-green-600 to-green-700 text-white p-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl"
             >
               Crear Producto
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => router.push('/admin')}
               className="flex-1 bg-gray-600 text-white p-4 rounded-lg font-semibold hover:bg-gray-700 transition-all"
             >
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       </div>

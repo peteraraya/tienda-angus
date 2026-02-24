@@ -82,7 +82,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
             )}
             
             {/* Badges de descuento y oferta */}
-            {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 && (
+            {typeof producto.descuento_porcentaje === 'number' && producto.descuento_porcentaje > 0 && (
               <div className="absolute top-3 left-3 bg-linear-to-br from-red-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-sm">
                 -{producto.descuento_porcentaje}%
               </div>
