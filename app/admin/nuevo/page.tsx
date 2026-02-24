@@ -28,6 +28,7 @@ export default function NuevoProducto() {
   const [imagenes, setImagenes] = useState<string[]>([''])
   const [variantes, setVariantes] = useState<Variante[]>([])
   const [colegios, setColegios] = useState<string[]>([])
+  const [categorias, setCategorias] = useState<string[]>([])
   const [nuevaVariante, setNuevaVariante] = useState({
     talla: '',
     colegio: '',
@@ -36,6 +37,7 @@ export default function NuevoProducto() {
 
   useEffect(() => {
     loadColegios()
+    loadCategorias()
   }, [])
 
   async function loadColegios() {
@@ -47,6 +49,18 @@ export default function NuevoProducto() {
 
     if (data) {
       setColegios(data.map(c => c.nombre))
+    }
+  }
+
+  async function loadCategorias() {
+    const { data } = await supabase
+      .from('categorias')
+      .select('nombre')
+      .eq('activo', true)
+      .order('nombre', { ascending: true })
+
+    if (data) {
+      setCategorias(data.map(c => c.nombre))
     }
   }
 
@@ -203,14 +217,28 @@ export default function NuevoProducto() {
 
             <div>
               <label className="block mb-2 font-semibold text-gray-700">Categoría</label>
-              <input
-                type="text"
-                value={formData.categoria}
-                onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ej: Camisas, Pantalones, Vestidos"
-                required
-              />
+              <div className="flex gap-2">
+                <select
+                  value={formData.categoria}
+                  onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Seleccionar categoría</option>
+                  {categorias.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => router.push('/admin/categorias')}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold whitespace-nowrap"
+                  title="Gestionar Categorías"
+                >
+                  ⚙️
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Selecciona una categoría o gestiona las categorías disponibles</p>
             </div>
           </div>
 

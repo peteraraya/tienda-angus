@@ -3,49 +3,38 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const isClient = typeof window !== 'undefined'
-
-  // Derive theme directly from external sources
-  const getShouldBeDark = () => {
-    if (!isClient) return false
-    const theme = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    return theme === 'dark' || (!theme && prefersDark)
-  }
-
-  const [_, setForceUpdate] = useState(0) // Used to force re-render after toggle
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (!isClient) return
-    const shouldBeDark = getShouldBeDark()
+    setMounted(true);
+    // Solo accede a window/localStorage en cliente
+    const theme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldBeDark = theme === 'dark' || (!theme && prefersDark);
+    setIsDark(shouldBeDark);
     if (shouldBeDark) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove('dark');
     }
-  }, [isClient])
+  }, []);
 
   const toggleTheme = () => {
-    if (!isClient) return
-    const shouldBeDark = getShouldBeDark()
-    const newTheme = !shouldBeDark
+    const newTheme = !isDark;
+    setIsDark(newTheme);
     if (newTheme) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-    setForceUpdate((v) => v + 1) // Force re-render to update icon
-  }
+  };
 
-  if (!isClient) {
-    return (
-      <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />
-    )
+  if (!mounted) {
+    return <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />;
   }
-
-  const isDark = getShouldBeDark()
 
   return (
     <button
@@ -64,5 +53,5 @@ export default function ThemeToggle() {
         </svg>
       )}
     </button>
-  )
+  );
 }
