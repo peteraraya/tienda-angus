@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import ProductCard from './ProductCard'
+import ProductListItem from './ProductListItem'
 import SearchBar from './SearchBar'
 
 interface Variante {
   talla: string
-  color: string
+  colegio: string
   stock: number
 }
 
@@ -19,6 +20,8 @@ interface Producto {
   imagen_url?: string
   variantes: Variante[]
   stock_total: number
+  descuento_porcentaje?: number
+  en_oferta?: boolean
 }
 
 interface ClientProductListProps {
@@ -28,13 +31,15 @@ interface ClientProductListProps {
 export default function ClientProductList({ productos }: ClientProductListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedSort, setSelectedSort] = useState('newest')
+  const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid')
 
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
 
-  const filteredProducts = useMemo(() => {
-    return productos.filter(producto => {
+  const filteredAndSortedProducts = useMemo(() => {
+    const filtered = productos.filter(producto => {
       const matchesSearch = searchTerm === '' || 
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
@@ -43,7 +48,30 @@ export default function ClientProductList({ productos }: ClientProductListProps)
 
       return matchesSearch && matchesCategory
     })
-  }, [productos, searchTerm, selectedCategory])
+
+    // Ordenar
+    switch (selectedSort) {
+      case 'price-asc':
+        filtered.sort((a, b) => a.precio - b.precio)
+        break
+      case 'price-desc':
+        filtered.sort((a, b) => b.precio - a.precio)
+        break
+      case 'name-asc':
+        filtered.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        break
+      case 'name-desc':
+        filtered.sort((a, b) => b.nombre.localeCompare(a.nombre))
+        break
+      case 'stock-desc':
+        filtered.sort((a, b) => b.stock_total - a.stock_total)
+        break
+      default: // newest
+        break
+    }
+
+    return filtered
+  }, [productos, searchTerm, selectedCategory, selectedSort])
 
   return (
     <div>
@@ -53,9 +81,13 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         onCategoryChange={setSelectedCategory}
         selectedCategory={selectedCategory}
         categories={categories}
+        onSortChange={setSelectedSort}
+        selectedSort={selectedSort}
+        onViewChange={setCurrentView}
+        currentView={currentView}
       />
 
-      {filteredProducts.length === 0 ? (
+      {filteredAndSortedProducts.length === 0 ? (
         <div className="text-center py-20">
           <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
             <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,15 +101,23 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         <div>
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600 dark:text-gray-400">
-              Mostrando <span className="font-semibold text-gray-900 dark:text-white">{filteredProducts.length}</span> {filteredProducts.length === 1 ? 'producto' : 'productos'}
+              Mostrando <span className="font-semibold text-gray-900 dark:text-white">{filteredAndSortedProducts.length}</span> {filteredAndSortedProducts.length === 1 ? 'producto' : 'productos'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((producto) => (
-              <ProductCard key={producto.id} producto={producto} />
-            ))}
-          </div>
+          {currentView === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredAndSortedProducts.map((producto) => (
+                <ProductCard key={producto.id} producto={producto} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredAndSortedProducts.map((producto) => (
+                <ProductListItem key={producto.id} producto={producto} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

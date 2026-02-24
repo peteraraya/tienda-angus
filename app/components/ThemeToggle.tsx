@@ -3,42 +3,48 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const getInitialTheme = () => {
+    if (typeof window === 'undefined') return false;
+    const theme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return theme === 'dark' || (!theme && prefersDark);
+  };
+
+  const [isDark, setIsDark] = useState(getInitialTheme);
 
   useEffect(() => {
-    setMounted(true)
-    const theme = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setIsDark(theme === 'dark' || (!theme && prefersDark))
-  }, [])
+    if (typeof window === 'undefined') return;
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
 
   const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    
+    const newTheme = !isDark;
+    setIsDark(newTheme);
     if (newTheme) {
-      document.documentElement.classList.add('dark')
-      try { document.body.classList.add('dark') } catch (e) {}
-      localStorage.setItem('theme', 'dark')
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark')
-      try { document.body.classList.remove('dark') } catch (e) {}
-      localStorage.setItem('theme', 'light')
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-  }
+  };
 
-  if (!mounted) {
-    return (
-      <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />
-    )
+  if (typeof window === 'undefined') {
+    return <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />;
   }
 
   return (
     <button
       onClick={toggleTheme}
       className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm hover:shadow-md"
-      aria-label="Toggle theme"
+      aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={isDark ? 'Modo claro' : 'Modo oscuro'}
     >
       {isDark ? (
         <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
@@ -50,5 +56,5 @@ export default function ThemeToggle() {
         </svg>
       )}
     </button>
-  )
+  );
 }
