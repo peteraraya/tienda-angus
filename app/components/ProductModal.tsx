@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { formatPrice } from '@/lib/formatPrice'
 
 interface Variante {
@@ -104,13 +105,17 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
             {/* Galería de Imágenes */}
             <div className="space-y-4">
               {/* Imagen Principal */}
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 group">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 group">
                 {imagenes.length > 0 ? (
                   <>
-                    <img 
-                      src={imagenes[currentImageIndex]} 
+                    <Image
+                      src={imagenes[currentImageIndex]}
                       alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
+                      width={800}
+                      height={800}
                       className="w-full h-full object-cover"
+                      priority
+                      style={{ objectFit: 'cover' }}
                     />
                     
                     {/* Navegación de imágenes */}
@@ -167,10 +172,13 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                           : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                       }`}
                     >
-                      <img 
-                        src={img} 
+                      <Image
+                        src={img}
                         alt={`Miniatura ${index + 1}`}
+                        width={100}
+                        height={100}
                         className="w-full h-full object-cover"
+                        style={{ objectFit: 'cover' }}
                       />
                     </button>
                   ))}
@@ -187,7 +195,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     {producto.categoria}
                   </span>
                   {producto.en_oferta && (
-                    <span className="inline-block bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse">
+                    <span className="inline-block bg-linear-to-br from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse">
                       🔥 EN OFERTA
                     </span>
                   )}

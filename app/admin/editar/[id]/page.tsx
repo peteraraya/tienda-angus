@@ -471,7 +471,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+              className="flex-1 bg-linear-to-br from-blue-600 to-blue-700 text-white p-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
             >
               Actualizar Producto
             </button>

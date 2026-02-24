@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -50,13 +51,17 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
       >
         <div className="flex flex-col sm:flex-row">
           {/* Imagen */}
-          <div className="relative w-full sm:w-64 h-64 sm:h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex-shrink-0">
+          <div className="relative w-full sm:w-64 h-64 sm:h-48 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shrink-0">
             {primeraImagen ? (
               <>
-                <img 
-                  src={primeraImagen} 
+                <Image
+                  src={primeraImagen ?? ''}
                   alt={producto.nombre}
+                  width={400}
+                  height={400}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  style={{ objectFit: 'cover' }}
+                  priority
                 />
                 {/* Indicador de múltiples imágenes */}
                 {totalImagenes > 1 && (
@@ -69,7 +74,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
                 )}
               </>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20">
+              <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20">
                 <svg className="w-16 h-16 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -78,13 +83,13 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
             
             {/* Badges de descuento y oferta */}
             {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 && (
-              <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-sm">
+              <div className="absolute top-3 left-3 bg-linear-to-br from-red-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-sm">
                 -{producto.descuento_porcentaje}%
               </div>
             )}
             
             {producto.en_oferta && (
-              <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-xs">
+              <div className="absolute top-3 right-3 bg-linear-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-xs">
                 🔥 OFERTA
               </div>
             )}
@@ -141,7 +146,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
                       {colegiosDisponibles.slice(0, 5).map(colegio => (
                         <span 
                           key={colegio} 
-                          className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded"
+                          className="bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded"
                         >
                           {colegio}
                         </span>
@@ -165,12 +170,12 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
                     <span className="text-2xl text-gray-500 dark:text-gray-400 line-through block">
                       {formatPrice(producto.precio)}
                     </span>
-                    <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                    <span className="text-4xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                       {formatPrice(precioFinal)}
                     </span>
                   </div>
                 ) : (
-                  <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                  <span className="text-4xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                     {formatPrice(producto.precio)}
                   </span>
                 )}

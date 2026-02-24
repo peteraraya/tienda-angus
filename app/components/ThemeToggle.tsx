@@ -3,29 +3,32 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const isClient = typeof window !== 'undefined'
 
-  useEffect(() => {
-    setMounted(true)
+  // Derive theme directly from external sources
+  const getShouldBeDark = () => {
+    if (!isClient) return false
     const theme = localStorage.getItem('theme')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const shouldBeDark = theme === 'dark' || (!theme && prefersDark)
-    
-    setIsDark(shouldBeDark)
-    
-    // Asegurar que la clase se aplique correctamente
+    return theme === 'dark' || (!theme && prefersDark)
+  }
+
+  const [_, setForceUpdate] = useState(0) // Used to force re-render after toggle
+
+  useEffect(() => {
+    if (!isClient) return
+    const shouldBeDark = getShouldBeDark()
     if (shouldBeDark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
-  }, [])
+  }, [isClient])
 
   const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    
+    if (!isClient) return
+    const shouldBeDark = getShouldBeDark()
+    const newTheme = !shouldBeDark
     if (newTheme) {
       document.documentElement.classList.add('dark')
       localStorage.setItem('theme', 'dark')
@@ -33,13 +36,16 @@ export default function ThemeToggle() {
       document.documentElement.classList.remove('dark')
       localStorage.setItem('theme', 'light')
     }
+    setForceUpdate((v) => v + 1) // Force re-render to update icon
   }
 
-  if (!mounted) {
+  if (!isClient) {
     return (
       <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />
     )
   }
+
+  const isDark = getShouldBeDark()
 
   return (
     <button

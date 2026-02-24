@@ -39,7 +39,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
   }, [productos])
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = productos.filter(producto => {
+    const filtered = productos.filter(producto => {
       const matchesSearch = searchTerm === '' || 
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())

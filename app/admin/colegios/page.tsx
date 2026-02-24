@@ -142,7 +142,7 @@ export default function ColegiosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-6">
@@ -200,7 +200,7 @@ export default function ColegiosPage() {
               )}
               <button
                 onClick={agregarColegio}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
               >
                 Agregar Colegio
               </button>

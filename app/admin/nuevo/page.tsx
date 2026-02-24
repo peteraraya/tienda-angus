@@ -419,7 +419,7 @@ export default function NuevoProducto() {
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl"
+              className="flex-1 bg-linear-to-br from-green-600 to-green-700 text-white p-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl"
             >
               Crear Producto
             </button>
