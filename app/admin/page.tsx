@@ -51,6 +51,7 @@ export default function AdminPage() {
   const [selectedColegio, setSelectedColegio] = useState('')
   const [selectedTalla, setSelectedTalla] = useState('')
   const [selectedStockFilter, setSelectedStockFilter] = useState('') // Nuevo filtro
+  const [variantSearchTerm, setVariantSearchTerm] = useState('') // Filtro de variantes
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
   const [editingProductName, setEditingProductName] = useState<string | null>(null)
@@ -346,22 +347,27 @@ export default function AdminPage() {
 
   const filteredProducts = useMemo(() => {
     return productos.filter(producto => {
-      // Búsqueda mejorada - más natural
+      // Búsqueda mejorada - busca en productos Y variantes
       if (searchTerm !== '') {
         const search = searchTerm.toLowerCase()
+        
+        // Buscar en campos del producto
         const matchesNombre = producto.nombre.toLowerCase().includes(search)
         const matchesDescripcion = producto.descripcion.toLowerCase().includes(search)
         const matchesCategoria = producto.categoria.toLowerCase().includes(search)
         const matchesPrecio = producto.precio.toString().includes(search)
+        const matchesNotas = producto.notas?.toLowerCase().includes(search)
         
-        // Buscar en variantes (colegio y talla)
+        // Buscar en variantes (colegio, talla, stock)
         const matchesVariantes = producto.variantes?.some(v => 
           v.colegio.toLowerCase().includes(search) ||
-          v.talla.toLowerCase().includes(search)
+          v.talla.toLowerCase().includes(search) ||
+          v.stock.toString().includes(search)
         )
         
         // Si no coincide con nada, filtrar
-        if (!matchesNombre && !matchesDescripcion && !matchesCategoria && !matchesPrecio && !matchesVariantes) {
+        if (!matchesNombre && !matchesDescripcion && !matchesCategoria && 
+            !matchesPrecio && !matchesNotas && !matchesVariantes) {
           return false
         }
       }
@@ -377,7 +383,7 @@ export default function AdminPage() {
       const matchesTalla = selectedTalla === '' || 
         producto.variantes?.some(v => v.talla === selectedTalla)
 
-      // Filtro por stock (NUEVO)
+      // Filtro por stock
       let matchesStock = true
       if (selectedStockFilter === 'disponible') {
         matchesStock = (producto.stock_total || 0) > 6
@@ -660,7 +666,7 @@ export default function AdminPage() {
                 ref={searchInputRef}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 Buscar por nombre, categoría, colegio, talla o precio..."
+                placeholder="🔍 Buscar por nombre, categoría, colegio, talla, precio, stock o notas..."
                 className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
               />
               {searchTerm && (
@@ -678,7 +684,7 @@ export default function AdminPage() {
             </div>
 
             {/* Segunda fila: Filtros rápidos */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -722,11 +728,9 @@ export default function AdminPage() {
                 <option value="bajo">🟡 Stock bajo (1-6)</option>
                 <option value="agotado">🔴 Agotados (0)</option>
               </select>
-            </div>
 
-            {/* Botón limpiar filtros */}
-            {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
-              <div className="flex justify-end">
+              {/* Botón limpiar filtros - integrado en la misma fila */}
+              {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
                 <Button
                   onClick={() => {
                     setSearchTerm('')
@@ -735,15 +739,15 @@ export default function AdminPage() {
                     setSelectedTalla('')
                     setSelectedStockFilter('')
                   }}
-                  className="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold flex items-center gap-2"
+                  className="col-span-2 md:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold flex items-center justify-center gap-2 text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Limpiar Filtros
+                  Limpiar
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Contador de resultados y filtros activos */}
@@ -841,6 +845,9 @@ export default function AdminPage() {
           editingProductName={editingProductName}
           editingProductPrice={editingProductPrice}
           editingProductNotas={editingProductNotas}
+          variantSearchTerm={variantSearchTerm}
+          selectedColegio={selectedColegio}
+          selectedTalla={selectedTalla}
           onToggleExpand={toggleExpandProduct}
           onUpdateDescuento={updateDescuento}
           onToggleOferta={toggleOferta}
@@ -854,6 +861,7 @@ export default function AdminPage() {
           onUpdateProductNotas={updateProductNotas}
           onDuplicate={duplicateProduct}
           onDelete={deleteProducto}
+          onSetVariantSearchTerm={setVariantSearchTerm}
         />
 
         {/* Paginación */}

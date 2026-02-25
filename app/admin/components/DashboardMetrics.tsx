@@ -29,6 +29,7 @@ interface Metrics {
 export function DashboardMetrics() {
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     loadMetrics()
@@ -130,13 +131,10 @@ export function DashboardMetrics() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          </div>
-        ))}
+      <div className="mb-8">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg animate-pulse">
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+        </div>
       </div>
     )
   }
@@ -144,104 +142,164 @@ export function DashboardMetrics() {
   if (!metrics) return null
 
   return (
-    <div className="space-y-6 mb-8">
-      {/* Métricas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Ventas de hoy */}
-        <MetricCard
-          title="Ventas Hoy"
-          value={formatPrice(metrics.ventasHoy.total)}
-          subtitle={`${metrics.ventasHoy.cantidad} ventas`}
-          icon="💰"
-          color="blue"
-        />
-
-        {/* Ventas de la semana */}
-        <MetricCard
-          title="Ventas Semana"
-          value={formatPrice(metrics.ventasSemana.total)}
-          subtitle={`${metrics.ventasSemana.cantidad} ventas`}
-          icon="📊"
-          color="green"
-        />
-
-        {/* Ventas del mes */}
-        <MetricCard
-          title="Ventas Mes"
-          value={formatPrice(metrics.ventasMes.total)}
-          subtitle={`${metrics.ventasMes.cantidad} ventas`}
-          icon="📈"
-          color="purple"
-        />
-
-        {/* Clientes nuevos */}
-        <MetricCard
-          title="Clientes Nuevos"
-          value={metrics.clientesNuevos.toString()}
-          subtitle="Este mes"
-          icon="👥"
-          color="indigo"
-        />
-      </div>
-
-      {/* Alertas y productos más vendidos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Alertas */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span>⚠️</span>
-            Alertas
-          </h3>
-          <div className="space-y-3">
-            <AlertItem
-              label="Stock Bajo"
-              value={metrics.stockBajo}
-              color="orange"
-              link="/admin"
-            />
-            <AlertItem
-              label="Pedidos Pendientes"
-              value={metrics.pedidosPendientes}
-              color="yellow"
-              link="/admin/pedidos"
-            />
+    <div className="mb-8">
+      {/* Header colapsable */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg hover:shadow-xl transition-all mb-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📊</span>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Dashboard de Métricas
+            </h2>
           </div>
-        </div>
-
-        {/* Productos más vendidos */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span>🏆</span>
-            Top 5 Productos (30 días)
-          </h3>
-          <div className="space-y-2">
-            {metrics.productosMasVendidos.length > 0 ? (
-              metrics.productosMasVendidos.map((producto, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-400 dark:text-gray-500 w-6">
-                      {index + 1}
-                    </span>
-                    <span className="text-sm text-gray-900 dark:text-white">
-                      {producto.nombre}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    {producto.cantidad} vendidos
+          
+          {/* Resumen compacto cuando está cerrado */}
+          {!isExpanded && (
+            <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600 dark:text-gray-400">Hoy:</span>
+                <span className="font-bold text-green-600 dark:text-green-400">
+                  {formatPrice(metrics.ventasHoy.total)}
+                </span>
+              </div>
+              {metrics.stockBajo > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-600 dark:text-orange-400">⚠️</span>
+                  <span className="font-semibold text-orange-600 dark:text-orange-400">
+                    {metrics.stockBajo} stock bajo
                   </span>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                No hay datos de ventas
-              </p>
-            )}
+              )}
+              {metrics.pedidosPendientes > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-600 dark:text-yellow-400">📋</span>
+                  <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                    {metrics.pedidosPendientes} pedidos
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Icono de expandir/colapsar */}
+          <svg
+            className={`w-6 h-6 text-gray-600 dark:text-gray-400 transition-transform ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {/* Contenido expandible */}
+      {isExpanded && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Métricas principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Ventas de hoy */}
+            <MetricCard
+              title="Ventas Hoy"
+              value={formatPrice(metrics.ventasHoy.total)}
+              subtitle={`${metrics.ventasHoy.cantidad} ventas`}
+              icon="💰"
+              color="blue"
+            />
+
+            {/* Ventas de la semana */}
+            <MetricCard
+              title="Ventas Semana"
+              value={formatPrice(metrics.ventasSemana.total)}
+              subtitle={`${metrics.ventasSemana.cantidad} ventas`}
+              icon="📊"
+              color="green"
+            />
+
+            {/* Ventas del mes */}
+            <MetricCard
+              title="Ventas Mes"
+              value={formatPrice(metrics.ventasMes.total)}
+              subtitle={`${metrics.ventasMes.cantidad} ventas`}
+              icon="📈"
+              color="purple"
+            />
+
+            {/* Clientes nuevos */}
+            <MetricCard
+              title="Clientes Nuevos"
+              value={metrics.clientesNuevos.toString()}
+              subtitle="Este mes"
+              icon="👥"
+              color="indigo"
+            />
+          </div>
+
+          {/* Alertas y productos más vendidos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Alertas */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>⚠️</span>
+                Alertas
+              </h3>
+              <div className="space-y-3">
+                <AlertItem
+                  label="Stock Bajo"
+                  value={metrics.stockBajo}
+                  color="orange"
+                  link="/admin"
+                />
+                <AlertItem
+                  label="Pedidos Pendientes"
+                  value={metrics.pedidosPendientes}
+                  color="yellow"
+                  link="/admin/pedidos"
+                />
+              </div>
+            </div>
+
+            {/* Productos más vendidos */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>🏆</span>
+                Top 5 Productos (30 días)
+              </h3>
+              <div className="space-y-2">
+                {metrics.productosMasVendidos.length > 0 ? (
+                  metrics.productosMasVendidos.map((producto, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-gray-400 dark:text-gray-500 w-6">
+                          {index + 1}
+                        </span>
+                        <span className="text-sm text-gray-900 dark:text-white">
+                          {producto.nombre}
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                        {producto.cantidad} vendidos
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                    No hay datos de ventas
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

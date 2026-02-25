@@ -34,6 +34,9 @@ interface Props {
   editingProductName: string | null
   editingProductPrice: string | null
   editingProductNotas: string | null
+  variantSearchTerm?: string
+  selectedColegio?: string
+  selectedTalla?: string
   onToggleExpand: (id: string) => void
   onUpdateDescuento: (id: string, descuento: number) => void
   onToggleOferta: (id: string, currentState: boolean) => void
@@ -47,6 +50,7 @@ interface Props {
   onUpdateProductNotas: (id: string, notas: string) => void
   onDuplicate: (producto: Producto) => void
   onDelete: (id: string) => void
+  onSetVariantSearchTerm?: (term: string) => void
 }
 
 export default function ProductListNotebook({
@@ -56,6 +60,9 @@ export default function ProductListNotebook({
   editingProductName,
   editingProductPrice,
   editingProductNotas,
+  variantSearchTerm = '',
+  selectedColegio = '',
+  selectedTalla = '',
   onToggleExpand,
   onUpdateDescuento,
   onToggleOferta,
@@ -68,13 +75,58 @@ export default function ProductListNotebook({
   onUpdateProductPrice,
   onUpdateProductNotas,
   onDuplicate,
-  onDelete
+  onDelete,
+  onSetVariantSearchTerm
 }: Props) {
   const router = useRouter()
 
   const calcularPrecioFinal = (precio: number, descuento?: number) => {
     if (!descuento || descuento === 0) return precio
     return precio - (precio * descuento / 100)
+  }
+
+  // Función para filtrar variantes según filtros globales y búsqueda local
+  const filterVariantes = (variantes: Variante[]) => {
+    console.log('🔍 Filtrando variantes:', {
+      totalVariantes: variantes.length,
+      selectedColegio,
+      selectedTalla,
+      variantSearchTerm
+    })
+    
+    const filtered = variantes.filter(v => {
+      // Filtro de búsqueda local (dentro del panel de variantes)
+      if (variantSearchTerm) {
+        const search = variantSearchTerm.toLowerCase().trim()
+        const matchesSearch = v.colegio.toLowerCase().includes(search) || 
+                             v.talla.toLowerCase().includes(search) ||
+                             v.stock.toString().includes(search)
+        if (!matchesSearch) return false
+      }
+
+      // Filtro global de colegio (comparación exacta, sin espacios)
+      if (selectedColegio && selectedColegio.trim() !== '') {
+        const colegioMatch = v.colegio.trim() === selectedColegio.trim()
+        if (!colegioMatch) {
+          console.log(`❌ Variante "${v.colegio}" no coincide con filtro "${selectedColegio}"`)
+          return false
+        }
+      }
+
+      // Filtro global de talla (comparación exacta, sin espacios)
+      if (selectedTalla && selectedTalla.trim() !== '') {
+        const tallaMatch = v.talla.trim() === selectedTalla.trim()
+        if (!tallaMatch) {
+          console.log(`❌ Variante talla "${v.talla}" no coincide con filtro "${selectedTalla}"`)
+          return false
+        }
+      }
+
+      return true
+    })
+    
+    console.log('✅ Variantes filtradas:', filtered.length)
+    return filtered
   }
 
   if (productos.length === 0) {
@@ -544,23 +596,64 @@ export default function ProductListNotebook({
           </div>
 
           {/* Panel expandible de variantes */}
-          {expandedProduct === producto.id && producto.variantes && producto.variantes.length > 0 && (
-            <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-6 py-4">
-              <h4 className="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Gestión Rápida de Variantes
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {producto.variantes
-                  .sort((a, b) => {
-                    const colegioCompare = a.colegio.localeCompare(b.colegio)
-                    if (colegioCompare !== 0) return colegioCompare
-                    const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
-                    return order.indexOf(a.talla) - order.indexOf(b.talla)
-                  })
-                  .map((variante) => (
+          {expandedProduct === producto.id && producto.variantes && producto.variantes.length > 0 && (() => {
+            const filteredVariantes = filterVariantes(producto.variantes)
+            return (
+              <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-6 py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Gestión Rápida de Variantes
+                    <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+                      ({filteredVariantes.length} de {producto.variantes.length})
+                    </span>
+                  </h4>
+                  {onSetVariantSearchTerm && (
+                    <div className="relative w-64">
+                      <input
+                        type="text"
+                        value={variantSearchTerm}
+                        onChange={(e) => onSetVariantSearchTerm(e.target.value)}
+                        placeholder="🔍 Buscar variante..."
+                        className="w-full pl-3 pr-8 py-1.5 text-sm border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      {variantSearchTerm && (
+                        <button
+                          onClick={() => onSetVariantSearchTerm('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {filteredVariantes.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <p className="text-slate-600 dark:text-slate-400 font-semibold">No se encontraron variantes</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                      {variantSearchTerm || selectedColegio || selectedTalla 
+                        ? 'Intenta con otros filtros' 
+                        : 'Este producto no tiene variantes'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {filteredVariantes
+                      .sort((a, b) => {
+                        const colegioCompare = a.colegio.localeCompare(b.colegio)
+                        if (colegioCompare !== 0) return colegioCompare
+                        const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
+                        return order.indexOf(a.talla) - order.indexOf(b.talla)
+                      })
+                      .map((variante) => (
                   <div 
                     key={variante.id} 
                     className="bg-white dark:bg-slate-800 p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm"
@@ -653,9 +746,11 @@ export default function ProductListNotebook({
                     </div>
                   </div>
                 ))}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
         </div>
       ))}
 
