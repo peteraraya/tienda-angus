@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    domains: ["javer.cl", "el13uniformes.cl"],
+    domains: ["javer.cl", "el13uniformes.cl", "via.placeholder.com"],
   },
 };
 

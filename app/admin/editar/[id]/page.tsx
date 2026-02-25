@@ -408,9 +408,9 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
             )}
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Variantes (Tallas y Colegios)</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Variantes (Tallas y Colegios)</h2>
               <Button
                 type="button"
                 variant="info"
@@ -421,14 +421,14 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
               </Button>
             </div>
             
-            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+            <div className="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 text-sm">Talla</label>
+                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Talla</label>
                   <select
                     value={nuevaVariante.talla}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, talla: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">Seleccionar</option>
                     <optgroup label="Tallas Numéricas">
@@ -441,11 +441,11 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 text-sm">Colegio</label>
+                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Colegio</label>
                   <select
                     value={nuevaVariante.colegio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, colegio: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">Seleccionar</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
@@ -453,12 +453,13 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 text-sm">Stock</label>
+                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Stock</label>
                   <Input
                     type="number"
                     value={nuevaVariante.stock}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, stock: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="0"
                     min="0"
                   />
                 </div>
@@ -477,30 +478,30 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
             </div>
 
             {variantes.length > 0 && (
-              <div className="bg-white border rounded-lg overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <table className="w-full">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-gray-100 dark:bg-gray-700">
                     <tr>
-                      <th className="p-3 text-left text-sm font-bold">Talla</th>
-                      <th className="p-3 text-left text-sm font-bold">Colegio</th>
-                      <th className="p-3 text-left text-sm font-bold">Stock</th>
-                      <th className="p-3 text-left text-sm font-bold">Acción</th>
+                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Talla</th>
+                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Colegio</th>
+                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Stock</th>
+                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
                     {variantes.map((v, index) => (
-                      <tr key={index} className="border-t">
-                        <td className="p-3 font-semibold">{v.talla}</td>
-                        <td className="p-3">{v.colegio}</td>
-                        <td className="p-3 font-semibold text-green-600">{v.stock}</td>
+                      <tr key={index} className="border-t border-gray-200 dark:border-gray-700">
+                        <td className="p-3 font-semibold text-gray-900 dark:text-white">{v.talla}</td>
+                        <td className="p-3 text-gray-900 dark:text-white">{v.colegio}</td>
+                        <td className="p-3 font-semibold text-green-600 dark:text-green-400">{v.stock}</td>
                         <td className="p-3">
-                          <button
-                            type="button"
+                          <Button
+                            variant="danger"
                             onClick={() => eliminarVariante(index)}
                             className="text-red-600 hover:text-red-800 font-semibold"
                           >
                             Eliminar
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -508,18 +509,20 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                 </table>
               </div>
             )}
+
+            {variantes.length === 0 && (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No hay variantes agregadas</p>
+            )}
           </div>
 
           <div className="flex gap-4 pt-4">
             <Button
               type="submit"
-              variant="info"
               className="flex-1 bg-linear-to-br from-blue-600 to-blue-700 text-white p-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
             >
               Actualizar Producto
             </Button>
             <Button
-              type="button"
               variant="secondary"
               onClick={() => router.push('/admin')}
               className="flex-1 bg-gray-600 text-white p-4 rounded-lg font-semibold hover:bg-gray-700 transition-all"
