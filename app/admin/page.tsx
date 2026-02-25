@@ -11,6 +11,8 @@ import { Button, Input, LazyImage } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
 import KeyboardShortcuts from './components/KeyboardShortcuts'
+import NotificationCenter from './components/NotificationCenter'
+import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
 
 interface Variante {
   id: string
@@ -502,6 +504,7 @@ export default function AdminPage() {
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Gestiona tu inventario</p>
               </div>
+              <NotificationCenter />
             </div>
             <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
               <Button
@@ -834,6 +837,7 @@ export default function AdminPage() {
       </div>
       
       <KeyboardShortcuts searchInputRef={searchInputRef} />
+      <GlobalKeyboardShortcuts />
       <ConfirmDialog />
     </div>
   )

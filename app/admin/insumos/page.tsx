@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
+import ViewToggle from '../components/ViewToggle'
 
 interface Insumo {
   id: string
@@ -34,6 +35,7 @@ export default function InsumosPage() {
   const [selectedCategoria, setSelectedCategoria] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingInsumo, setEditingInsumo] = useState<Insumo | null>(null)
+  const [viewMode, setViewMode] = useState<'compact' | 'expanded'>('expanded')
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -50,6 +52,13 @@ export default function InsumosPage() {
 
   useEffect(() => {
     loadInsumos()
+
+    // Listener para cambios de vista desde atajos de teclado
+    const handleViewChange = (e: CustomEvent) => {
+      setViewMode(e.detail)
+    }
+    window.addEventListener('changeView', handleViewChange as EventListener)
+    return () => window.removeEventListener('changeView', handleViewChange as EventListener)
   }, [])
 
   async function loadInsumos() {
@@ -204,119 +213,231 @@ export default function InsumosPage() {
       <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Filtros */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="🔍 Buscar insumos..."
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            <select
-              value={selectedCategoria}
-              onChange={(e) => setSelectedCategoria(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">📁 Todas las categorías</option>
-              {categorias.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Buscar insumos..."
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <select
+                value={selectedCategoria}
+                onChange={(e) => setSelectedCategoria(e.target.value)}
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">📁 Todas las categorías</option>
+                {categorias.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <ViewToggle view={viewMode} onViewChange={setViewMode} />
           </div>
         </div>
 
         {/* Lista de insumos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {insumosFiltrados.length === 0 ? (
-            <div className="col-span-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <p className="text-gray-500 dark:text-gray-400 text-lg">No hay insumos</p>
-            </div>
-          ) : (
-            insumosFiltrados.map(insumo => (
-              <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
-                <div className="relative">
-                  {insumo.imagen_url ? (
-                    <img src={insumo.imagen_url} alt={insumo.nombre} className="w-full h-48 object-cover" />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                    </div>
-                  )}
-                  {!insumo.activo && (
-                    <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                      Inactivo
-                    </div>
-                  )}
-                  {insumo.stock_actual <= insumo.stock_minimo && (
-                    <div className="absolute top-2 left-2 bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                      ⚠️ Stock bajo
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-6">
-                  <div className="mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{insumo.nombre}</h3>
-                    {insumo.categoria && (
-                      <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded-md">
-                        {insumo.categoria}
-                      </span>
+        {viewMode === 'expanded' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {insumosFiltrados.length === 0 ? (
+              <div className="col-span-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <p className="text-gray-500 dark:text-gray-400 text-lg">No hay insumos</p>
+              </div>
+            ) : (
+              insumosFiltrados.map(insumo => (
+                <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                  <div className="relative">
+                    {insumo.imagen_url ? (
+                      <img src={insumo.imagen_url} alt={insumo.nombre} className="w-full h-48 object-cover" />
+                    ) : (
+                      <div className="w-full h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                      </div>
+                    )}
+                    {!insumo.activo && (
+                      <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        Inactivo
+                      </div>
+                    )}
+                    {insumo.stock_actual <= insumo.stock_minimo && (
+                      <div className="absolute top-2 left-2 bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        ⚠️ Stock bajo
+                      </div>
                     )}
                   </div>
 
-                  {insumo.descripcion && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{insumo.descripcion}</p>
-                  )}
+                  <div className="p-6">
+                    <div className="mb-3">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{insumo.nombre}</h3>
+                      {insumo.categoria && (
+                        <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded-md">
+                          {insumo.categoria}
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Stock actual:</span>
-                      <span className={`font-semibold ${
-                        insumo.stock_actual <= insumo.stock_minimo 
-                          ? 'text-red-600 dark:text-red-400' 
-                          : 'text-green-600 dark:text-green-400'
-                      }`}>
-                        {insumo.stock_actual} {insumo.unidad_medida}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Stock mínimo:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {insumo.stock_minimo} {insumo.unidad_medida}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Precio ref.:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {formatPrice(insumo.precio_referencia)}
-                      </span>
-                    </div>
-                  </div>
+                    {insumo.descripcion && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{insumo.descripcion}</p>
+                    )}
 
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => editarInsumo(insumo)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      onClick={() => eliminarInsumo(insumo.id, insumo.nombre)}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition-all"
-                    >
-                      Eliminar
-                    </Button>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Stock actual:</span>
+                        <span className={`font-semibold ${
+                          insumo.stock_actual <= insumo.stock_minimo 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {insumo.stock_actual} {insumo.unidad_medida}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Stock mínimo:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {insumo.stock_minimo} {insumo.unidad_medida}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Precio ref.:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {formatPrice(insumo.precio_referencia)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => editarInsumo(insumo)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        onClick={() => eliminarInsumo(insumo.id, insumo.nombre)}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition-all"
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Insumo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Categoría
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Stock
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Precio Ref.
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {insumosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      No hay insumos
+                    </td>
+                  </tr>
+                ) : (
+                  insumosFiltrados.map(insumo => (
+                    <tr key={insumo.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {insumo.imagen_url && (
+                            <img src={insumo.imagen_url} alt={insumo.nombre} className="w-10 h-10 rounded object-cover" />
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white">{insumo.nombre}</p>
+                            {insumo.descripcion && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{insumo.descripcion}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {insumo.categoria && (
+                          <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded-md">
+                            {insumo.categoria}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className={`font-semibold ${
+                            insumo.stock_actual <= insumo.stock_minimo 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {insumo.stock_actual} {insumo.unidad_medida}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Mín: {insumo.stock_minimo}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {formatPrice(insumo.precio_referencia)}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        {insumo.activo ? (
+                          <span className="inline-block bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-2 py-1 rounded-md">
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="inline-block bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold px-2 py-1 rounded-md">
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            onClick={() => editarInsumo(insumo)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            onClick={() => eliminarInsumo(insumo.id, insumo.nombre)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
+                          >
+                            Eliminar
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal de formulario */}
