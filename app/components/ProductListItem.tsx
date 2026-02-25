@@ -93,6 +93,14 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
                 🔥 OFERTA
               </div>
             )}
+            {/* Badge de Últimas unidades (poco stock) */}
+            {producto.stock_total > 0 && producto.stock_total <= 2 && (
+              <div className="absolute top-0 left-0 z-10">
+                <div className="bg-red-600 text-white px-3 py-1 rounded-lg shadow-md text-sm font-semibold">
+                  ¡Últimas unidades! ({producto.stock_total})
+                </div>
+              </div>
+            )}
             
             {producto.stock_total === 0 && (
               <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-10">

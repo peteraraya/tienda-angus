@@ -193,6 +193,18 @@ export default function ProductCard({ producto }: ProductCardProps) {
             </div>
           )}
 
+          {/* Badge de Últimas unidades (poco stock) */}
+          {producto.stock_total > 0 && producto.stock_total <= 2 && (
+            <div className="absolute top-0 left-0 z-10">
+              <div className="bg-red-600 text-white px-3 py-1 rounded-lg shadow-md">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <span>¡Últimas unidades!</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{producto.stock_total}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Badge de Oferta */}
           {producto.en_oferta && (
             <div className="absolute top-16 right-4 z-10">
