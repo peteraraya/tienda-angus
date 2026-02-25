@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
 import SearchBar from './SearchBar'
+import CountDisplayClient from './CountDisplayClient'
 // Hook para favoritos
 function useFavorites() {
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -167,6 +168,8 @@ export default function ClientProductList({ productos }: ClientProductListProps)
     return () => observer.disconnect()
   }, [displayedProducts.length, filteredAndSortedProducts.length])
 
+  // CountDisplayClient es un componente cliente que monta y muestra el conteo
+
   return (
     <div>
       <SearchBar 
@@ -204,11 +207,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         <div>
           <div className="flex justify-between items-center mb-6">
             <p suppressHydrationWarning className="text-gray-600 dark:text-gray-400">
-              {typeof window !== 'undefined' ? (
-                <>Mostrando <span className="font-semibold text-gray-900 dark:text-white">{displayedProducts.length}</span> de <span className="font-semibold text-gray-900 dark:text-white">{filteredAndSortedProducts.length}</span> {filteredAndSortedProducts.length === 1 ? 'producto' : 'productos'}</>
-              ) : (
-                <>Mostrando productos...</>
-              )}
+              <CountDisplayClient displayed={displayedProducts.length} total={filteredAndSortedProducts.length} />
             </p>
           </div>
 
