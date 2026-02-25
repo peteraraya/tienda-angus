@@ -1,6 +1,5 @@
 'use client'
 
-import { Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -75,8 +74,8 @@ export default function ProductListNotebook({
 
   return (
     <div className="space-y-3">
-      {/* Header estilo cuaderno */}
-      <div className="bg-linear-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-6 py-3 shadow-sm border-2 border-slate-300 dark:border-slate-600">
+      {/* Header estilo cuaderno - Solo visible en desktop */}
+      <div className="hidden lg:block bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-6 py-3 shadow-sm border-2 border-slate-300 dark:border-slate-600">
         <div className="grid grid-cols-12 gap-4 items-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
           <div className="col-span-1">Imagen</div>
           <div className="col-span-2">Nombre</div>
@@ -92,8 +91,9 @@ export default function ProductListNotebook({
       {/* Lista de productos */}
       {productos.map((producto) => (
         <div key={producto.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 overflow-hidden">
-          {/* Fila principal */}
-          <div className="px-6 py-4">
+          
+          {/* Vista Desktop - Grid de 12 columnas */}
+          <div className="hidden lg:block px-6 py-4">
             <div className="grid grid-cols-12 gap-4 items-center">
               {/* Imagen */}
               <div className="col-span-1">
@@ -228,6 +228,127 @@ export default function ProductListNotebook({
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Vista Móvil - Diseño tipo tarjeta */}
+          <div className="lg:hidden p-4 space-y-3">
+            {/* Header con imagen y nombre */}
+            <div className="flex gap-3">
+              <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-sm border-2 border-slate-200 dark:border-slate-600 flex-shrink-0">
+                {producto.imagen_url ? (
+                  <img 
+                    src={producto.imagen_url}
+                    alt={producto.nombre}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{producto.nombre}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{producto.descripcion}</p>
+                <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-0.5 rounded-md mt-2">
+                  {producto.categoria}
+                </span>
+              </div>
+            </div>
+
+            {/* Precio y descuento */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Precio</p>
+                {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                  <div>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
+                    <span className="font-bold text-xl text-green-600 dark:text-green-400">
+                      {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-bold text-xl text-slate-900 dark:text-white">{formatPrice(producto.precio)}</span>
+                )}
+              </div>
+              <button
+                onClick={() => onToggleExpand(producto.id)}
+                className="flex-shrink-0"
+              >
+                <div className={`text-center px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                  (producto.stock_total || 0) > 10 
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                    : (producto.stock_total || 0) > 0 
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                }`}>
+                  <div className="text-2xl">{producto.stock_total || 0}</div>
+                  <div className="text-xs opacity-75">{expandedProduct === producto.id ? '▼' : '▶'} {producto.variantes_count || 0} var</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Descuento y Oferta */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">Descuento</label>
+                <select
+                  value={producto.descuento_porcentaje || 0}
+                  onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
+                  className="w-full px-2 py-2 text-sm border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="0">Sin descuento</option>
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20%</option>
+                  <option value="30">30%</option>
+                  <option value="40">40%</option>
+                  <option value="50">50%</option>
+                  <option value="60">60%</option>
+                  <option value="70">70%</option>
+                  <option value="80">80%</option>
+                  <option value="90">90%</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">En Oferta</label>
+                <button
+                  onClick={() => onToggleOferta(producto.id, producto.en_oferta || false)}
+                  className={`w-full px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    producto.en_oferta
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {producto.en_oferta ? '🔥 Sí' : 'No'}
+                </button>
+              </div>
+            </div>
+
+            {/* Acciones */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => router.push(`/admin/editar/${producto.id}`)}
+                className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+              >
+                ✏️ Editar
+              </button>
+              <button
+                onClick={() => onDuplicate(producto)}
+                className="flex-1 p-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+              >
+                📋 Duplicar
+              </button>
+              <button
+                onClick={() => onDelete(producto.id)}
+                className="flex-1 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+              >
+                🗑️ Eliminar
+              </button>
             </div>
           </div>
 
