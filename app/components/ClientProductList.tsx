@@ -28,25 +28,49 @@ interface ClientProductListProps {
   productos: Producto[]
 }
 
+
 export default function ClientProductList({ productos }: ClientProductListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSort, setSelectedSort] = useState('newest')
   const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid')
+  const [selectedTalla, setSelectedTalla] = useState('')
+  const [selectedColegio, setSelectedColegio] = useState('')
 
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
+
+  // Filtros dinámicos de tallas y colegios según productos filtrados
+  const filteredProductsForFilters = useMemo(() => {
+    return productos.filter(producto => {
+      const matchesSearch = searchTerm === '' || 
+        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
+      return matchesSearch && matchesCategory
+    })
+  }, [productos, searchTerm, selectedCategory])
+
+  const tallas = useMemo(() => {
+    const allTallas = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.talla) || [])
+    return [...new Set(allTallas)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  }, [filteredProductsForFilters])
+
+  const colegios = useMemo(() => {
+    const allColegios = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.colegio) || [])
+    return [...new Set(allColegios)].sort()
+  }, [filteredProductsForFilters])
 
   const filteredAndSortedProducts = useMemo(() => {
     const filtered = productos.filter(producto => {
       const matchesSearch = searchTerm === '' || 
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-      
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-
-      return matchesSearch && matchesCategory
+      const matchesTalla = selectedTalla === '' || producto.variantes.some(v => v.talla === selectedTalla)
+      const matchesColegio = selectedColegio === '' || producto.variantes.some(v => v.colegio === selectedColegio)
+      return matchesSearch && matchesCategory && matchesTalla && matchesColegio
     })
 
     // Ordenar
@@ -71,7 +95,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
     }
 
     return filtered
-  }, [productos, searchTerm, selectedCategory, selectedSort])
+  }, [productos, searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio])
 
   return (
     <div>
@@ -86,6 +110,12 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         onViewChange={setCurrentView}
         currentView={currentView}
         productos={productos.map(p => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion }))}
+        tallas={tallas}
+        selectedTalla={selectedTalla}
+        onTallaChange={setSelectedTalla}
+        colegios={colegios}
+        selectedColegio={selectedColegio}
+        onColegioChange={setSelectedColegio}
       />
 
       {filteredAndSortedProducts.length === 0 ? (
