@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import CategoryIcon from '@mui/icons-material/Category';
 import StraightenIcon from '@mui/icons-material/Straighten';
 import SchoolIcon from '@mui/icons-material/School';
@@ -31,41 +31,49 @@ interface SearchBarProps {
   onColegioChange?: (colegio: string) => void;
 }
 
-export default function SearchBar(props: SearchBarProps) {
-  const {
-    value,
-    onChange,
-    onCategoryChange,
-    selectedCategory,
-    categories,
-    onSortChange,
-    selectedSort,
-    onViewChange,
-    currentView,
-    productos = [],
-    tallas = [],
-    selectedTalla = '',
-    onTallaChange = () => {},
-    colegios = [],
-    selectedColegio = '',
-    onColegioChange = () => {},
-  } = props;
-
+export default function SearchBar({
+  value,
+  onChange,
+  onCategoryChange,
+  selectedCategory,
+  categories,
+  onSortChange,
+  selectedSort,
+  onViewChange,
+  currentView,
+  productos = [],
+  tallas = [],
+  selectedTalla,
+  onTallaChange,
+  colegios = [],
+  selectedColegio,
+  onColegioChange,
+}: SearchBarProps) {
+  // Add missing state and refs
+  const [showFilters, setShowFilters] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showFilters, setShowFilters] = useState(false); // Para collapse en móvil
+  const [suggestions, setSuggestions] = useState<ProductoSugerencia[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const suggestions = value.length > 1
-    ? productos.filter(p =>
-        p.nombre.toLowerCase().includes(value.toLowerCase()) ||
-        p.descripcion.toLowerCase().includes(value.toLowerCase())
-      ).slice(0, 6)
-    : [];
+
+  // Update suggestions when value or productos change
+  React.useEffect(() => {
+    if (value.length > 1) {
+      setSuggestions(
+        productos.filter(
+          (prod) =>
+            prod.nombre.toLowerCase().includes(value.toLowerCase()) ||
+            prod.descripcion.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    } else {
+      setSuggestions([]);
+    }
+  }, [value, productos]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-      <div className="flex flex-col gap-4">
-        {/* Búsqueda y Vista */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch">
+    <div className="w-full flex flex-col gap-4">
+      {/* Búsqueda y Vista */}
+      <div className="flex flex-col md:flex-row gap-4 items-stretch">
           <div className="flex-1 relative flex items-stretch">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +180,7 @@ export default function SearchBar(props: SearchBarProps) {
               </div>
               <select
                 value={selectedTalla}
-                onChange={(e) => onTallaChange(e.target.value)}
+                onChange={(e) => onTallaChange && onTallaChange(e.target.value)}
                 className="w-full pl-8 pr-2 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent appearance-none bg-white dark:bg-gray-700 transition-all cursor-pointer text-gray-900 dark:text-white text-sm"
               >
                 <option value="">Todas las tallas</option>
@@ -188,7 +196,7 @@ export default function SearchBar(props: SearchBarProps) {
               </div>
               <select
                 value={selectedColegio}
-                onChange={(e) => onColegioChange(e.target.value)}
+                onChange={(e) => onColegioChange && onColegioChange(e.target.value)}
                 className="w-full pl-8 pr-2 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent appearance-none bg-white dark:bg-gray-700 transition-all cursor-pointer text-gray-900 dark:text-white text-sm"
               >
                 <option value="">Todos los colegios</option>
@@ -217,9 +225,8 @@ export default function SearchBar(props: SearchBarProps) {
             </div>
           </div>
         )}
-        </div>
       {/* Filtros activos visuales */}
-      {(selectedCategory || selectedSort !== 'newest') && (
+      {(selectedCategory || selectedSort !== 'newest' || (selectedTalla !== undefined && selectedTalla !== '') || (selectedColegio !== undefined && selectedColegio !== '')) && (
         <div className="flex flex-wrap gap-2 mt-4">
           {selectedCategory && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
@@ -228,6 +235,26 @@ export default function SearchBar(props: SearchBarProps) {
                 onClick={() => onCategoryChange('')}
                 className="ml-1 text-blue-900 dark:text-blue-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
                 title="Quitar filtro de categoría"
+              >✕</button>
+            </span>
+          )}
+          {(selectedTalla !== undefined && selectedTalla !== '') && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300">
+              Talla: {selectedTalla}
+              <button
+                onClick={() => onTallaChange && onTallaChange('')}
+                className="ml-1 text-sky-900 dark:text-sky-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                title="Quitar filtro de talla"
+              >✕</button>
+            </span>
+          )}
+          {(selectedColegio !== undefined && selectedColegio !== '') && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+              Colegio: {selectedColegio}
+              <button
+                onClick={() => onColegioChange && onColegioChange('')}
+                className="ml-1 text-orange-900 dark:text-orange-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                title="Quitar filtro de colegio"
               >✕</button>
             </span>
           )}
