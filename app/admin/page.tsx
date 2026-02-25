@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input, LazyImage } from '../components/ui'
+import ProductListNotebook from './components/ProductListNotebook'
 
 interface Variante {
   id: string
@@ -15,6 +16,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  insignia_url?: string
 }
 
 interface Producto {
@@ -83,6 +85,16 @@ export default function AdminPage() {
       .select('*')
       .order('created_at', { ascending: false })
 
+    // Cargar colegios con sus insignias
+    const { data: colegiosData } = await supabase
+      .from('colegios')
+      .select('nombre, insignia_url')
+
+    // Crear mapa con normalización de nombres para evitar problemas de coincidencia
+    const colegiosMap = new Map(
+      colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
+    )
+
     if (productosData) {
       const productosConInfo = await Promise.all(
         productosData.map(async (producto) => {
@@ -91,6 +103,12 @@ export default function AdminPage() {
             .select('*')
             .eq('producto_id', producto.id)
 
+          // Agregar insignia_url a cada variante
+          const variantesConInsignia = variantes?.map(v => ({
+            ...v,
+            insignia_url: colegiosMap.get(v.colegio.trim())
+          })) || []
+
           const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
           const variantes_count = variantes?.length || 0
 
@@ -98,7 +116,7 @@ export default function AdminPage() {
             ...producto,
             stock_total,
             variantes_count,
-            variantes: variantes || []
+            variantes: variantesConInsignia
           }
         })
       )
@@ -123,10 +141,26 @@ export default function AdminPage() {
   }
 
   async function toggleOferta(id: string, currentState: boolean) {
+    const producto = productos.find(p => p.id === id)
+    const nuevoEstado = !currentState
+    
+    const confirmed = await confirm({
+      title: nuevoEstado ? '¿Activar oferta?' : '¿Desactivar oferta?',
+      message: nuevoEstado 
+        ? `Se marcará "${producto?.nombre}" como producto en oferta. Aparecerá con una insignia especial.`
+        : `Se quitará la marca de oferta de "${producto?.nombre}".`,
+      confirmText: nuevoEstado ? 'Activar Oferta' : 'Desactivar',
+      variant: nuevoEstado ? 'warning' : 'info'
+    })
+
+    if (!confirmed) return
+
     await supabase
       .from('productos')
-      .update({ en_oferta: !currentState })
+      .update({ en_oferta: nuevoEstado })
       .eq('id', id)
+    
+    toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
     loadProductos()
   }
 
@@ -135,11 +169,47 @@ export default function AdminPage() {
       toast.error('El descuento debe estar entre 0 y 100')
       return
     }
+
+    const producto = productos.find(p => p.id === id)
+    const descuentoActual = producto?.descuento_porcentaje || 0
+    
+    // Si no hay cambio, no hacer nada
+    if (descuento === descuentoActual) return
+
+    // Si se está quitando el descuento (0%), no pedir confirmación
+    if (descuento === 0) {
+      await supabase
+        .from('productos')
+        .update({ descuento_porcentaje: descuento })
+        .eq('id', id)
+      toast.success('Descuento eliminado')
+      loadProductos()
+      return
+    }
+
+    // Calcular precios
+    const precioOriginal = producto?.precio || 0
+    const precioFinal = precioOriginal - (precioOriginal * descuento / 100)
+    
+    const confirmed = await confirm({
+      title: '¿Aplicar descuento?',
+      message: `Se aplicará un descuento del ${descuento}% a "${producto?.nombre}".\n\nPrecio original: ${formatPrice(precioOriginal)}\nPrecio con descuento: ${formatPrice(precioFinal)}\nAhorro: ${formatPrice(precioOriginal - precioFinal)}`,
+      confirmText: 'Aplicar Descuento',
+      variant: 'warning'
+    })
+
+    if (!confirmed) {
+      // Revertir el select al valor anterior
+      loadProductos()
+      return
+    }
     
     await supabase
       .from('productos')
       .update({ descuento_porcentaje: descuento })
       .eq('id', id)
+    
+    toast.success(`Descuento del ${descuento}% aplicado exitosamente`)
     loadProductos()
   }
 
@@ -555,278 +625,20 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-                <tr>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Imagen</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nombre</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Categoría</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Precio</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Descuento</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">En Oferta</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Stock</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((producto) => (
-                  <Fragment key={producto.id}>
-                  <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="p-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shadow-sm">
-                        {producto.imagen_url ? (
-                          <LazyImage
-                            src={producto.imagen_url}
-                            alt={producto.nombre}
-                            width={80}
-                            height={80}
-                            className="w-full h-full object-cover"
-                            style={{ objectFit: 'cover' }}
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-bold text-gray-900 dark:text-white text-base">{producto.nombre}</p>
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-300 text-xs font-bold px-3 py-1.5 rounded-full">
-                        {producto.categoria}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                          <>
-                            <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">{formatPrice(producto.precio)}</span>
-                            <span className="font-bold text-lg text-green-600 dark:text-green-400">
-                              {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="font-bold text-lg text-gray-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <select
-                        value={producto.descuento_porcentaje || 0}
-                        onChange={(e) => updateDescuento(producto.id, parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                      >
-                        <option value="0">Sin descuento</option>
-                        <option value="5">5%</option>
-                        <option value="10">10%</option>
-                        <option value="15">15%</option>
-                        <option value="20">20%</option>
-                        <option value="30">30%</option>
-                        <option value="40">40%</option>
-                        <option value="50">50%</option>
-                        <option value="60">60%</option>
-                        <option value="70">70%</option>
-                        <option value="80">80%</option>
-                        <option value="90">90%</option>
-                      </select>
-                      {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 && (
-                        <span className="text-xs text-red-600 dark:text-red-400 font-bold mt-1 block">
-                          Ahorro: {formatPrice(producto.precio * (producto.descuento_porcentaje / 100))}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <Button
-                        onClick={() => toggleOferta(producto.id, producto.en_oferta || false)}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md ${
-                          producto.en_oferta
-                            ? 'bg-linear-to-br from-red-500 to-orange-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        {producto.en_oferta ? '🔥 Oferta' : 'Sin oferta'}
-                      </Button>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-center">
-                        <span className={`font-bold text-lg block ${
-                          (producto.stock_total || 0) > 10 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : (producto.stock_total || 0) > 0 
-                            ? 'text-yellow-600 dark:text-yellow-400' 
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {producto.stock_total || 0}
-                        </span>
-                        <Button
-                          onClick={() => toggleExpandProduct(producto.id)}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 block"
-                        >
-                          {expandedProduct === producto.id ? '▼' : '▶'} {producto.variantes_count || 0} variantes
-                        </Button>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2 flex-wrap">
-                        <Button
-                          onClick={() => router.push(`/admin/editar/${producto.id}`)}
-                          className="bg-linear-to-br from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Editar producto"
-                        >
-                          ✏️
-                        </Button>
-                        <Button
-                          onClick={() => duplicateProduct(producto)}
-                          className="bg-linear-to-br from-purple-500 to-purple-600 text-white px-3 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Duplicar producto"
-                        >
-                          📋
-                        </Button>
-                        <Button
-                          onClick={() => deleteProducto(producto.id)}
-                          className="bg-linear-to-br from-red-500 to-red-600 text-white px-3 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Eliminar producto"
-                        >
-                          🗑️
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                  {/* Fila expandible con variantes */}
-                  {expandedProduct === producto.id && producto.variantes && producto.variantes.length > 0 && (
-                    <tr className="bg-gray-50 dark:bg-gray-900/50">
-                      <td colSpan={8} className="p-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
-                          <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            Gestión Rápida de Variantes
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {producto.variantes
-                              .sort((a, b) => {
-                                const colegioCompare = a.colegio.localeCompare(b.colegio)
-                                if (colegioCompare !== 0) return colegioCompare
-                                const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
-                                return order.indexOf(a.talla) - order.indexOf(b.talla)
-                              })
-                              .map((variante) => (
-                              <div 
-                                key={variante.id} 
-                                className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
-                              >
-                                <div className="flex justify-between items-start mb-2">
-                                  <div>
-                                    <span className="font-bold text-gray-900 dark:text-white block">{variante.colegio}</span>
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Talla: {variante.talla}</span>
-                                  </div>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                    variante.stock > 10 
-                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                      : variante.stock > 0 
-                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
-                                      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                                  }`}>
-                                    {variante.stock}
-                                  </span>
-                                </div>
-                                <div className="flex gap-2 mt-3">
-                                  {editingVariant === variante.id ? (
-                                    <>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        defaultValue={variante.stock}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            updateVarianteStock(variante.id, parseInt((e.target as HTMLInputElement).value) || 0)
-                                          }
-                                        }}
-                                        className="flex-1 px-2 py-1 border border-blue-500 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500"
-                                        autoFocus
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="success"
-                                        onClick={() => {
-                                          const input = document.querySelector(`input[type="number"]`) as HTMLInputElement
-                                          updateVarianteStock(variante.id, parseInt(input.value) || 0)
-                                        }}
-                                        className=""
-                                      >
-                                        ✓
-                                      </Button>
-                                      <Button
-                                        variant="danger"
-                                        onClick={() => setEditingVariant(null)}
-                                        className="bg-gray-500 text-white px-3 py-1 rounded-lg hover:bg-gray-600 transition-colors text-xs font-bold"
-                                      >
-                                        ✕
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Button
-                                        variant="danger"
-                                        onClick={() => updateVarianteStock(variante.id, Math.max(0, variante.stock - 1))}
-                                        className="flex-1 bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
-                                      >
-                                        -1
-                                      </Button>
-                                      <Button
-                                        variant="info"
-                                        onClick={() => setEditingVariant(variante.id)}
-                                        className="flex-1 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
-                                      >
-                                        ✏️
-                                      </Button>
-                                      <Button
-                                        variant="success"
-                                        onClick={() => updateVarianteStock(variante.id, variante.stock + 1)}
-                                        className="flex-1 bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
-                                      >
-                                        +1
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-16">
-              <div className="inline-block p-6 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-full mb-4">
-                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No se encontraron productos</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Intenta con otros términos de búsqueda</p>
-            </div>
-          )}
-        </div>
+        <ProductListNotebook
+          productos={filteredProducts}
+          expandedProduct={expandedProduct}
+          editingVariant={editingVariant}
+          onToggleExpand={toggleExpandProduct}
+          onUpdateDescuento={updateDescuento}
+          onToggleOferta={toggleOferta}
+          onUpdateVarianteStock={updateVarianteStock}
+          onSetEditingVariant={setEditingVariant}
+          onDuplicate={duplicateProduct}
+          onDelete={deleteProducto}
+        />
       </div>
       
-
-
       <ConfirmDialog />
     </div>
   )
