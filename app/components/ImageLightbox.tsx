@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from 'react'
-import Image from 'next/image'
-import { Button } from './ui'
+import { Button, LazyImage } from './ui'
 
 interface Props {
   images: string[]
@@ -81,7 +80,7 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => onClose && onClose()}>
       <div className="relative max-w-[95vw] max-h-[95vh] w-full" onClick={e => e.stopPropagation()} ref={containerRef} onWheel={wheelZoom}>
         <div className="relative w-full flex items-center justify-center">
-          <Image
+          <LazyImage
             src={images[index]}
             alt={`Imagen ${index + 1}`}
             draggable={false}
@@ -156,7 +155,7 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
                 aria-label={`Ver imagen ${i + 1}`}
                 className={`w-12 h-12 overflow-hidden rounded ${i === index ? 'ring-2 ring-white' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
-                <Image src={img} alt={`Miniatura ${i + 1}`} width={48} height={48} className="w-full h-full object-cover" />
+                <LazyImage src={img} alt={`Miniatura ${i + 1}`} width={48} height={48} className="w-full h-full object-cover" />
               </Button>
             ))}
           </div>

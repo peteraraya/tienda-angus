@@ -7,7 +7,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import SearchIcon from '@mui/icons-material/Search'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
-import Image from 'next/image'
+import { LazyImage } from './ui'
 import ImageLightbox from './ImageLightbox'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -138,7 +138,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 group">
                 {imagenes.length > 0 ? (
                   <>
-                    <Image
+                    <LazyImage
                       src={imagenes[currentImageIndex]}
                       alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
                       width={800}
@@ -208,7 +208,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                           : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                       } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
-                      <Image
+                      <LazyImage
                         src={img}
                         alt={`Miniatura ${index + 1}`}
                         width={100}

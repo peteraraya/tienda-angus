@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import Image from 'next/image'
+import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -122,7 +122,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
         <div className="relative h-72 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
           {imagenes.length > 0 ? (
             <>
-              <Image
+              <LazyImage
                 src={imagenes[currentImageIndex]}
                 alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
                 fill

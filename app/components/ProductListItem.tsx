@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -54,7 +54,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
           <div className="relative w-full sm:w-64 h-64 sm:h-48 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shrink-0">
             {primeraImagen ? (
               <>
-                <Image
+                <LazyImage
                   src={primeraImagen ?? ''}
                   alt={producto.nombre}
                   width={400}

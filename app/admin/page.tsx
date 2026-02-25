@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useMemo, Fragment } from 'react'
-import Image from 'next/image'
+// use LazyImage for placeholders and lazy loading in admin previews
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input } from '../components/ui'
+import { Button, Input, LazyImage } from '../components/ui'
 
 interface Variante {
   id: string
@@ -577,14 +577,14 @@ export default function AdminPage() {
                     <td className="p-4">
                       <div className="w-20 h-20 rounded-xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shadow-sm">
                         {producto.imagen_url ? (
-                          <Image
+                          <LazyImage
                             src={producto.imagen_url}
                             alt={producto.nombre}
                             width={80}
                             height={80}
                             className="w-full h-full object-cover"
                             style={{ objectFit: 'cover' }}
-                            unoptimized // Remove this line if you want Next.js optimization
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -826,14 +826,6 @@ export default function AdminPage() {
       </div>
       
 
-      {/* Footer fijo y centrado en móvil */}
-      <footer className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-4 mt-10 text-center md:text-left fixed bottom-0 left-0 z-20">
-        <div className="flex flex-col items-center gap-1 md:items-start">
-          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">© 2026 Confecciones Angus</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Contacto: <a href="mailto:ventas@confeccionesangus.cl" className="underline hover:text-blue-600">ventas@confeccionesangus.cl</a></p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">WhatsApp: <a href="https://wa.me/56912345678" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-600">+56 9 1234 5678</a></p>
-        </div>
-      </footer>
 
       <ConfirmDialog />
     </div>

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+// Use LazyImage for insignia previews
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input } from '@/app/components/ui'
+import { Button, Input, LazyImage } from '@/app/components/ui'
 
 interface Colegio {
   id: string
@@ -210,15 +210,15 @@ export default function ColegiosPage() {
               />
               {nuevoColegio.insignia_url && (
                 <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                  <Image
-                    src={nuevoColegio.insignia_url}
-                    alt="Vista previa"
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-contain rounded-lg border border-gray-300 dark:border-gray-600"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                    unoptimized
-                  />
+                      <LazyImage
+                        src={nuevoColegio.insignia_url}
+                        alt="Vista previa"
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 object-contain rounded-lg border border-gray-300 dark:border-gray-600"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        unoptimized
+                      />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Vista previa de la insignia</span>
                 </div>
               )}
@@ -258,7 +258,7 @@ export default function ColegiosPage() {
                     {/* Insignia */}
                     <div className="shrink-0">
                       {colegio.insignia_url ? (
-                        <Image
+                        <LazyImage
                           src={colegio.insignia_url}
                           alt={`Insignia ${colegio.nombre}`}
                           width={64}

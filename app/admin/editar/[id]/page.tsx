@@ -5,8 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
-import { Button, Input } from '@/app/components/ui'
-import Image from 'next/image'
+import { Button, Input, LazyImage } from '@/app/components/ui'
 
 const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
 const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
@@ -344,7 +343,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {imagenes.filter(img => img).map((img, index) => (
                   <div key={index} className="relative group">
-                    <Image
+                    <LazyImage
                       src={img}
                       alt={`Preview ${index + 1}`}
                       className="w-full aspect-square object-cover rounded-lg border-2 border-gray-300"

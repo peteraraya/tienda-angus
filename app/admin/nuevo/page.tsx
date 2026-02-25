@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+// LazyImage for admin previews
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
-import { Button, Input } from '@/app/components/ui'
+import { Button, Input, LazyImage } from '@/app/components/ui'
 
 const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
 const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
@@ -287,13 +287,13 @@ export default function NuevoProducto() {
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {imagenes.filter(img => img).map((img, index) => (
                   <div key={index} className="relative group">
-                    <Image
+                    <LazyImage
                       src={img}
                       alt={`Preview ${index + 1}`}
                       width={300}
                       height={300}
                       className="w-full aspect-square object-cover rounded-lg border-2 border-gray-300"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                       unoptimized
                     />
                     <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
