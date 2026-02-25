@@ -32,31 +32,35 @@ interface ProductCardProps {
 export default function ProductCard({ producto }: ProductCardProps) {
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFavorite, setIsFavorite] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
+  const [isMounted, setIsMounted] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+
+  // Montar el componente y cargar favoritos solo en el cliente
+  useEffect(() => {
+    setIsMounted(true)
     try {
       const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
-      return favs.includes(producto.id)
+      setIsFavorite(favs.includes(producto.id))
     } catch {
-      return false
+      setIsFavorite(false)
     }
-  })
+  }, [producto.id])
 
   // Sincronizar favoritos con localStorage (escuchar cambios de la app)
-    useEffect(() => {
-      const handler = (e: Event) => {
-        try {
-          const newFavs = (e as CustomEvent<string[]>)?.detail ?? JSON.parse(localStorage.getItem('favoritos') || '[]')
-          setIsFavorite(newFavs.includes(producto.id))
-        } catch {
-          // no-op
-        }
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const newFavs = (e as CustomEvent<string[]>)?.detail ?? JSON.parse(localStorage.getItem('favoritos') || '[]')
+        setIsFavorite(newFavs.includes(producto.id))
+      } catch {
+        // no-op
       }
-      window.addEventListener('favoritos-changed', handler)
-      return () => {
-        window.removeEventListener('favoritos-changed', handler)
-      }
-    }, [producto.id])
+    }
+    window.addEventListener('favoritos-changed', handler)
+    return () => {
+      window.removeEventListener('favoritos-changed', handler)
+    }
+  }, [producto.id])
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -107,18 +111,20 @@ export default function ProductCard({ producto }: ProductCardProps) {
         className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl dark:hover:shadow-blue-900/20 transition-all duration-500 transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700 cursor-pointer relative"
         onClick={() => setShowModal(true)}
       >
-                {/* Botón de favorito */}
-                <button
-                  onClick={toggleFavorite}
-                  className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-2 shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
-                  title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                >
-                  {isFavorite ? (
-                    <FavoriteIcon className="text-pink-500" fontSize="medium" />
-                  ) : (
-                    <FavoriteBorderIcon className="text-pink-400" fontSize="medium" />
-                  )}
-                </button>
+                {/* Botón de favorito - solo mostrar cuando está montado */}
+                {isMounted && (
+                  <button
+                    onClick={toggleFavorite}
+                    className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-2 shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
+                    title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                  >
+                    {isFavorite ? (
+                      <FavoriteIcon className="text-pink-500" fontSize="medium" />
+                    ) : (
+                      <FavoriteBorderIcon className="text-pink-400" fontSize="medium" />
+                    )}
+                  </button>
+                )}
         <div className="relative h-72 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
           {imagenes.length > 0 ? (
             <>

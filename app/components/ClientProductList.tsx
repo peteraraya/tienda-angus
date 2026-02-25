@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
-import SearchBar from './SearchBar'
+import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
 // Hook para favoritos
 function useFavorites() {
@@ -172,7 +172,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
 
   return (
     <div>
-      <SearchBar 
+      <SearchBarSimple 
         value={searchTerm}
         onChange={setSearchTerm}
         onCategoryChange={setSelectedCategory}

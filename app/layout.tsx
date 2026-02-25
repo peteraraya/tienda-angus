@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FloatingSocialButtons from "./components/FloatingSocialButtons";
 import { ToastProvider } from "./components/ui/ToastContainer";
-import { QueryProvider } from "./providers/QueryProvider";
+import { appConfig } from "@/config/app.config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,12 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Confecciones Angus - Tienda de Uniformes Escolares",
-  description: "Descubre nuestra colección exclusiva de uniformes escolares y confecciones de calidad",
+  title: `${appConfig.company.name} - ${appConfig.company.tagline}`,
+  description: appConfig.company.description,
   icons: {
-    icon: '/logo-confecciones.png',
-    shortcut: '/logo-confecciones.png',
-    apple: '/logo-confecciones.png',
+    icon: appConfig.company.favicon,
+    shortcut: appConfig.company.favicon,
+    apple: appConfig.company.favicon,
   },
 };
 
@@ -57,12 +57,10 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <ToastProvider>
-            <main className="min-h-screen">{children}</main>
-            <FloatingSocialButtons />
-          </ToastProvider>
-        </QueryProvider>
+        <ToastProvider>
+          <main className="min-h-screen">{children}</main>
+          <FloatingSocialButtons />
+        </ToastProvider>
       </body>
     </html>
   );
