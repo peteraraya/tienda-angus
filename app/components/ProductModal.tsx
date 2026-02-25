@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -31,6 +31,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedTalla, setSelectedTalla] = useState<string>('')
   const [selectedColegio, setSelectedColegio] = useState<string>('')
+  const modalRef = useRef<HTMLDivElement | null>(null)
+  const [open, setOpen] = useState(true)
   
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -38,6 +40,21 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
       document.body.style.overflow = 'unset'
     }
   }, [])
+
+  // Manejo de foco y teclado (Esc)
+  useEffect(() => {
+    const prevActive = document.activeElement as HTMLElement | null
+    // focus en el contenedor para accesibilidad
+    setTimeout(() => modalRef.current?.focus(), 0)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      prevActive?.focus()
+    }
+  }, [onClose])
 
   const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
     ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
@@ -83,16 +100,22 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   const stockDisponible = getStockDisponible()
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden={false}>
       <div 
-        className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-modal-title"
+        tabIndex={-1}
+        ref={modalRef}
+        className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center z-10">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
+          <h2 id="product-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            aria-label="Cerrar diálogo"
           >
             <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

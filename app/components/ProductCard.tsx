@@ -32,13 +32,31 @@ interface ProductCardProps {
 export default function ProductCard({ producto }: ProductCardProps) {
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [isFavorite, setIsFavorite] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
+      return favs.includes(producto.id)
+    } catch {
+      return false
+    }
+  })
 
-  // Sincronizar favoritos con localStorage
-  useEffect(() => {
-    const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
-    setIsFavorite(favs.includes(producto.id))
-  }, [producto.id])
+  // Sincronizar favoritos con localStorage (escuchar cambios de la app)
+    useEffect(() => {
+      const handler = (e: Event) => {
+        try {
+          const newFavs = (e as CustomEvent<string[]>)?.detail ?? JSON.parse(localStorage.getItem('favoritos') || '[]')
+          setIsFavorite(newFavs.includes(producto.id))
+        } catch {
+          // no-op
+        }
+      }
+      window.addEventListener('favoritos-changed', handler)
+      return () => {
+        window.removeEventListener('favoritos-changed', handler)
+      }
+    }, [producto.id])
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -55,7 +73,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
     try {
       // Notificar otras partes de la app en la misma pestaña
       window.dispatchEvent(new CustomEvent('favoritos-changed', { detail: newFavs }))
-    } catch (e) {
+    } catch {
       // no-op en entornos donde window no está disponible
     }
   }

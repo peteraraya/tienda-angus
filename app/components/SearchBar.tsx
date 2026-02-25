@@ -176,7 +176,7 @@ export default function SearchBar({
         {showFilters && (
           <div className="w-full flex flex-col md:flex-row md:items-center gap-2 md:gap-2">
             {/* Categoría */}
-            <div className="relative w-full md:w-auto flex-1 min-w-[160px] max-w-none whitespace-nowrap">
+            <div className="relative w-full md:w-auto flex-1 min-w-40 max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <CategoryIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
@@ -192,7 +192,7 @@ export default function SearchBar({
               </select>
             </div>
             {/* Talla */}
-            <div className="relative w-full md:w-auto flex-1 min-w-[130px] max-w-none whitespace-nowrap">
+            <div className="relative w-full md:w-auto flex-1 min-w-32.5 max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                 <StraightenIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
@@ -208,7 +208,7 @@ export default function SearchBar({
               </select>
             </div>
             {/* Colegio */}
-            <div className="relative w-full md:w-auto flex-1 min-w-[150px] max-w-none whitespace-nowrap">
+            <div className="relative w-full md:w-auto flex-1 min-w-37.5 max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                 <SchoolIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
@@ -224,7 +224,7 @@ export default function SearchBar({
               </select>
             </div>
             {/* Orden */}
-            <div className="relative w-full md:w-auto flex-1 min-w-[140px] max-w-none whitespace-nowrap">
+            <div className="relative w-full md:w-auto flex-1 min-w-35 max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <SortIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>

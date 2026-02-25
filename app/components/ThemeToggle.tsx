@@ -7,18 +7,21 @@ export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined') {
+    // Defer state updates to avoid calling setState synchronously within the effect
+    const id = setTimeout(() => {
+      if (typeof window === 'undefined') return;
       const theme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initial = theme === 'dark' || (!theme && prefersDark);
       setIsDark(initial);
+      setMounted(true);
       if (initial) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-    }
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   useEffect(() => {

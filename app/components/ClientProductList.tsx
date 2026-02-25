@@ -70,8 +70,6 @@ export default function ClientProductList({ productos }: ClientProductListProps)
   const [selectedColegio, setSelectedColegio] = useState('')
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
   const favorites = useFavorites();
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
   // Paginación / carga infinita
   const PAGE_SIZE = 12
   const [page, setPage] = useState(1)
@@ -140,8 +138,10 @@ export default function ClientProductList({ productos }: ClientProductListProps)
 
   // Reiniciar página cuando cambian filtros o el conjunto de resultados
   useEffect(() => {
-    setPage(1)
+    // Defer the update to avoid calling setState synchronously within the effect
+    const t = window.setTimeout(() => setPage(1), 0)
     // scroll to top of product list? leave to consumer
+    return () => clearTimeout(t)
   }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, favorites])
 
   const displayedProducts = useMemo(() => {
@@ -204,7 +204,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         <div>
           <div className="flex justify-between items-center mb-6">
             <p suppressHydrationWarning className="text-gray-600 dark:text-gray-400">
-              {mounted ? (
+              {typeof window !== 'undefined' ? (
                 <>Mostrando <span className="font-semibold text-gray-900 dark:text-white">{displayedProducts.length}</span> de <span className="font-semibold text-gray-900 dark:text-white">{filteredAndSortedProducts.length}</span> {filteredAndSortedProducts.length === 1 ? 'producto' : 'productos'}</>
               ) : (
                 <>Mostrando productos...</>
