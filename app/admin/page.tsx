@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input, LazyImage } from '../components/ui'
+import { Button, Input, LazyImage, Pagination, usePagination } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
+
 import KeyboardShortcuts from './components/KeyboardShortcuts'
 import NotificationCenter from './components/NotificationCenter'
 import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
+import { DashboardMetrics } from './components/DashboardMetrics'
 
 interface Variante {
   id: string
@@ -389,6 +391,20 @@ export default function AdminPage() {
     })
   }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter])
 
+  // Paginación
+  const { 
+    currentPage, 
+    totalPages, 
+    startIndex, 
+    endIndex, 
+    goToPage 
+  } = usePagination(filteredProducts.length, 20)
+
+  // Productos paginados
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(startIndex, endIndex)
+  }, [filteredProducts, startIndex, endIndex])
+
   // Calcular stock específico según filtros de colegio y talla
   const stockEspecifico = useMemo(() => {
     if (!selectedColegio && !selectedTalla) return null
@@ -623,7 +639,10 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-8">
-        {/* Dashboard Summary - NUEVO */}
+        {/* Dashboard de Métricas - NUEVO */}
+        <DashboardMetrics />
+
+        {/* Dashboard Summary */}
         <DashboardSummary productos={productos} />
 
         {/* Buscador y Filtros */}
@@ -816,7 +835,7 @@ export default function AdminPage() {
         </div>
 
         <ProductListNotebook
-          productos={filteredProducts}
+          productos={paginatedProducts}
           expandedProduct={expandedProduct}
           editingVariant={editingVariant}
           editingProductName={editingProductName}
@@ -836,6 +855,19 @@ export default function AdminPage() {
           onDuplicate={duplicateProduct}
           onDelete={deleteProducto}
         />
+
+        {/* Paginación */}
+        {filteredProducts.length > 20 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              itemsPerPage={20}
+              totalItems={filteredProducts.length}
+            />
+          </div>
+        )}
       </div>
       
       <KeyboardShortcuts searchInputRef={searchInputRef} />

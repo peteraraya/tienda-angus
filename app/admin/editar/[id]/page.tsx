@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
+import { useColegios, useCategorias } from '@/app/hooks/useStaticData'
 
 const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
 const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
@@ -20,6 +21,9 @@ interface Variante {
 export default function EditarProducto({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const toast = useToast()
+  const { colegios, loading: loadingColegios } = useColegios()
+  const { categorias, loading: loadingCategorias } = useCategorias()
+  
   const [productoId, setProductoId] = useState<string>('')
   const [formData, setFormData] = useState({
     nombre: '',
@@ -32,8 +36,6 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   })
   const [imagenes, setImagenes] = useState<string[]>([''])
   const [variantes, setVariantes] = useState<Variante[]>([])
-  const [colegios, setColegios] = useState<string[]>([])
-  const [categorias, setCategorias] = useState<string[]>([])
   const [nuevaVariante, setNuevaVariante] = useState({
     talla: '',
     colegio: '',
@@ -56,30 +58,6 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   function eliminarImagen(index: number) {
     if (imagenes.length > 1) {
       setImagenes(imagenes.filter((_, i) => i !== index))
-    }
-  }
-
-  async function loadColegios() {
-    const { data } = await supabase
-      .from('colegios')
-      .select('nombre')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) {
-      setColegios(data.map(c => c.nombre))
-    }
-  }
-
-  async function loadCategorias() {
-    const { data } = await supabase
-      .from('categorias')
-      .select('nombre')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) {
-      setCategorias(data.map(c => c.nombre))
     }
   }
 
@@ -123,8 +101,6 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     const fetchData = async () => {
-      await loadColegios()
-      await loadCategorias()
       const p = await params
       setProductoId(p.id)
       loadProducto(p.id)

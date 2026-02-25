@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
+import { useColegios, useCategorias } from '@/app/hooks/useStaticData'
 
 const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
 const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
@@ -20,6 +21,9 @@ interface Variante {
 export default function NuevoProducto() {
   const router = useRouter()
   const toast = useToast()
+  const { colegios, loading: loadingColegios } = useColegios()
+  const { categorias, loading: loadingCategorias } = useCategorias()
+  
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -31,45 +35,14 @@ export default function NuevoProducto() {
   })
   const [imagenes, setImagenes] = useState<string[]>([''])
   const [variantes, setVariantes] = useState<Variante[]>([])
-  const [colegios, setColegios] = useState<string[]>([])
-  const [categorias, setCategorias] = useState<string[]>([])
   const [nuevaVariante, setNuevaVariante] = useState({
     talla: '',
     colegio: '',
     stock: ''
   })
 
-  async function loadColegios() {
-    const { data } = await supabase
-      .from('colegios')
-      .select('nombre')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) {
-      setColegios(data.map(c => c.nombre))
-    }
-  }
-
-  async function loadCategorias() {
-    const { data } = await supabase
-      .from('categorias')
-      .select('nombre')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) {
-      setCategorias(data.map(c => c.nombre))
-    }
-  }
-
-  useEffect(() => {
-    async function fetchData() {
-      await loadColegios()
-      await loadCategorias()
-    }
-    fetchData()
-  }, [])
+  // Ya no necesitamos cargar colegios y categorías manualmente
+  // Los hooks useColegios y useCategorias lo hacen automáticamente
 
   function agregarImagen() {
     if (imagenes.length < 5) {
