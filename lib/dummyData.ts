@@ -298,7 +298,7 @@ export const dummyClientes = [
     nombre: 'Roberto Sánchez',
     contacto: 'roberto.s@email.com',
     telefono: '+56912345002',
-    red_social: null,
+    red_social: '',
     direccion: 'Providencia, Santiago',
     notas: '',
     total_compras: 180000,
@@ -315,8 +315,8 @@ for (let i = 3; i <= 30; i++) {
     nombre: `Cliente ${i}`,
     contacto: `cliente${i}@email.com`,
     telefono: `+5691234${String(i).padStart(4, '0')}`,
-    red_social: i % 3 === 0 ? `@cliente${i}` : null,
-    direccion: i % 2 === 0 ? `Dirección ${i}, Santiago` : null,
+    red_social: i % 3 === 0 ? `@cliente${i}` : '',
+    direccion: i % 2 === 0 ? `Dirección ${i}, Santiago` : '',
     notas: i % 5 === 0 ? 'Cliente VIP' : '',
     total_compras: Math.floor(Math.random() * 500000),
     cantidad_compras: Math.floor(Math.random() * 20),
@@ -378,20 +378,42 @@ for (let i = 4; i <= 20; i++) {
   const diasAtras = Math.floor(Math.random() * 60)
   const provIndex = (i - 1) % dummyProveedores.length
   
-  dummyPedidos.push({
-    id: generateDummyUUID('pe0', i),
-    proveedor_id: dummyProveedores[provIndex].id,
-    proveedor_nombre: dummyProveedores[provIndex].nombre,
-    fecha_pedido: new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString(),
-    fecha_esperada: new Date(Date.now() - (diasAtras - 10) * 24 * 60 * 60 * 1000).toISOString(),
-    fecha_recepcion: estado === 'recibido' ? new Date(Date.now() - (diasAtras - 5) * 24 * 60 * 60 * 1000).toISOString() : null,
-    estado,
-    total: Math.floor(Math.random() * 500000) + 50000,
-    cantidad_items: Math.floor(Math.random() * 10) + 1,
-    notas: i % 3 === 0 ? `Notas del pedido ${i}` : '',
-    usuario: 'admin@confecciones.cl',
-    created_at: new Date().toISOString(),
-  })
+  const fechaPedido = new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString()
+  const fechaEsperada = new Date(Date.now() - (diasAtras - 10) * 24 * 60 * 60 * 1000).toISOString()
+  const fechaRecepcion = estado === 'recibido' ? new Date(Date.now() - (diasAtras - 5) * 24 * 60 * 60 * 1000).toISOString() : null
+
+  if (estado === 'recibido') {
+    dummyPedidos.push({
+      id: generateDummyUUID('pe0', i),
+      proveedor_id: dummyProveedores[provIndex].id,
+      proveedor_nombre: dummyProveedores[provIndex].nombre,
+      fecha_pedido: fechaPedido,
+      fecha_esperada: fechaEsperada,
+      fecha_recepcion: fechaRecepcion,
+      estado: 'recibido',
+      total: Math.floor(Math.random() * 500000) + 50000,
+      cantidad_items: Math.floor(Math.random() * 10) + 1,
+      notas: i % 3 === 0 ? `Notas del pedido ${i}` : '',
+      usuario: 'admin@confecciones.cl',
+      created_at: new Date().toISOString(),
+    })
+  } else {
+    // 'pendiente' o 'cancelado' deben tener fecha_recepcion = null
+    dummyPedidos.push({
+      id: generateDummyUUID('pe0', i),
+      proveedor_id: dummyProveedores[provIndex].id,
+      proveedor_nombre: dummyProveedores[provIndex].nombre,
+      fecha_pedido: fechaPedido,
+      fecha_esperada: fechaEsperada,
+      fecha_recepcion: null,
+      estado: estado as 'pendiente' | 'cancelado',
+      total: Math.floor(Math.random() * 500000) + 50000,
+      cantidad_items: Math.floor(Math.random() * 10) + 1,
+      notas: i % 3 === 0 ? `Notas del pedido ${i}` : '',
+      usuario: 'admin@confecciones.cl',
+      created_at: new Date().toISOString(),
+    })
+  }
 }
 
 // Ventas dummy
