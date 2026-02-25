@@ -23,6 +23,7 @@ interface Producto {
   variantes_count?: number
   descuento_porcentaje?: number
   en_oferta?: boolean
+  notas?: string
   variantes?: Variante[]
 }
 
@@ -30,11 +31,20 @@ interface Props {
   productos: Producto[]
   expandedProduct: string | null
   editingVariant: string | null
+  editingProductName: string | null
+  editingProductPrice: string | null
+  editingProductNotas: string | null
   onToggleExpand: (id: string) => void
   onUpdateDescuento: (id: string, descuento: number) => void
   onToggleOferta: (id: string, currentState: boolean) => void
   onUpdateVarianteStock: (varianteId: string, newStock: number) => void
   onSetEditingVariant: (id: string | null) => void
+  onSetEditingProductName: (id: string | null) => void
+  onSetEditingProductPrice: (id: string | null) => void
+  onSetEditingProductNotas: (id: string | null) => void
+  onUpdateProductName: (id: string, nombre: string) => void
+  onUpdateProductPrice: (id: string, precio: number) => void
+  onUpdateProductNotas: (id: string, notas: string) => void
   onDuplicate: (producto: Producto) => void
   onDelete: (id: string) => void
 }
@@ -43,11 +53,20 @@ export default function ProductListNotebook({
   productos,
   expandedProduct,
   editingVariant,
+  editingProductName,
+  editingProductPrice,
+  editingProductNotas,
   onToggleExpand,
   onUpdateDescuento,
   onToggleOferta,
   onUpdateVarianteStock,
   onSetEditingVariant,
+  onSetEditingProductName,
+  onSetEditingProductPrice,
+  onSetEditingProductNotas,
+  onUpdateProductName,
+  onUpdateProductPrice,
+  onUpdateProductNotas,
   onDuplicate,
   onDelete
 }: Props) {
@@ -116,8 +135,92 @@ export default function ProductListNotebook({
 
               {/* Nombre */}
               <div className="col-span-2">
-                <p className="font-bold text-slate-900 dark:text-white text-base leading-tight">{producto.nombre}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{producto.descripcion}</p>
+                {editingProductName === producto.id ? (
+                  <div className="flex gap-1 relative z-10">
+                    <input
+                      type="text"
+                      defaultValue={producto.nombre}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          onUpdateProductName(producto.id, (e.target as HTMLInputElement).value)
+                        } else if (e.key === 'Escape') {
+                          onSetEditingProductName(null)
+                        }
+                      }}
+                      onBlur={() => onSetEditingProductName(null)}
+                      className="flex-1 px-2 py-1 text-sm border-2 border-blue-500 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault() // Prevenir que onBlur se dispare antes del click
+                        const input = (e.target as HTMLElement).parentElement?.querySelector('input[type="text"]') as HTMLInputElement
+                        if (input) {
+                          onUpdateProductName(producto.id, input.value)
+                        }
+                      }}
+                      className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs flex-shrink-0"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        onSetEditingProductName(null)
+                      }}
+                      className="px-2 py-1 bg-slate-500 text-white rounded-md hover:bg-slate-600 transition-colors text-xs flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="group">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-900 dark:text-white text-base leading-tight flex-1">{producto.nombre}</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSetEditingProductName(producto.id)
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-all flex-shrink-0"
+                        title="Editar nombre"
+                      >
+                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      {producto.notas && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onSetEditingProductNotas(producto.id)
+                          }}
+                          className="p-1 bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 rounded transition-all flex-shrink-0"
+                          title="Ver/editar notas"
+                        >
+                          <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                        </button>
+                      )}
+                      {!producto.notas && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onSetEditingProductNotas(producto.id)
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-all flex-shrink-0"
+                          title="Agregar notas"
+                        >
+                          <svg className="w-4 h-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{producto.descripcion}</p>
+                  </div>
+                )}
               </div>
 
               {/* Categoría */}
@@ -129,16 +232,23 @@ export default function ProductListNotebook({
 
               {/* Precio */}
               <div className="col-span-1">
-                {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                  <div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
-                    <span className="font-bold text-base text-green-600 dark:text-green-400">
-                      {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                <div className="group cursor-pointer" onClick={(e) => {
+                  e.stopPropagation()
+                  onSetEditingProductPrice(producto.id)
+                }}>
+                  {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                    <div>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
+                      <span className="font-bold text-base text-green-600 dark:text-green-400">
+                        {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {formatPrice(producto.precio)}
                     </span>
-                  </div>
-                ) : (
-                  <span className="font-bold text-base text-slate-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Descuento */}
@@ -251,8 +361,78 @@ export default function ProductListNotebook({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{producto.nombre}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{producto.descripcion}</p>
+                {editingProductName === producto.id ? (
+                  <div className="flex gap-1 mb-2">
+                    <input
+                      type="text"
+                      defaultValue={producto.nombre}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          onUpdateProductName(producto.id, (e.target as HTMLInputElement).value)
+                        } else if (e.key === 'Escape') {
+                          onSetEditingProductName(null)
+                        }
+                      }}
+                      onBlur={() => onSetEditingProductName(null)}
+                      className="flex-1 px-2 py-1 text-sm border-2 border-blue-500 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        const input = (e.target as HTMLElement).parentElement?.querySelector('input[type="text"]') as HTMLInputElement
+                        if (input) {
+                          onUpdateProductName(producto.id, input.value)
+                        }
+                      }}
+                      className="px-2 py-1 bg-green-500 text-white rounded-md text-xs flex-shrink-0"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        onSetEditingProductName(null)
+                      }}
+                      className="px-2 py-1 bg-slate-500 text-white rounded-md text-xs flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 mb-2">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight flex-1">{producto.nombre}</h3>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSetEditingProductName(producto.id)
+                      }}
+                      className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded flex-shrink-0"
+                      title="Editar nombre"
+                    >
+                      <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSetEditingProductNotas(producto.id)
+                      }}
+                      className={`p-1 rounded flex-shrink-0 ${
+                        producto.notas 
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50' 
+                          : 'hover:bg-yellow-100 dark:hover:bg-yellow-900/30'
+                      }`}
+                      title={producto.notas ? "Ver/editar notas" : "Agregar notas"}
+                    >
+                      <svg className={`w-4 h-4 ${producto.notas ? 'text-yellow-600 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{producto.descripcion}</p>
                 <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-0.5 rounded-md mt-2">
                   {producto.categoria}
                 </span>
@@ -261,8 +441,19 @@ export default function ProductListNotebook({
 
             {/* Precio y descuento */}
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">Precio</p>
+              <div 
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onSetEditingProductPrice(producto.id)
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Precio</p>
+                  <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
                 {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                   <div>
                     <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
@@ -467,6 +658,152 @@ export default function ProductListNotebook({
           )}
         </div>
       ))}
+
+      {/* Modal de Notas */}
+      {editingProductNotas && productos.find(p => p.id === editingProductNotas) && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => onSetEditingProductNotas(null)}>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full border-2 border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Notas del Producto</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {productos.find(p => p.id === editingProductNotas)?.nombre}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onSetEditingProductNotas(null)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <textarea
+                defaultValue={productos.find(p => p.id === editingProductNotas)?.notas || ''}
+                placeholder="Escribe notas sobre este producto... Ej: Pedir más tela, revisar stock el viernes, etc."
+                className="w-full h-40 px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    onSetEditingProductNotas(null)
+                  }
+                }}
+              />
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={(e) => {
+                    const container = (e.target as HTMLElement).closest('.p-6')
+                    const textarea = container?.querySelector('textarea') as HTMLTextAreaElement
+                    if (textarea && editingProductNotas) {
+                      onUpdateProductNotas(editingProductNotas, textarea.value)
+                    }
+                  }}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg"
+                >
+                  💾 Guardar Notas
+                </button>
+                <button
+                  onClick={() => onSetEditingProductNotas(null)}
+                  className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Precio */}
+      {editingProductPrice && productos.find(p => p.id === editingProductPrice) && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => onSetEditingProductPrice(null)}>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border-2 border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Editar Precio</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {productos.find(p => p.id === editingProductPrice)?.nombre}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onSetEditingProductPrice(null)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                Nuevo Precio (CLP)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={productos.find(p => p.id === editingProductPrice)?.precio || 0}
+                placeholder="Ej: 15000"
+                className="w-full px-4 py-3 text-lg border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const input = e.target as HTMLInputElement
+                    if (editingProductPrice) {
+                      onUpdateProductPrice(editingProductPrice, parseInt(input.value) || 0)
+                    }
+                  } else if (e.key === 'Escape') {
+                    onSetEditingProductPrice(null)
+                  }
+                }}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                Precio sin puntos ni comas. Ej: 15000 para $15.000
+              </p>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={(e) => {
+                    const container = (e.target as HTMLElement).closest('.p-6')
+                    const input = container?.querySelector('input[type="number"]') as HTMLInputElement
+                    if (input && editingProductPrice) {
+                      onUpdateProductPrice(editingProductPrice, parseInt(input.value) || 0)
+                    }
+                  }}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                >
+                  💰 Actualizar Precio
+                </button>
+                <button
+                  onClick={() => onSetEditingProductPrice(null)}
+                  className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

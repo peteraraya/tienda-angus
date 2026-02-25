@@ -9,6 +9,7 @@ export interface Producto {
   created_at: string
   descuento_porcentaje?: number
   en_oferta?: boolean
+  notas?: string // Notas personales del administrador
 }
 
 export interface Variante {

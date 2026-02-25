@@ -31,6 +31,7 @@ interface Producto {
   variantes_count?: number
   descuento_porcentaje?: number
   en_oferta?: boolean
+  notas?: string
   variantes?: Variante[]
 }
 
@@ -47,6 +48,9 @@ export default function AdminPage() {
   const [selectedStockFilter, setSelectedStockFilter] = useState('') // Nuevo filtro
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
+  const [editingProductName, setEditingProductName] = useState<string | null>(null)
+  const [editingProductPrice, setEditingProductPrice] = useState<string | null>(null)
+  const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
   const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
@@ -273,6 +277,51 @@ export default function AdminPage() {
     setExpandedProduct(expandedProduct === productId ? null : productId)
   }
 
+  async function updateProductName(id: string, nombre: string) {
+    if (!nombre.trim()) {
+      toast.error('El nombre no puede estar vacío')
+      setEditingProductName(null)
+      return
+    }
+
+    await supabase
+      .from('productos')
+      .update({ nombre: nombre.trim() })
+      .eq('id', id)
+    
+    toast.success('Nombre actualizado')
+    loadProductos()
+    setEditingProductName(null)
+  }
+
+  async function updateProductPrice(id: string, precio: number) {
+    if (precio < 0) {
+      toast.error('El precio no puede ser negativo')
+      setEditingProductPrice(null)
+      return
+    }
+
+    await supabase
+      .from('productos')
+      .update({ precio })
+      .eq('id', id)
+    
+    toast.success('Precio actualizado')
+    loadProductos()
+    setEditingProductPrice(null)
+  }
+
+  async function updateProductNotas(id: string, notas: string) {
+    await supabase
+      .from('productos')
+      .update({ notas: notas.trim() || null })
+      .eq('id', id)
+    
+    toast.success(notas.trim() ? 'Notas guardadas' : 'Notas eliminadas')
+    loadProductos()
+    setEditingProductNotas(null)
+  }
+
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
@@ -490,6 +539,15 @@ export default function AdminPage() {
                 Nuevo Producto
               </Button>
               <Button
+                onClick={() => window.print()}
+                className="bg-linear-to-br from-cyan-600 to-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Imprimir
+              </Button>
+              <Button
                 onClick={handleLogout}
                 className="bg-linear-to-br from-red-600 to-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-red-700 hover:to-rose-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -699,11 +757,20 @@ export default function AdminPage() {
           productos={filteredProducts}
           expandedProduct={expandedProduct}
           editingVariant={editingVariant}
+          editingProductName={editingProductName}
+          editingProductPrice={editingProductPrice}
+          editingProductNotas={editingProductNotas}
           onToggleExpand={toggleExpandProduct}
           onUpdateDescuento={updateDescuento}
           onToggleOferta={toggleOferta}
           onUpdateVarianteStock={updateVarianteStock}
           onSetEditingVariant={setEditingVariant}
+          onSetEditingProductName={setEditingProductName}
+          onSetEditingProductPrice={setEditingProductPrice}
+          onSetEditingProductNotas={setEditingProductNotas}
+          onUpdateProductName={updateProductName}
+          onUpdateProductPrice={updateProductPrice}
+          onUpdateProductNotas={updateProductNotas}
           onDuplicate={duplicateProduct}
           onDelete={deleteProducto}
         />
