@@ -503,69 +503,84 @@ export default function AdminPage() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Gestiona tu inventario</p>
               </div>
             </div>
-            <div className="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
+            <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
               <Button
                 onClick={() => router.push('/')}
-                className="bg-linear-to-br from-gray-600 to-gray-700 dark:from-gray-700 dark:to-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Ver Tienda"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Ver Tienda
+                <span className="hidden sm:inline">Tienda</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/colegios')}
-                className="bg-linear-to-br from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Colegios"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                Colegios
+                <span className="hidden sm:inline">Colegios</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/categorias')}
-                className="bg-linear-to-br from-indigo-600 to-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Categorías"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                Categorías
+                <span className="hidden sm:inline">Categorías</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/ventas')}
-                className="bg-linear-to-br from-emerald-600 to-teal-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Ventas"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Ventas
+                <span className="hidden sm:inline">Ventas</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/clientes')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Clientes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="hidden sm:inline">Clientes</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/nuevo')}
-                className="bg-linear-to-br from-green-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Nuevo Producto"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Nuevo Producto
+                <span className="hidden sm:inline">Nuevo</span>
               </Button>
               <Button
                 onClick={() => window.print()}
-                className="bg-linear-to-br from-cyan-600 to-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Imprimir"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                Imprimir
               </Button>
               <Button
                 onClick={handleLogout}
-                className="bg-linear-to-br from-red-600 to-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-red-700 hover:to-rose-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Cerrar Sesión"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Cerrar Sesión
               </Button>
             </div>
           </div>
