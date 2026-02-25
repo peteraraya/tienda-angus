@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, Fragment } from 'react'
+import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
 // use LazyImage for placeholders and lazy loading in admin previews
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -10,6 +10,7 @@ import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input, LazyImage } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
+import KeyboardShortcuts from './components/KeyboardShortcuts'
 
 interface Variante {
   id: string
@@ -51,6 +52,7 @@ export default function AdminPage() {
   const [editingProductName, setEditingProductName] = useState<string | null>(null)
   const [editingProductPrice, setEditingProductPrice] = useState<string | null>(null)
   const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
@@ -577,6 +579,7 @@ export default function AdminPage() {
               </div>
               <input
                 type="text"
+                ref={searchInputRef}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="🔍 Buscar por nombre, categoría, colegio, talla o precio..."
@@ -776,6 +779,7 @@ export default function AdminPage() {
         />
       </div>
       
+      <KeyboardShortcuts searchInputRef={searchInputRef} />
       <ConfirmDialog />
     </div>
   )

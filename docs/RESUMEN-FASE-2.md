@@ -36,6 +36,15 @@
   - Tamaño de fuente optimizado
 - Compatible con PDF
 
+### ✅ 5. Atajos de Teclado 🆕
+- **Enter**: Guardar cambios en edición inline
+- **Esc**: Cancelar edición y cerrar modales
+- **Ctrl+F**: Enfocar campo de búsqueda
+- **?**: Mostrar ayuda de atajos
+- Botón flotante de ayuda en esquina inferior derecha
+- Modal elegante con todos los atajos
+- Compatible con Windows/Mac/Linux
+
 ## Archivos Modificados
 
 ### Base de Datos
@@ -46,11 +55,13 @@
 
 ### Componentes
 - `app/admin/components/ProductListNotebook.tsx` - Edición inline y modal de notas
-- `app/admin/page.tsx` - Estado y handlers para edición inline
+- `app/admin/components/KeyboardShortcuts.tsx` - Sistema de atajos de teclado 🆕
+- `app/admin/page.tsx` - Estado y handlers para edición inline + integración de atajos
 - `app/globals.css` - Estilos de impresión optimizados
 
 ### Documentación
 - `docs/FASE-2-EDICION-INLINE-NOTAS.md` - Guía completa de uso
+- `docs/ATAJOS-TECLADO.md` - Documentación de atajos de teclado 🆕
 - `docs/RESUMEN-FASE-2.md` - Este archivo
 
 ## Flujo de Trabajo
@@ -75,6 +86,13 @@
 3. Click en "Guardar Notas" → llama `onUpdateProductNotas()`
 4. Guarda en Supabase (NULL si está vacío)
 5. Cierra modal → recarga productos → toast de éxito
+
+### Usar Atajos de Teclado 🆕
+1. Usuario presiona `Ctrl+F` → enfoca búsqueda
+2. Usuario presiona `Enter` en edición → guarda cambios
+3. Usuario presiona `Esc` → cancela edición o cierra modal
+4. Usuario presiona `?` → muestra ayuda de atajos
+5. Click en botón flotante "?" → también muestra ayuda
 
 ### Imprimir
 1. Usuario aplica filtros deseados
@@ -129,18 +147,22 @@ const [editingProductNotas, setEditingProductNotas] = useState<string | null>(nu
 - Hover sobre precio → cambio de color
 - Ícono de nota amarillo si hay notas
 - Ícono de nota gris al hover si no hay notas
+- Botón flotante "?" siempre visible 🆕
 
 ### Feedback
 - Toast verde al guardar exitosamente
 - Toast rojo en caso de error
 - Transiciones suaves en todos los estados
 - Botones de confirmar (✓) y cancelar (✕)
+- Modal de ayuda elegante con tarjetas de colores 🆕
 
 ### Accesibilidad
 - Enter para guardar
 - Escape para cancelar
 - AutoFocus en campos editables
 - Títulos descriptivos en botones
+- Ctrl+F para búsqueda rápida 🆕
+- Teclas kbd estilizadas en ayuda 🆕
 
 ## Próximos Pasos (FASE 3)
 
@@ -159,3 +181,6 @@ const [editingProductNotas, setEditingProductNotas] = useState<string | null>(nu
 - Validaciones en frontend y backend
 - Toast system integrado con design system
 - Compatible con dark mode (excepto en impresión)
+- Atajos de teclado con event listeners globales 🆕
+- Refs para integración con búsqueda 🆕
+- Prevención de conflictos con inputs nativos 🆕
