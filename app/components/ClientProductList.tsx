@@ -85,6 +85,7 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         selectedSort={selectedSort}
         onViewChange={setCurrentView}
         currentView={currentView}
+        productos={productos.map(p => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion }))}
       />
 
       {filteredAndSortedProducts.length === 0 ? (

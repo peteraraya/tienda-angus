@@ -1,15 +1,24 @@
-'use client'
+"use client";
+
+import { useState, useRef, useEffect } from 'react';
+
+interface ProductoSugerencia {
+  id: string;
+  nombre: string;
+  descripcion: string;
+}
 
 interface SearchBarProps {
-  value: string
-  onChange: (value: string) => void
-  onCategoryChange: (category: string) => void
-  selectedCategory: string
-  categories: string[]
-  onSortChange: (sort: string) => void
-  selectedSort: string
-  onViewChange: (view: 'grid' | 'list') => void
-  currentView: 'grid' | 'list'
+  value: string;
+  onChange: (value: string) => void;
+  onCategoryChange: (category: string) => void;
+  selectedCategory: string;
+  categories: string[];
+  onSortChange: (sort: string) => void;
+  selectedSort: string;
+  onViewChange: (view: 'grid' | 'list') => void;
+  currentView: 'grid' | 'list';
+  productos?: ProductoSugerencia[];
 }
 
 export default function SearchBar({ 
@@ -21,8 +30,21 @@ export default function SearchBar({
   onSortChange,
   selectedSort,
   onViewChange,
-  currentView
+  currentView,
+  productos = []
 }: SearchBarProps) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestions = value.length > 1
+    ? productos.filter(p =>
+        p.nombre.toLowerCase().includes(value.toLowerCase()) ||
+        p.descripcion.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  useEffect(() => {
+    if (!value) setShowSuggestions(false);
+  }, [value]);
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <div className="flex flex-col gap-4">
@@ -35,12 +57,37 @@ export default function SearchBar({
               </svg>
             </div>
             <input
+              ref={inputRef}
               type="text"
               value={value}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                onChange(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => value.length > 1 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
               placeholder="Buscar productos por nombre o descripción..."
               className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              autoComplete="off"
             />
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 mt-2 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-72 overflow-auto">
+                {suggestions.map((prod) => (
+                  <li
+                    key={prod.id}
+                    className="px-4 py-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-900 dark:text-white text-sm border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                    onMouseDown={() => {
+                      onChange(prod.nombre);
+                      setShowSuggestions(false);
+                      inputRef.current?.blur();
+                    }}
+                  >
+                    <span className="font-semibold">{prod.nombre}</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">{prod.descripcion}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           
           {/* Botones de Vista */}
