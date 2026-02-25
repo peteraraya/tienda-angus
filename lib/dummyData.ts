@@ -380,9 +380,9 @@ for (let i = 4; i <= 20; i++) {
   
   const fechaPedido = new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString()
   const fechaEsperada = new Date(Date.now() - (diasAtras - 10) * 24 * 60 * 60 * 1000).toISOString()
-  const fechaRecepcion = estado === 'recibido' ? new Date(Date.now() - (diasAtras - 5) * 24 * 60 * 60 * 1000).toISOString() : null
 
   if (estado === 'recibido') {
+    const fechaRecepcion = new Date(Date.now() - (diasAtras - 5) * 24 * 60 * 60 * 1000).toISOString()
     dummyPedidos.push({
       id: generateDummyUUID('pe0', i),
       proveedor_id: dummyProveedores[provIndex].id,
