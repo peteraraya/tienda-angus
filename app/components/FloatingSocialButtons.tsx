@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Modal } from "./ui";
 
 
@@ -10,6 +11,13 @@ const mapUrl = "https://www.google.com/maps/place/O'Higgins+1384,+2261543+Quillo
 
 export default function FloatingSocialButtons() {
   const [mapOpen, setMapOpen] = useState(false);
+  const pathname = usePathname();
+  
+  // No mostrar en rutas de admin
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
