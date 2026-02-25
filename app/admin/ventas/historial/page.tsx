@@ -147,6 +147,13 @@ export default function HistorialVentasPage() {
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
               <Button
                 onClick={() => router.push('/admin/ventas')}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"

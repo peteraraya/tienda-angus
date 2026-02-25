@@ -177,6 +177,13 @@ export default function ClientesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Button>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800 ml-2">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   👥 Gestión de Clientes

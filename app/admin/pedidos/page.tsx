@@ -228,6 +228,13 @@ export default function PedidosPage() {
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
               <Button onClick={() => router.push('/admin')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

@@ -493,10 +493,12 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-xl flex items-center justify-center shadow-lg mb-2 sm:mb-0">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
               </div>
               <div className="text-center sm:text-left">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

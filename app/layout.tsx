@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tienda de Confecciones",
-  description: "Descubre nuestra colección exclusiva de moda y estilo",
+  title: "Confecciones Angus - Tienda de Uniformes Escolares",
+  description: "Descubre nuestra colección exclusiva de uniformes escolares y confecciones de calidad",
+  icons: {
+    icon: '/logo-confecciones.png',
+    shortcut: '/logo-confecciones.png',
+    apple: '/logo-confecciones.png',
+  },
 };
 
 export default function RootLayout({
