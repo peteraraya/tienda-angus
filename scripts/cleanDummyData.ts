@@ -27,12 +27,14 @@ async function cleanData() {
 
   try {
     // Eliminar en orden inverso por dependencias
-    // Los IDs dummy tienen el formato: 00000000-0000-4000-8000-xxxNNNNNNNNNNN
-    // donde xxx es el prefijo (c01, c02, p00, etc.)
+    // Los IDs dummy tienen el formato: 00000000-0000-4000-8000-{prefixHex}{idHex}
+    // Prefijos en hex:
+    // c01 -> 633031, c02 -> 633032, p00 -> 703030, v00 -> 763030
+    // pr0 -> 707230, i00 -> 693030, cl0 -> 636c30, pe0 -> 706530, vn0 -> 766e30
     
     console.log('💰 Eliminando ventas dummy...')
     const { data: ventas } = await supabase.from('ventas').select('id')
-    const ventasToDelete = ventas?.filter(v => v.id.startsWith('00000000-0000-4000-8000-vn0')) || []
+    const ventasToDelete = ventas?.filter(v => v.id.startsWith('00000000-0000-4000-8000-766e30')) || []
     if (ventasToDelete.length > 0) {
       const { error: ventasError } = await supabase
         .from('ventas')
@@ -44,7 +46,7 @@ async function cleanData() {
 
     console.log('📋 Eliminando pedidos dummy...')
     const { data: pedidos } = await supabase.from('pedidos').select('id')
-    const pedidosToDelete = pedidos?.filter(p => p.id.startsWith('00000000-0000-4000-8000-pe0')) || []
+    const pedidosToDelete = pedidos?.filter(p => p.id.startsWith('00000000-0000-4000-8000-706530')) || []
     if (pedidosToDelete.length > 0) {
       const { error: pedidosError } = await supabase
         .from('pedidos')
@@ -56,7 +58,7 @@ async function cleanData() {
 
     console.log('👥 Eliminando clientes dummy...')
     const { data: clientes } = await supabase.from('clientes').select('id')
-    const clientesToDelete = clientes?.filter(c => c.id.startsWith('00000000-0000-4000-8000-cl0')) || []
+    const clientesToDelete = clientes?.filter(c => c.id.startsWith('00000000-0000-4000-8000-636c30')) || []
     if (clientesToDelete.length > 0) {
       const { error: clientesError } = await supabase
         .from('clientes')
@@ -68,7 +70,7 @@ async function cleanData() {
 
     console.log('🧵 Eliminando insumos dummy...')
     const { data: insumos } = await supabase.from('insumos').select('id')
-    const insumosToDelete = insumos?.filter(i => i.id.startsWith('00000000-0000-4000-8000-i00')) || []
+    const insumosToDelete = insumos?.filter(i => i.id.startsWith('00000000-0000-4000-8000-693030')) || []
     if (insumosToDelete.length > 0) {
       const { error: insumosError } = await supabase
         .from('insumos')
@@ -80,7 +82,7 @@ async function cleanData() {
 
     console.log('🏭 Eliminando proveedores dummy...')
     const { data: proveedores } = await supabase.from('proveedores').select('id')
-    const proveedoresToDelete = proveedores?.filter(p => p.id.startsWith('00000000-0000-4000-8000-pr0')) || []
+    const proveedoresToDelete = proveedores?.filter(p => p.id.startsWith('00000000-0000-4000-8000-707230')) || []
     if (proveedoresToDelete.length > 0) {
       const { error: proveedoresError } = await supabase
         .from('proveedores')
@@ -92,7 +94,7 @@ async function cleanData() {
 
     console.log('📦 Eliminando variantes dummy...')
     const { data: variantes } = await supabase.from('variantes').select('id')
-    const variantesToDelete = variantes?.filter(v => v.id.startsWith('00000000-0000-4000-8000-v00')) || []
+    const variantesToDelete = variantes?.filter(v => v.id.startsWith('00000000-0000-4000-8000-763030')) || []
     if (variantesToDelete.length > 0) {
       const { error: variantesError } = await supabase
         .from('variantes')
@@ -104,7 +106,7 @@ async function cleanData() {
 
     console.log('👕 Eliminando productos dummy...')
     const { data: productos } = await supabase.from('productos').select('id')
-    const productosToDelete = productos?.filter(p => p.id.startsWith('00000000-0000-4000-8000-p00')) || []
+    const productosToDelete = productos?.filter(p => p.id.startsWith('00000000-0000-4000-8000-703030')) || []
     if (productosToDelete.length > 0) {
       const { error: productosError } = await supabase
         .from('productos')
@@ -116,7 +118,7 @@ async function cleanData() {
 
     console.log('📁 Eliminando categorías dummy...')
     const { data: categorias } = await supabase.from('categorias').select('id')
-    const categoriasToDelete = categorias?.filter(c => c.id.startsWith('00000000-0000-4000-8000-c02')) || []
+    const categoriasToDelete = categorias?.filter(c => c.id.startsWith('00000000-0000-4000-8000-633032')) || []
     if (categoriasToDelete.length > 0) {
       const { error: categoriasError } = await supabase
         .from('categorias')
@@ -128,7 +130,7 @@ async function cleanData() {
 
     console.log('📚 Eliminando colegios dummy...')
     const { data: colegios } = await supabase.from('colegios').select('id')
-    const colegiosToDelete = colegios?.filter(c => c.id.startsWith('00000000-0000-4000-8000-c01')) || []
+    const colegiosToDelete = colegios?.filter(c => c.id.startsWith('00000000-0000-4000-8000-633031')) || []
     if (colegiosToDelete.length > 0) {
       const { error: colegiosError } = await supabase
         .from('colegios')
