@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 
 export default function CountDisplayClient({ displayed, total }: { displayed: number; total: number }) {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
   if (!mounted) return <>{/* cliente: esperando */}</>
   return (
     <>
