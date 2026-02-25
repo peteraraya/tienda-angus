@@ -115,6 +115,41 @@ export default function SearchBar({
           </div>
         </div>
       </div>
+
+      {/* Filtros activos visuales */}
+      {(selectedCategory || selectedSort !== 'newest') && (
+        <div className="flex flex-wrap gap-2 mt-4">
+          {selectedCategory && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
+              Categoría: {selectedCategory}
+              <button
+                onClick={() => onCategoryChange('')}
+                className="ml-1 text-blue-900 dark:text-blue-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                title="Quitar filtro de categoría"
+              >✕</button>
+            </span>
+          )}
+          {selectedSort !== 'newest' && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold">
+              Orden: {(() => {
+                switch(selectedSort) {
+                  case 'price-asc': return 'Precio: Menor a Mayor';
+                  case 'price-desc': return 'Precio: Mayor a Menor';
+                  case 'name-asc': return 'Nombre: A-Z';
+                  case 'name-desc': return 'Nombre: Z-A';
+                  case 'stock-desc': return 'Mayor stock';
+                  default: return '';
+                }
+              })()}
+              <button
+                onClick={() => onSortChange('newest')}
+                className="ml-1 text-purple-900 dark:text-purple-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                title="Quitar filtro de orden"
+              >✕</button>
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
