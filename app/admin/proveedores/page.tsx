@@ -43,10 +43,6 @@ export default function ProveedoresPage() {
     notas: ''
   })
 
-  useEffect(() => {
-    loadProveedores()
-  }, [])
-
   async function loadProveedores() {
     setLoading(true)
     const { data } = await supabase
@@ -58,6 +54,10 @@ export default function ProveedoresPage() {
     if (data) setProveedores(data)
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadProveedores()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

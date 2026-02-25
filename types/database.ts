@@ -75,3 +75,56 @@ export interface VentaItem {
 export interface VentaConItems extends Venta {
   items: VentaItem[]
 }
+
+export interface Proveedor {
+  id: string
+  nombre: string
+  contacto: string
+  telefono: string
+  email?: string
+  direccion?: string
+  rut?: string
+  notas?: string
+  activo: boolean
+  total_pedidos: number
+  cantidad_pedidos: number
+  ultimo_pedido?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Pedido {
+  id: string
+  proveedor_id: string
+  proveedor_nombre: string
+  fecha_pedido: string
+  fecha_esperada?: string
+  fecha_recepcion?: string
+  estado: 'pendiente' | 'recibido' | 'cancelado'
+  total: number
+  cantidad_items: number
+  notas?: string
+  usuario: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PedidoItem {
+  id: string
+  pedido_id: string
+  producto_id?: string
+  variante_id?: string
+  producto_nombre: string
+  talla?: string
+  colegio?: string
+  cantidad: number
+  precio_unitario: number
+  subtotal: number
+  recibido: boolean
+  cantidad_recibida: number
+  created_at: string
+}
+
+export interface PedidoConItems extends Pedido {
+  items: PedidoItem[]
+}

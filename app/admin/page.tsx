@@ -565,6 +565,26 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Proveedores</span>
               </Button>
               <Button
+                onClick={() => router.push('/admin/insumos')}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Insumos"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <span className="hidden sm:inline">Insumos</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/pedidos')}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Pedidos"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span className="hidden sm:inline">Pedidos</span>
+              </Button>
+              <Button
                 onClick={() => router.push('/admin/nuevo')}
                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
                 title="Nuevo Producto"
