@@ -337,21 +337,21 @@ export default function AdminPage() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 transition-colors duration-300">
       <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-xl flex items-center justify-center shadow-lg mb-2 sm:mb-0">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Panel de Administración
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Gestiona tu inventario</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
               <Button
                 onClick={() => router.push('/')}
                 className="bg-linear-to-br from-gray-600 to-gray-700 dark:from-gray-700 dark:to-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
@@ -825,6 +825,16 @@ export default function AdminPage() {
         </div>
       </div>
       
+
+      {/* Footer fijo y centrado en móvil */}
+      <footer className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-4 mt-10 text-center md:text-left fixed bottom-0 left-0 z-20">
+        <div className="flex flex-col items-center gap-1 md:items-start">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">© 2026 Confecciones Angus</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Contacto: <a href="mailto:ventas@confeccionesangus.cl" className="underline hover:text-blue-600">ventas@confeccionesangus.cl</a></p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">WhatsApp: <a href="https://wa.me/56912345678" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-600">+56 9 1234 5678</a></p>
+        </div>
+      </footer>
+
       <ConfirmDialog />
     </div>
   )
