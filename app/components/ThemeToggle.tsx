@@ -3,17 +3,29 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const getInitialTheme = () => {
-    if (typeof window === 'undefined') return false;
-    const theme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return theme === 'dark' || (!theme && prefersDark);
-  };
-
-  const [isDark, setIsDark] = useState(getInitialTheme);
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Defer state updates to avoid calling setState synchronously within the effect
+    const id = setTimeout(() => {
+      if (typeof window === 'undefined') return;
+      const theme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initial = theme === 'dark' || (!theme && prefersDark);
+      setIsDark(initial);
+      setMounted(true);
+      if (initial) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     if (isDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -21,21 +33,13 @@ export default function ThemeToggle() {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
-  }, [isDark]);
+  }, [isDark, mounted]);
 
   const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    setIsDark((prev) => !prev);
   };
 
-  if (typeof window === 'undefined') {
+  if (!mounted) {
     return <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 w-10 h-10" />;
   }
 

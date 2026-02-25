@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FloatingSocialButtons from "./components/FloatingSocialButtons";
 import { ToastProvider } from "./components/ui/ToastContainer";
+import { appConfig } from "@/config/app.config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tienda de Confecciones",
-  description: "Descubre nuestra colección exclusiva de moda y estilo",
+  title: `${appConfig.company.name} - ${appConfig.company.tagline}`,
+  description: appConfig.company.description,
+  icons: {
+    icon: appConfig.company.favicon,
+    shortcut: appConfig.company.favicon,
+    apple: appConfig.company.favicon,
+  },
 };
 
 export default function RootLayout({

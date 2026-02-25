@@ -16,6 +16,13 @@ Ejecuta estos scripts en orden en el SQL Editor de Supabase.
 10. **10-policies-variantes-insert.sql** - Política de inserción para variantes
 11. **11-policies-variantes-update.sql** - Política de actualización para variantes
 12. **12-policies-variantes-delete.sql** - Política de eliminación para variantes
+13. **13-add-discount-fields.sql** - Agrega campos de descuento y oferta
+14. **14-add-multiple-images.sql** - Agrega soporte para múltiples imágenes
+15. **15-fix-productos-schema.sql** - Corrige esquema de productos
+16. **16-create-colegios-table.sql** - Crea tabla de colegios
+17. **17-create-categorias-table.sql** - Crea tabla de categorías
+18. **18-policies-categorias.sql** - Políticas RLS para categorías
+19. **19-policies-colegios.sql** - Políticas RLS para colegios
 
 ## Instrucciones:
 
@@ -28,5 +35,5 @@ Ejecuta estos scripts en orden en el SQL Editor de Supabase.
 ## Verificación:
 
 Después de ejecutar todos los scripts, verifica en:
-- **Database > Tables** que existan las tablas `productos` y `variantes`
-- **Authentication > Policies** que existan todas las políticas creadas
+- **Database > Tables** que existan las tablas `productos`, `variantes`, `colegios` y `categorias`
+- **Authentication > Policies** que existan todas las políticas creadas para cada tabla

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useState, useEffect } from 'react'
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -30,6 +32,55 @@ interface ProductCardProps {
 export default function ProductCard({ producto }: ProductCardProps) {
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isMounted, setIsMounted] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+
+  // Montar el componente y cargar favoritos solo en el cliente
+  useEffect(() => {
+    setIsMounted(true)
+    try {
+      const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
+      setIsFavorite(favs.includes(producto.id))
+    } catch {
+      setIsFavorite(false)
+    }
+  }, [producto.id])
+
+  // Sincronizar favoritos con localStorage (escuchar cambios de la app)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const newFavs = (e as CustomEvent<string[]>)?.detail ?? JSON.parse(localStorage.getItem('favoritos') || '[]')
+        setIsFavorite(newFavs.includes(producto.id))
+      } catch {
+        // no-op
+      }
+    }
+    window.addEventListener('favoritos-changed', handler)
+    return () => {
+      window.removeEventListener('favoritos-changed', handler)
+    }
+  }, [producto.id])
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
+    let newFavs
+    if (favs.includes(producto.id)) {
+      newFavs = favs.filter((id: string) => id !== producto.id)
+      setIsFavorite(false)
+    } else {
+      newFavs = [...favs, producto.id]
+      setIsFavorite(true)
+    }
+    localStorage.setItem('favoritos', JSON.stringify(newFavs))
+    try {
+      // Notificar otras partes de la app en la misma pestaña
+      window.dispatchEvent(new CustomEvent('favoritos-changed', { detail: newFavs }))
+    } catch {
+      // no-op en entornos donde window no está disponible
+    }
+  }
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
   
@@ -57,13 +108,27 @@ export default function ProductCard({ producto }: ProductCardProps) {
   return (
     <>
       <div 
-        className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl dark:hover:shadow-blue-900/20 transition-all duration-500 transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700 cursor-pointer"
+        className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl dark:hover:shadow-blue-900/20 transition-all duration-500 transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700 cursor-pointer relative"
         onClick={() => setShowModal(true)}
       >
+                {/* Botón de favorito - solo mostrar cuando está montado */}
+                {isMounted && (
+                  <button
+                    onClick={toggleFavorite}
+                    className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-2 shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
+                    title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                  >
+                    {isFavorite ? (
+                      <FavoriteIcon className="text-pink-500" fontSize="medium" />
+                    ) : (
+                      <FavoriteBorderIcon className="text-pink-400" fontSize="medium" />
+                    )}
+                  </button>
+                )}
         <div className="relative h-72 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
           {imagenes.length > 0 ? (
             <>
-              <Image
+              <LazyImage
                 src={imagenes[currentImageIndex]}
                 alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
                 fill
@@ -134,9 +199,21 @@ export default function ProductCard({ producto }: ProductCardProps) {
             </div>
           )}
 
+          {/* Badge de Últimas unidades (poco stock) */}
+          {producto.stock_total > 0 && producto.stock_total <= 2 && (
+            <div className="absolute top-0 left-0 z-10">
+              <div className="bg-red-600 text-white px-3 py-1 rounded-lg shadow-md">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <span>¡Últimas unidades!</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{producto.stock_total}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Badge de Oferta */}
           {producto.en_oferta && (
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-16 right-4 z-10">
               <div className="bg-linear-to-br from-orange-500 to-red-500 text-white px-4 py-2 rounded-xl shadow-lg animate-pulse">
                 <div className="flex items-center gap-1 font-black text-sm">
                   <span>🔥</span>
@@ -240,7 +317,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
             </div>
             <div className="text-right">
               <span className={`inline-block text-xs font-bold px-4 py-2 rounded-full ${
-                producto.stock_total > 10 
+                producto.stock_total > 6 
                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700' 
                   : producto.stock_total > 0 
                   ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700' 

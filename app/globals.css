@@ -262,3 +262,102 @@ body {
   --halo-2: rgba(99,102,241,0.05);
   animation: haloPulse 3s ease-in-out infinite;
 }
+
+/* Estilos de impresión optimizados */
+@media print {
+  /* Ocultar elementos no necesarios en impresión */
+  button,
+  .no-print,
+  nav,
+  header button,
+  .hover-lift,
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    display: none !important;
+  }
+
+  /* Resetear colores para impresión */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Optimizar página */
+  body {
+    margin: 0;
+    padding: 20px;
+    font-size: 10pt;
+  }
+
+  /* Evitar saltos de página dentro de elementos */
+  .print-avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Mostrar URLs de enlaces */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+  }
+
+  /* Optimizar tablas */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  /* Encabezados de página */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Imágenes */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Forzar salto de página antes de ciertos elementos */
+  .page-break-before {
+    page-break-before: always;
+    break-before: always;
+  }
+
+  /* Forzar salto de página después de ciertos elementos */
+  .page-break-after {
+    page-break-after: always;
+    break-after: always;
+  }
+
+  /* Mostrar solo texto de productos */
+  .print-product-name {
+    font-weight: bold;
+    font-size: 11pt;
+  }
+
+  .print-product-price {
+    font-size: 10pt;
+  }
+
+  /* Ocultar gradientes y efectos visuales */
+  .gradient-primary,
+  .gradient-text,
+  .glass,
+  .glass-dark {
+    background: white !important;
+  }
+}

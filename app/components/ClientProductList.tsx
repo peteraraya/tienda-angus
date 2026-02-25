@@ -1,9 +1,42 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
-import SearchBar from './SearchBar'
+import SearchBarSimple from './SearchBarSimple'
+import CountDisplayClient from './CountDisplayClient'
+// Hook para favoritos
+function useFavorites() {
+  const [favorites, setFavorites] = useState<string[]>(() => {
+      if (typeof window === 'undefined') return [];
+      return JSON.parse(window.localStorage.getItem('favoritos') || '[]');
+  });
+  useEffect(() => {
+    const onStorage = () => {
+        const favs = JSON.parse(window.localStorage.getItem('favoritos') || '[]');
+      setFavorites(favs);
+    };
+    const onCustom = (e: Event) => {
+      try {
+        // intentar leer detail si viene en CustomEvent
+        const detail = (e as CustomEvent).detail;
+        if (Array.isArray(detail)) {
+          setFavorites(detail)
+          return
+        }
+      } catch (err) {}
+      // fallback a leer desde localStorage
+      onStorage();
+    }
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('favoritos-changed', onCustom as EventListener);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('favoritos-changed', onCustom as EventListener);
+    }
+  }, []);
+  return favorites;
+}
 
 interface Variante {
   talla: string
@@ -28,27 +61,59 @@ interface ClientProductListProps {
   productos: Producto[]
 }
 
+
 export default function ClientProductList({ productos }: ClientProductListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSort, setSelectedSort] = useState('newest')
   const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid')
+  const [selectedTalla, setSelectedTalla] = useState('')
+  const [selectedColegio, setSelectedColegio] = useState('')
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
+  const favorites = useFavorites();
+  // Paginación / carga infinita
+  const PAGE_SIZE = 12
+  const [page, setPage] = useState(1)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
 
-  const filteredAndSortedProducts = useMemo(() => {
-    const filtered = productos.filter(producto => {
+  // Filtros dinámicos de tallas y colegios según productos filtrados
+  const filteredProductsForFilters = useMemo(() => {
+    return productos.filter(producto => {
       const matchesSearch = searchTerm === '' || 
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-      
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-
       return matchesSearch && matchesCategory
     })
+  }, [productos, searchTerm, selectedCategory])
 
+  const tallas = useMemo(() => {
+    const allTallas = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.talla) || [])
+    return [...new Set(allTallas)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  }, [filteredProductsForFilters])
+
+  const colegios = useMemo(() => {
+    const allColegios = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.colegio) || [])
+    return [...new Set(allColegios)].sort()
+  }, [filteredProductsForFilters])
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = productos.filter(producto => {
+      const matchesSearch = searchTerm === '' || 
+        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
+      const matchesTalla = selectedTalla === '' || producto.variantes.some(v => v.talla === selectedTalla)
+      const matchesColegio = selectedColegio === '' || producto.variantes.some(v => v.colegio === selectedColegio)
+      return matchesSearch && matchesCategory && matchesTalla && matchesColegio
+    })
+    if (showOnlyFavorites) {
+      filtered = filtered.filter(producto => favorites.includes(producto.id));
+    }
     // Ordenar
     switch (selectedSort) {
       case 'price-asc':
@@ -69,13 +134,45 @@ export default function ClientProductList({ productos }: ClientProductListProps)
       default: // newest
         break
     }
-
     return filtered
-  }, [productos, searchTerm, selectedCategory, selectedSort])
+  }, [productos, searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, favorites])
+
+  // Reiniciar página cuando cambian filtros o el conjunto de resultados
+  useEffect(() => {
+    // Defer the update to avoid calling setState synchronously within the effect
+    const t = window.setTimeout(() => setPage(1), 0)
+    // scroll to top of product list? leave to consumer
+    return () => clearTimeout(t)
+  }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, favorites])
+
+  const displayedProducts = useMemo(() => {
+    return filteredAndSortedProducts.slice(0, page * PAGE_SIZE)
+  }, [filteredAndSortedProducts, page])
+
+  // IntersectionObserver para carga infinita
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // cargar más si hay más productos
+          if (displayedProducts.length < filteredAndSortedProducts.length) {
+            setPage((p) => p + 1)
+          }
+        }
+      })
+    }, { root: null, rootMargin: '200px', threshold: 0.1 })
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [displayedProducts.length, filteredAndSortedProducts.length])
+
+  // CountDisplayClient es un componente cliente que monta y muestra el conteo
 
   return (
     <div>
-      <SearchBar 
+      <SearchBarSimple 
         value={searchTerm}
         onChange={setSearchTerm}
         onCategoryChange={setSelectedCategory}
@@ -85,6 +182,15 @@ export default function ClientProductList({ productos }: ClientProductListProps)
         selectedSort={selectedSort}
         onViewChange={setCurrentView}
         currentView={currentView}
+        productos={productos.map(p => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion }))}
+        tallas={tallas}
+        selectedTalla={selectedTalla}
+        onTallaChange={setSelectedTalla}
+        colegios={colegios}
+        selectedColegio={selectedColegio}
+        onColegioChange={setSelectedColegio}
+        showOnlyFavorites={showOnlyFavorites}
+        onShowOnlyFavoritesChange={setShowOnlyFavorites}
       />
 
       {filteredAndSortedProducts.length === 0 ? (
@@ -100,22 +206,40 @@ export default function ClientProductList({ productos }: ClientProductListProps)
       ) : (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600 dark:text-gray-400">
-              Mostrando <span className="font-semibold text-gray-900 dark:text-white">{filteredAndSortedProducts.length}</span> {filteredAndSortedProducts.length === 1 ? 'producto' : 'productos'}
+            <p suppressHydrationWarning className="text-gray-600 dark:text-gray-400">
+              <CountDisplayClient displayed={displayedProducts.length} total={filteredAndSortedProducts.length} />
             </p>
           </div>
 
           {currentView === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredAndSortedProducts.map((producto) => (
-                <ProductCard key={producto.id} producto={producto} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {displayedProducts.map((producto) => (
+                  <ProductCard key={producto.id} producto={producto} />
+                ))}
+              </div>
+              {/* Sentinel para carga infinita */}
+              <div ref={sentinelRef} />
+            </>
           ) : (
-            <div className="space-y-4">
-              {filteredAndSortedProducts.map((producto) => (
-                <ProductListItem key={producto.id} producto={producto} />
-              ))}
+            <>
+              <div className="space-y-4">
+                {displayedProducts.map((producto) => (
+                  <ProductListItem key={producto.id} producto={producto} />
+                ))}
+              </div>
+              <div ref={sentinelRef} />
+            </>
+          )}
+          {/* Botón 'Cargar más' como fallback */}
+          {displayedProducts.length < filteredAndSortedProducts.length && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none"
+              >
+                Cargar más
+              </button>
             </div>
           )}
         </div>

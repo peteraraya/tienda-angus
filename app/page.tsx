@@ -125,14 +125,14 @@ export default async function Home() {
       {/* Footer */}
       <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-20 transition-colors duration-300" id="contacto">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid md:grid-cols-3 gap-8 mb-8 items-start">
-            <div className="flex items-start gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 items-center md:items-start text-center md:text-left">
+            <div className="flex flex-col items-center md:flex-row md:items-start gap-4">
               <Image
                 src="/logo-confecciones.png"
                 alt="Confecciones Angus"
                 width={80}
                 height={80}
-                className="w-20 h-20 rounded-full object-cover"
+                className="w-20 h-20 rounded-full object-cover mx-auto md:mx-0"
                 priority
               />
               <div>

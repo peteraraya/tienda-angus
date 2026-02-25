@@ -1,7 +1,14 @@
-'use client'
+ 'use client'
 
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useState, useRef } from 'react'
+import CloseIcon from '@mui/icons-material/Close'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import SearchIcon from '@mui/icons-material/Search'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CancelIcon from '@mui/icons-material/Cancel'
+import { LazyImage } from './ui'
+import ImageLightbox from './ImageLightbox'
 import { formatPrice } from '@/lib/formatPrice'
 
 interface Variante {
@@ -31,6 +38,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedTalla, setSelectedTalla] = useState<string>('')
   const [selectedColegio, setSelectedColegio] = useState<string>('')
+  const modalRef = useRef<HTMLDivElement | null>(null)
+  const [open, setOpen] = useState(true)
   
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -38,6 +47,21 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
       document.body.style.overflow = 'unset'
     }
   }, [])
+
+  // Manejo de foco y teclado (Esc)
+  useEffect(() => {
+    const prevActive = document.activeElement as HTMLElement | null
+    // focus en el contenedor para accesibilidad
+    setTimeout(() => modalRef.current?.focus(), 0)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      prevActive?.focus()
+    }
+  }, [onClose])
 
   const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
     ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
@@ -57,6 +81,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length)
   }
+
+  const [openLightbox, setOpenLightbox] = useState(false)
 
   // Obtener tallas y colegios únicos disponibles
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
@@ -83,20 +109,24 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   const stockDisponible = getStockDisponible()
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden={false}>
       <div 
-        className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-modal-title"
+        tabIndex={-1}
+        ref={modalRef}
+        className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center z-10">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
-          <button
+          <h2 id="product-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
+          <button type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Cerrar diálogo"
           >
-            <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <CloseIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
@@ -108,7 +138,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 group">
                 {imagenes.length > 0 ? (
                   <>
-                    <Image
+                    <LazyImage
                       src={imagenes[currentImageIndex]}
                       alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
                       width={800}
@@ -121,21 +151,17 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     {/* Navegación de imágenes */}
                     {imagenes.length > 1 && (
                       <>
-                        <button
+                        <button type="button"
                           onClick={prevImage}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10 focus:outline-none focus:ring-2 focus:ring-white"
                         >
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                          </svg>
+                          <ChevronLeftIcon className="w-6 h-6" />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={nextImage}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10 focus:outline-none focus:ring-2 focus:ring-white"
                         >
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
+                          <ChevronRightIcon className="w-6 h-6" />
                         </button>
                         
                         {/* Contador de imágenes */}
@@ -143,6 +169,16 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                           {currentImageIndex + 1} / {imagenes.length}
                         </div>
                       </>
+                    )}
+                    {/* Botón de lupa (abrir lightbox) - mostrar también cuando solo hay 1 imagen */}
+                    {imagenes.length > 0 && (
+                      <button type="button"
+                        onClick={(e) => { e.stopPropagation(); setOpenLightbox(true) }}
+                        className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Ver imagen"
+                      >
+                        <SearchIcon className="w-5 h-5 text-gray-900 dark:text-white" />
+                      </button>
                     )}
                   </>
                 ) : (
@@ -163,16 +199,16 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
               {imagenes.length > 1 && (
                 <div className="grid grid-cols-5 gap-2">
                   {imagenes.map((img, index) => (
-                    <button
+                    <button type="button"
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                         index === currentImageIndex 
                           ? 'border-blue-600 dark:border-blue-400 ring-2 ring-blue-600/50 dark:ring-blue-400/50' 
                           : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                      }`}
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
-                      <Image
+                      <LazyImage
                         src={img}
                         alt={`Miniatura ${index + 1}`}
                         width={100}
@@ -202,6 +238,9 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{producto.nombre}</h3>
               </div>
+                {openLightbox && (
+                  <ImageLightbox images={imagenes} startIndex={currentImageIndex} onClose={() => setOpenLightbox(false)} />
+                )}
 
               {/* Precio */}
               <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
@@ -251,14 +290,14 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {colegiosDisponibles.map(colegio => (
-                      <button
+                      <button type="button"
                         key={colegio}
                         onClick={() => setSelectedColegio(selectedColegio === colegio ? '' : colegio)}
                         className={`px-4 py-2 rounded-lg border-2 font-medium transition-all ${
                           selectedColegio === colegio
                             ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
-                        }`}
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       >
                         {colegio}
                       </button>
@@ -293,7 +332,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                       )
                       
                       return (
-                        <button
+                        <button type="button"
                           key={talla}
                           onClick={() => disponible && setSelectedTalla(selectedTalla === talla ? '' : talla)}
                           disabled={!disponible}
@@ -303,7 +342,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                               : disponible
                               ? 'border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-white text-gray-700 dark:text-gray-300'
                               : 'border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50'
-                          }`}
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         >
                           {talla}
                         </button>
@@ -316,18 +355,14 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
               {/* Disponibilidad */}
               <div className="mb-6">
                 {stockDisponible > 0 ? (
-                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <CheckCircleIcon className="w-5 h-5" />
                     <span className="font-semibold">HAY EXISTENCIAS</span>
                     <span className="text-sm">({stockDisponible} disponibles)</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
+                    <CancelIcon className="w-5 h-5" />
                     <span className="font-semibold">SIN STOCK</span>
                   </div>
                 )}
@@ -335,9 +370,9 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
 
               {/* Botón Cerrar */}
               <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button
+                <button type="button"
                   onClick={onClose}
-                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Cerrar
                 </button>

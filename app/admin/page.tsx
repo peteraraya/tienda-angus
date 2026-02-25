@@ -1,13 +1,20 @@
 'use client'
 
-import { useState, useEffect, useMemo, Fragment } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
+// use LazyImage for placeholders and lazy loading in admin previews
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input } from '../components/ui'
+import { Button, Input, LazyImage, Pagination, usePagination } from '../components/ui'
+import ProductListNotebook from './components/ProductListNotebook'
+import DashboardSummary from './components/DashboardSummary'
+
+import KeyboardShortcuts from './components/KeyboardShortcuts'
+import NotificationCenter from './components/NotificationCenter'
+import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
+import { DashboardMetrics } from './components/DashboardMetrics'
 
 interface Variante {
   id: string
@@ -15,6 +22,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  insignia_url?: string
 }
 
 interface Producto {
@@ -28,6 +36,7 @@ interface Producto {
   variantes_count?: number
   descuento_porcentaje?: number
   en_oferta?: boolean
+  notas?: string
   variantes?: Variante[]
 }
 
@@ -41,8 +50,14 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedColegio, setSelectedColegio] = useState('')
   const [selectedTalla, setSelectedTalla] = useState('')
+  const [selectedStockFilter, setSelectedStockFilter] = useState('') // Nuevo filtro
+  const [variantSearchTerm, setVariantSearchTerm] = useState('') // Filtro de variantes
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
+  const [editingProductName, setEditingProductName] = useState<string | null>(null)
+  const [editingProductPrice, setEditingProductPrice] = useState<string | null>(null)
+  const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
@@ -83,6 +98,16 @@ export default function AdminPage() {
       .select('*')
       .order('created_at', { ascending: false })
 
+    // Cargar colegios con sus insignias
+    const { data: colegiosData } = await supabase
+      .from('colegios')
+      .select('nombre, insignia_url')
+
+    // Crear mapa con normalización de nombres para evitar problemas de coincidencia
+    const colegiosMap = new Map(
+      colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
+    )
+
     if (productosData) {
       const productosConInfo = await Promise.all(
         productosData.map(async (producto) => {
@@ -91,6 +116,12 @@ export default function AdminPage() {
             .select('*')
             .eq('producto_id', producto.id)
 
+          // Agregar insignia_url a cada variante
+          const variantesConInsignia = variantes?.map(v => ({
+            ...v,
+            insignia_url: colegiosMap.get(v.colegio.trim())
+          })) || []
+
           const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
           const variantes_count = variantes?.length || 0
 
@@ -98,7 +129,7 @@ export default function AdminPage() {
             ...producto,
             stock_total,
             variantes_count,
-            variantes: variantes || []
+            variantes: variantesConInsignia
           }
         })
       )
@@ -123,10 +154,26 @@ export default function AdminPage() {
   }
 
   async function toggleOferta(id: string, currentState: boolean) {
+    const producto = productos.find(p => p.id === id)
+    const nuevoEstado = !currentState
+    
+    const confirmed = await confirm({
+      title: nuevoEstado ? '¿Activar oferta?' : '¿Desactivar oferta?',
+      message: nuevoEstado 
+        ? `Se marcará "${producto?.nombre}" como producto en oferta. Aparecerá con una insignia especial.`
+        : `Se quitará la marca de oferta de "${producto?.nombre}".`,
+      confirmText: nuevoEstado ? 'Activar Oferta' : 'Desactivar',
+      variant: nuevoEstado ? 'warning' : 'info'
+    })
+
+    if (!confirmed) return
+
     await supabase
       .from('productos')
-      .update({ en_oferta: !currentState })
+      .update({ en_oferta: nuevoEstado })
       .eq('id', id)
+    
+    toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
     loadProductos()
   }
 
@@ -135,11 +182,47 @@ export default function AdminPage() {
       toast.error('El descuento debe estar entre 0 y 100')
       return
     }
+
+    const producto = productos.find(p => p.id === id)
+    const descuentoActual = producto?.descuento_porcentaje || 0
+    
+    // Si no hay cambio, no hacer nada
+    if (descuento === descuentoActual) return
+
+    // Si se está quitando el descuento (0%), no pedir confirmación
+    if (descuento === 0) {
+      await supabase
+        .from('productos')
+        .update({ descuento_porcentaje: descuento })
+        .eq('id', id)
+      toast.success('Descuento eliminado')
+      loadProductos()
+      return
+    }
+
+    // Calcular precios
+    const precioOriginal = producto?.precio || 0
+    const precioFinal = precioOriginal - (precioOriginal * descuento / 100)
+    
+    const confirmed = await confirm({
+      title: '¿Aplicar descuento?',
+      message: `Se aplicará un descuento del ${descuento}% a "${producto?.nombre}".\n\nPrecio original: ${formatPrice(precioOriginal)}\nPrecio con descuento: ${formatPrice(precioFinal)}\nAhorro: ${formatPrice(precioOriginal - precioFinal)}`,
+      confirmText: 'Aplicar Descuento',
+      variant: 'warning'
+    })
+
+    if (!confirmed) {
+      // Revertir el select al valor anterior
+      loadProductos()
+      return
+    }
     
     await supabase
       .from('productos')
       .update({ descuento_porcentaje: descuento })
       .eq('id', id)
+    
+    toast.success(`Descuento del ${descuento}% aplicado exitosamente`)
     loadProductos()
   }
 
@@ -201,6 +284,51 @@ export default function AdminPage() {
     setExpandedProduct(expandedProduct === productId ? null : productId)
   }
 
+  async function updateProductName(id: string, nombre: string) {
+    if (!nombre.trim()) {
+      toast.error('El nombre no puede estar vacío')
+      setEditingProductName(null)
+      return
+    }
+
+    await supabase
+      .from('productos')
+      .update({ nombre: nombre.trim() })
+      .eq('id', id)
+    
+    toast.success('Nombre actualizado')
+    loadProductos()
+    setEditingProductName(null)
+  }
+
+  async function updateProductPrice(id: string, precio: number) {
+    if (precio < 0) {
+      toast.error('El precio no puede ser negativo')
+      setEditingProductPrice(null)
+      return
+    }
+
+    await supabase
+      .from('productos')
+      .update({ precio })
+      .eq('id', id)
+    
+    toast.success('Precio actualizado')
+    loadProductos()
+    setEditingProductPrice(null)
+  }
+
+  async function updateProductNotas(id: string, notas: string) {
+    await supabase
+      .from('productos')
+      .update({ notas: notas.trim() || null })
+      .eq('id', id)
+    
+    toast.success(notas.trim() ? 'Notas guardadas' : 'Notas eliminadas')
+    loadProductos()
+    setEditingProductNotas(null)
+  }
+
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
   }, [productos])
@@ -219,21 +347,69 @@ export default function AdminPage() {
 
   const filteredProducts = useMemo(() => {
     return productos.filter(producto => {
-      const matchesSearch = searchTerm === '' || 
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      // Búsqueda mejorada - busca en productos Y variantes
+      if (searchTerm !== '') {
+        const search = searchTerm.toLowerCase()
+        
+        // Buscar en campos del producto
+        const matchesNombre = producto.nombre.toLowerCase().includes(search)
+        const matchesDescripcion = producto.descripcion.toLowerCase().includes(search)
+        const matchesCategoria = producto.categoria.toLowerCase().includes(search)
+        const matchesPrecio = producto.precio.toString().includes(search)
+        const matchesNotas = producto.notas?.toLowerCase().includes(search)
+        
+        // Buscar en variantes (colegio, talla, stock)
+        const matchesVariantes = producto.variantes?.some(v => 
+          v.colegio.toLowerCase().includes(search) ||
+          v.talla.toLowerCase().includes(search) ||
+          v.stock.toString().includes(search)
+        )
+        
+        // Si no coincide con nada, filtrar
+        if (!matchesNombre && !matchesDescripcion && !matchesCategoria && 
+            !matchesPrecio && !matchesNotas && !matchesVariantes) {
+          return false
+        }
+      }
       
+      // Filtro por categoría
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
 
+      // Filtro por colegio
       const matchesColegio = selectedColegio === '' || 
         producto.variantes?.some(v => v.colegio === selectedColegio)
 
+      // Filtro por talla
       const matchesTalla = selectedTalla === '' || 
         producto.variantes?.some(v => v.talla === selectedTalla)
 
-      return matchesSearch && matchesCategory && matchesColegio && matchesTalla
+      // Filtro por stock
+      let matchesStock = true
+      if (selectedStockFilter === 'disponible') {
+        matchesStock = (producto.stock_total || 0) > 6
+      } else if (selectedStockFilter === 'bajo') {
+        matchesStock = (producto.stock_total || 0) > 0 && (producto.stock_total || 0) <= 6
+      } else if (selectedStockFilter === 'agotado') {
+        matchesStock = (producto.stock_total || 0) === 0
+      }
+
+      return matchesCategory && matchesColegio && matchesTalla && matchesStock
     })
-  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla])
+  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter])
+
+  // Paginación
+  const { 
+    currentPage, 
+    totalPages, 
+    startIndex, 
+    endIndex, 
+    goToPage 
+  } = usePagination(filteredProducts.length, 20)
+
+  // Productos paginados
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(startIndex, endIndex)
+  }, [filteredProducts, startIndex, endIndex])
 
   // Calcular stock específico según filtros de colegio y talla
   const stockEspecifico = useMemo(() => {
@@ -337,65 +513,131 @@ export default function AdminPage() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 transition-colors duration-300">
       <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Panel de Administración
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Gestiona tu inventario</p>
               </div>
+              <NotificationCenter />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
               <Button
                 onClick={() => router.push('/')}
-                className="bg-linear-to-br from-gray-600 to-gray-700 dark:from-gray-700 dark:to-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Ver Tienda"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Ver Tienda
+                <span className="hidden sm:inline">Tienda</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/colegios')}
-                className="bg-linear-to-br from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Colegios"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                Colegios
+                <span className="hidden sm:inline">Colegios</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/categorias')}
-                className="bg-linear-to-br from-indigo-600 to-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Categorías"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                Categorías
+                <span className="hidden sm:inline">Categorías</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/ventas')}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Ventas"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="hidden sm:inline">Ventas</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/clientes')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Clientes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="hidden sm:inline">Clientes</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/proveedores')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Proveedores"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="hidden sm:inline">Proveedores</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/insumos')}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Insumos"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <span className="hidden sm:inline">Insumos</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/admin/pedidos')}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Pedidos"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span className="hidden sm:inline">Pedidos</span>
               </Button>
               <Button
                 onClick={() => router.push('/admin/nuevo')}
-                className="bg-linear-to-br from-green-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Nuevo Producto"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Nuevo Producto
+                <span className="hidden sm:inline">Nuevo</span>
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Imprimir"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
               </Button>
               <Button
                 onClick={handleLogout}
-                className="bg-linear-to-br from-red-600 to-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-red-700 hover:to-rose-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                title="Cerrar Sesión"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Cerrar Sesión
               </Button>
             </div>
           </div>
@@ -403,71 +645,106 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Dashboard de Métricas - NUEVO */}
+        <DashboardMetrics />
+
+        {/* Dashboard Summary */}
+        <DashboardSummary productos={productos} />
+
         {/* Buscador y Filtros */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col gap-4">
-            {/* Primera fila: Búsqueda y Categoría */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar por nombre o descripción..."
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+            {/* Primera fila: Búsqueda */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
+              <input
+                type="text"
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Buscar por nombre, categoría, colegio, talla, precio, stock o notas..."
+                className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
+              />
+              {searchTerm && (
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Segunda fila: Filtros rápidos */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="md:w-64 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todas las categorías</option>
+                <option value="">📁 Todas las categorías</option>
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-            </div>
 
-            {/* Segunda fila: Colegio y Talla */}
-            <div className="flex flex-col md:flex-row gap-4">
               <select
                 value={selectedColegio}
                 onChange={(e) => setSelectedColegio(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todos los colegios</option>
+                <option value="">🏫 Todos los colegios</option>
                 {colegios.map(colegio => (
                   <option key={colegio} value={colegio}>{colegio}</option>
                 ))}
               </select>
+
               <select
                 value={selectedTalla}
                 onChange={(e) => setSelectedTalla(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todas las tallas</option>
+                <option value="">📏 Todas las tallas</option>
                 {tallas.map(talla => (
                   <option key={talla} value={talla}>{talla}</option>
                 ))}
               </select>
-              {/* Botón para limpiar filtros */}
-              {(searchTerm || selectedCategory || selectedColegio || selectedTalla) && (
+
+              <select
+                value={selectedStockFilter}
+                onChange={(e) => setSelectedStockFilter(e.target.value)}
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-semibold"
+              >
+                <option value="">📦 Todo el stock</option>
+                <option value="disponible">🟢 Stock disponible (+6)</option>
+                <option value="bajo">🟡 Stock bajo (1-6)</option>
+                <option value="agotado">🔴 Agotados (0)</option>
+              </select>
+
+              {/* Botón limpiar filtros - integrado en la misma fila */}
+              {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
                 <Button
                   onClick={() => {
                     setSearchTerm('')
                     setSelectedCategory('')
                     setSelectedColegio('')
                     setSelectedTalla('')
+                    setSelectedStockFilter('')
                   }}
-                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold whitespace-nowrap"
+                  className="col-span-2 md:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold flex items-center justify-center gap-2 text-sm"
                 >
-                  Limpiar Filtros
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Limpiar
                 </Button>
               )}
             </div>
@@ -475,27 +752,33 @@ export default function AdminPage() {
 
           {/* Contador de resultados y filtros activos */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Mostrando <span className="font-bold text-gray-900 dark:text-white">{filteredProducts.length}</span> de {productos.length} productos
+            <p className="text-sm font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg">
+              📊 Mostrando <span className="text-blue-600 dark:text-blue-400">{filteredProducts.length}</span> de {productos.length} productos
             </p>
             {selectedCategory && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
-                Categoría: {selectedCategory}
-                <Button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold">
+                📁 {selectedCategory}
+                <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
                   ✕
-                </Button>
+                </button>
               </span>
             )}
             {selectedColegio && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold">
-                Colegio: {selectedColegio}
-                <Button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</Button>
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-semibold">
+                🏫 {selectedColegio}
+                <button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</button>
               </span>
             )}
             {selectedTalla && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
-                Talla: {selectedTalla}
-                <Button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</Button>
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-semibold">
+                📏 Talla {selectedTalla}
+                <button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</button>
+              </span>
+            )}
+            {selectedStockFilter && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-sm font-semibold">
+                📦 {selectedStockFilter === 'disponible' ? '🟢 Disponible' : selectedStockFilter === 'bajo' ? '🟡 Stock Bajo' : '🔴 Agotado'}
+                <button onClick={() => setSelectedStockFilter('')} className="hover:text-orange-900 dark:hover:text-orange-100">✕</button>
               </span>
             )}
           </div>
@@ -555,276 +838,48 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-                <tr>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Imagen</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nombre</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Categoría</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Precio</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Descuento</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">En Oferta</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Stock</th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((producto) => (
-                  <Fragment key={producto.id}>
-                  <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="p-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shadow-sm">
-                        {producto.imagen_url ? (
-                          <Image
-                            src={producto.imagen_url}
-                            alt={producto.nombre}
-                            width={80}
-                            height={80}
-                            className="w-full h-full object-cover"
-                            style={{ objectFit: 'cover' }}
-                            unoptimized // Remove this line if you want Next.js optimization
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-bold text-gray-900 dark:text-white text-base">{producto.nombre}</p>
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-300 text-xs font-bold px-3 py-1.5 rounded-full">
-                        {producto.categoria}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                          <>
-                            <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">{formatPrice(producto.precio)}</span>
-                            <span className="font-bold text-lg text-green-600 dark:text-green-400">
-                              {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="font-bold text-lg text-gray-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <select
-                        value={producto.descuento_porcentaje || 0}
-                        onChange={(e) => updateDescuento(producto.id, parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                      >
-                        <option value="0">Sin descuento</option>
-                        <option value="5">5%</option>
-                        <option value="10">10%</option>
-                        <option value="15">15%</option>
-                        <option value="20">20%</option>
-                        <option value="30">30%</option>
-                        <option value="40">40%</option>
-                        <option value="50">50%</option>
-                        <option value="60">60%</option>
-                        <option value="70">70%</option>
-                        <option value="80">80%</option>
-                        <option value="90">90%</option>
-                      </select>
-                      {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 && (
-                        <span className="text-xs text-red-600 dark:text-red-400 font-bold mt-1 block">
-                          Ahorro: {formatPrice(producto.precio * (producto.descuento_porcentaje / 100))}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <Button
-                        onClick={() => toggleOferta(producto.id, producto.en_oferta || false)}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md ${
-                          producto.en_oferta
-                            ? 'bg-linear-to-br from-red-500 to-orange-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        {producto.en_oferta ? '🔥 Oferta' : 'Sin oferta'}
-                      </Button>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-center">
-                        <span className={`font-bold text-lg block ${
-                          (producto.stock_total || 0) > 10 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : (producto.stock_total || 0) > 0 
-                            ? 'text-yellow-600 dark:text-yellow-400' 
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {producto.stock_total || 0}
-                        </span>
-                        <Button
-                          onClick={() => toggleExpandProduct(producto.id)}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 block"
-                        >
-                          {expandedProduct === producto.id ? '▼' : '▶'} {producto.variantes_count || 0} variantes
-                        </Button>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2 flex-wrap">
-                        <Button
-                          onClick={() => router.push(`/admin/editar/${producto.id}`)}
-                          className="bg-linear-to-br from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Editar producto"
-                        >
-                          ✏️
-                        </Button>
-                        <Button
-                          onClick={() => duplicateProduct(producto)}
-                          className="bg-linear-to-br from-purple-500 to-purple-600 text-white px-3 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Duplicar producto"
-                        >
-                          📋
-                        </Button>
-                        <Button
-                          onClick={() => deleteProducto(producto.id)}
-                          className="bg-linear-to-br from-red-500 to-red-600 text-white px-3 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold text-xs shadow-md hover:shadow-lg"
-                          title="Eliminar producto"
-                        >
-                          🗑️
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                  {/* Fila expandible con variantes */}
-                  {expandedProduct === producto.id && producto.variantes && producto.variantes.length > 0 && (
-                    <tr className="bg-gray-50 dark:bg-gray-900/50">
-                      <td colSpan={8} className="p-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
-                          <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            Gestión Rápida de Variantes
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {producto.variantes
-                              .sort((a, b) => {
-                                const colegioCompare = a.colegio.localeCompare(b.colegio)
-                                if (colegioCompare !== 0) return colegioCompare
-                                const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
-                                return order.indexOf(a.talla) - order.indexOf(b.talla)
-                              })
-                              .map((variante) => (
-                              <div 
-                                key={variante.id} 
-                                className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
-                              >
-                                <div className="flex justify-between items-start mb-2">
-                                  <div>
-                                    <span className="font-bold text-gray-900 dark:text-white block">{variante.colegio}</span>
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Talla: {variante.talla}</span>
-                                  </div>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                    variante.stock > 10 
-                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                      : variante.stock > 0 
-                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
-                                      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                                  }`}>
-                                    {variante.stock}
-                                  </span>
-                                </div>
-                                <div className="flex gap-2 mt-3">
-                                  {editingVariant === variante.id ? (
-                                    <>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        defaultValue={variante.stock}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            updateVarianteStock(variante.id, parseInt((e.target as HTMLInputElement).value) || 0)
-                                          }
-                                        }}
-                                        className="flex-1 px-2 py-1 border border-blue-500 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500"
-                                        autoFocus
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="success"
-                                        onClick={() => {
-                                          const input = document.querySelector(`input[type="number"]`) as HTMLInputElement
-                                          updateVarianteStock(variante.id, parseInt(input.value) || 0)
-                                        }}
-                                        className=""
-                                      >
-                                        ✓
-                                      </Button>
-                                      <Button
-                                        variant="danger"
-                                        onClick={() => setEditingVariant(null)}
-                                        className="bg-gray-500 text-white px-3 py-1 rounded-lg hover:bg-gray-600 transition-colors text-xs font-bold"
-                                      >
-                                        ✕
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Button
-                                        variant="danger"
-                                        onClick={() => updateVarianteStock(variante.id, Math.max(0, variante.stock - 1))}
-                                        className="flex-1 bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
-                                      >
-                                        -1
-                                      </Button>
-                                      <Button
-                                        variant="info"
-                                        onClick={() => setEditingVariant(variante.id)}
-                                        className="flex-1 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
-                                      >
-                                        ✏️
-                                      </Button>
-                                      <Button
-                                        variant="success"
-                                        onClick={() => updateVarianteStock(variante.id, variante.stock + 1)}
-                                        className="flex-1 bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
-                                      >
-                                        +1
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+        <ProductListNotebook
+          productos={paginatedProducts}
+          expandedProduct={expandedProduct}
+          editingVariant={editingVariant}
+          editingProductName={editingProductName}
+          editingProductPrice={editingProductPrice}
+          editingProductNotas={editingProductNotas}
+          variantSearchTerm={variantSearchTerm}
+          selectedColegio={selectedColegio}
+          selectedTalla={selectedTalla}
+          onToggleExpand={toggleExpandProduct}
+          onUpdateDescuento={updateDescuento}
+          onToggleOferta={toggleOferta}
+          onUpdateVarianteStock={updateVarianteStock}
+          onSetEditingVariant={setEditingVariant}
+          onSetEditingProductName={setEditingProductName}
+          onSetEditingProductPrice={setEditingProductPrice}
+          onSetEditingProductNotas={setEditingProductNotas}
+          onUpdateProductName={updateProductName}
+          onUpdateProductPrice={updateProductPrice}
+          onUpdateProductNotas={updateProductNotas}
+          onDuplicate={duplicateProduct}
+          onDelete={deleteProducto}
+          onSetVariantSearchTerm={setVariantSearchTerm}
+        />
+
+        {/* Paginación */}
+        {filteredProducts.length > 20 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              itemsPerPage={20}
+              totalItems={filteredProducts.length}
+            />
           </div>
-          
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-16">
-              <div className="inline-block p-6 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-full mb-4">
-                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No se encontraron productos</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Intenta con otros términos de búsqueda</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
       
+      <KeyboardShortcuts searchInputRef={searchInputRef} />
+      <GlobalKeyboardShortcuts />
       <ConfirmDialog />
     </div>
   )

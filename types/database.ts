@@ -9,6 +9,7 @@ export interface Producto {
   created_at: string
   descuento_porcentaje?: number
   en_oferta?: boolean
+  notas?: string // Notas personales del administrador
 }
 
 export interface Variante {
@@ -22,4 +23,108 @@ export interface Variante {
 
 export interface ProductoConVariantes extends Producto {
   variantes: Variante[]
+}
+
+export interface Venta {
+  id: string
+  fecha: string
+  total: number
+  subtotal: number
+  descuento_total: number
+  cantidad_items: number
+  notas?: string
+  vendedor: string
+  cliente_id?: string
+  cliente_nombre?: string
+  cliente_telefono?: string
+  cliente_contacto?: string
+  created_at: string
+}
+
+export interface Cliente {
+  id: string
+  nombre: string
+  contacto: string
+  telefono: string
+  red_social?: string
+  direccion?: string
+  notas?: string
+  total_compras: number
+  cantidad_compras: number
+  ultima_compra?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface VentaItem {
+  id: string
+  venta_id: string
+  producto_id: string
+  variante_id: string
+  producto_nombre: string
+  talla: string
+  colegio: string
+  precio_unitario: number
+  descuento_porcentaje: number
+  precio_final: number
+  cantidad: number
+  subtotal: number
+  created_at: string
+}
+
+export interface VentaConItems extends Venta {
+  items: VentaItem[]
+}
+
+export interface Proveedor {
+  id: string
+  nombre: string
+  contacto: string
+  telefono: string
+  email?: string
+  direccion?: string
+  rut?: string
+  notas?: string
+  activo: boolean
+  total_pedidos: number
+  cantidad_pedidos: number
+  ultimo_pedido?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Pedido {
+  id: string
+  proveedor_id: string
+  proveedor_nombre: string
+  fecha_pedido: string
+  fecha_esperada?: string
+  fecha_recepcion?: string
+  estado: 'pendiente' | 'recibido' | 'cancelado'
+  total: number
+  cantidad_items: number
+  notas?: string
+  usuario: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PedidoItem {
+  id: string
+  pedido_id: string
+  producto_id?: string
+  variante_id?: string
+  producto_nombre: string
+  talla?: string
+  colegio?: string
+  cantidad: number
+  precio_unitario: number
+  subtotal: number
+  recibido: boolean
+  cantidad_recibida: number
+  created_at: string
+}
+
+export interface PedidoConItems extends Pedido {
+  items: PedidoItem[]
 }

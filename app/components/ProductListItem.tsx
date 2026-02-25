@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
@@ -54,7 +54,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
           <div className="relative w-full sm:w-64 h-64 sm:h-48 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 shrink-0">
             {primeraImagen ? (
               <>
-                <Image
+                <LazyImage
                   src={primeraImagen ?? ''}
                   alt={producto.nombre}
                   width={400}
@@ -91,6 +91,14 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
             {producto.en_oferta && (
               <div className="absolute top-3 right-3 bg-linear-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-black text-xs">
                 🔥 OFERTA
+              </div>
+            )}
+            {/* Badge de Últimas unidades (poco stock) */}
+            {producto.stock_total > 0 && producto.stock_total <= 2 && (
+              <div className="absolute top-0 left-0 z-10">
+                <div className="bg-red-600 text-white px-3 py-1 rounded-lg shadow-md text-sm font-semibold">
+                  ¡Últimas unidades! ({producto.stock_total})
+                </div>
               </div>
             )}
             
@@ -182,7 +190,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span className={`text-xs font-bold px-4 py-2 rounded-full ${
-                  producto.stock_total > 10 
+                  producto.stock_total > 6 
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700' 
                     : producto.stock_total > 0 
                     ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700' 
