@@ -325,9 +325,9 @@ export default function AdminPage() {
       // Filtro por stock (NUEVO)
       let matchesStock = true
       if (selectedStockFilter === 'disponible') {
-        matchesStock = (producto.stock_total || 0) > 10
+        matchesStock = (producto.stock_total || 0) > 6
       } else if (selectedStockFilter === 'bajo') {
-        matchesStock = (producto.stock_total || 0) > 0 && (producto.stock_total || 0) <= 10
+        matchesStock = (producto.stock_total || 0) > 0 && (producto.stock_total || 0) <= 6
       } else if (selectedStockFilter === 'agotado') {
         matchesStock = (producto.stock_total || 0) === 0
       }
@@ -579,8 +579,8 @@ export default function AdminPage() {
                 className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-semibold"
               >
                 <option value="">📦 Todo el stock</option>
-                <option value="disponible">🟢 Stock disponible (+10)</option>
-                <option value="bajo">🟡 Stock bajo (1-10)</option>
+                <option value="disponible">🟢 Stock disponible (+6)</option>
+                <option value="bajo">🟡 Stock bajo (1-6)</option>
                 <option value="agotado">🔴 Agotados (0)</option>
               </select>
             </div>

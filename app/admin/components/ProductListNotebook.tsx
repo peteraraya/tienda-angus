@@ -184,7 +184,7 @@ export default function ProductListNotebook({
                   className="w-full"
                 >
                   <div className={`text-center px-3 py-2 rounded-lg font-bold text-sm transition-all ${
-                    (producto.stock_total || 0) > 10 
+                    (producto.stock_total || 0) > 6 
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                       : (producto.stock_total || 0) > 0 
                       ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
@@ -279,7 +279,7 @@ export default function ProductListNotebook({
                 className="flex-shrink-0"
               >
                 <div className={`text-center px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                  (producto.stock_total || 0) > 10 
+                  (producto.stock_total || 0) > 6 
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                     : (producto.stock_total || 0) > 0 
                     ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
@@ -397,7 +397,7 @@ export default function ProductListNotebook({
                         </div>
                       </div>
                       <span className={`px-2 py-1 rounded-md text-xs font-bold flex-shrink-0 ${
-                        variante.stock > 10 
+                        variante.stock > 6 
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                           : variante.stock > 0 
                           ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 

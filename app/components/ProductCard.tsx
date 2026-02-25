@@ -311,7 +311,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
             </div>
             <div className="text-right">
               <span className={`inline-block text-xs font-bold px-4 py-2 rounded-full ${
-                producto.stock_total > 10 
+                producto.stock_total > 6 
                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700' 
                   : producto.stock_total > 0 
                   ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700' 
