@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useRef } from 'react';
+import CategoryIcon from '@mui/icons-material/Category';
+import StraightenIcon from '@mui/icons-material/Straighten';
+import SchoolIcon from '@mui/icons-material/School';
+import SortIcon from '@mui/icons-material/Sort';
 
 interface ProductoSugerencia {
   id: string;
@@ -148,9 +152,7 @@ export default function SearchBar(props: SearchBarProps) {
             {/* Categoría */}
             <div className="relative w-full md:w-auto flex-1 min-w-[160px] max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
+                <CategoryIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
               <select
                 value={selectedCategory}
@@ -166,9 +168,7 @@ export default function SearchBar(props: SearchBarProps) {
             {/* Talla */}
             <div className="relative w-full md:w-auto flex-1 min-w-[130px] max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 01-8 0" />
-                </svg>
+                <StraightenIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
               <select
                 value={selectedTalla}
@@ -184,9 +184,7 @@ export default function SearchBar(props: SearchBarProps) {
             {/* Colegio */}
             <div className="relative w-full md:w-auto flex-1 min-w-[150px] max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 6v1m0 6v1m-4-4h1m6 0h1" />
-                </svg>
+                <SchoolIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
               <select
                 value={selectedColegio}
@@ -202,9 +200,7 @@ export default function SearchBar(props: SearchBarProps) {
             {/* Orden */}
             <div className="relative w-full md:w-auto flex-1 min-w-[140px] max-w-none whitespace-nowrap">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
+                <SortIcon fontSize="small" className="text-gray-400 dark:text-gray-500" />
               </div>
               <select
                 value={selectedSort}
