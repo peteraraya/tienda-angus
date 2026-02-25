@@ -13,6 +13,8 @@ interface ProductoSugerencia {
 }
 
 interface SearchBarProps {
+    showOnlyFavorites?: boolean;
+    onShowOnlyFavoritesChange?: (show: boolean) => void;
   value: string;
   onChange: (value: string) => void;
   onCategoryChange: (category: string) => void;
@@ -48,6 +50,8 @@ export default function SearchBar({
   colegios = [],
   selectedColegio,
   onColegioChange,
+  showOnlyFavorites = false,
+  onShowOnlyFavoritesChange,
 }: SearchBarProps) {
   // Add missing state and refs
   const [showFilters, setShowFilters] = useState(false);
@@ -116,6 +120,20 @@ export default function SearchBar({
           
           {/* Botones de Vista y Mostrar Filtros */}
           <div className="flex gap-2 items-center ml-2">
+            {/* Toggle favoritos */}
+            {onShowOnlyFavoritesChange && (
+              <button
+                className={`flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium shadow-sm focus:outline-none transition-colors
+                  ${showOnlyFavorites ? 'bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600'}`}
+                onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
+                title={showOnlyFavorites ? 'Mostrar todos los productos' : 'Mostrar solo favoritos'}
+              >
+                <svg className={`w-5 h-5 ${showOnlyFavorites ? 'text-pink-500' : 'text-gray-400 dark:text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {showOnlyFavorites ? 'Solo favoritos' : 'Todos'}
+              </button>
+            )}
             <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
               <button
                 onClick={() => onViewChange('grid')}
