@@ -9,6 +9,7 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input, LazyImage } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
+import DashboardSummary from './components/DashboardSummary'
 
 interface Variante {
   id: string
@@ -43,6 +44,7 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedColegio, setSelectedColegio] = useState('')
   const [selectedTalla, setSelectedTalla] = useState('')
+  const [selectedStockFilter, setSelectedStockFilter] = useState('') // Nuevo filtro
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
   const router = useRouter()
@@ -289,21 +291,50 @@ export default function AdminPage() {
 
   const filteredProducts = useMemo(() => {
     return productos.filter(producto => {
-      const matchesSearch = searchTerm === '' || 
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      // Búsqueda mejorada - más natural
+      if (searchTerm !== '') {
+        const search = searchTerm.toLowerCase()
+        const matchesNombre = producto.nombre.toLowerCase().includes(search)
+        const matchesDescripcion = producto.descripcion.toLowerCase().includes(search)
+        const matchesCategoria = producto.categoria.toLowerCase().includes(search)
+        const matchesPrecio = producto.precio.toString().includes(search)
+        
+        // Buscar en variantes (colegio y talla)
+        const matchesVariantes = producto.variantes?.some(v => 
+          v.colegio.toLowerCase().includes(search) ||
+          v.talla.toLowerCase().includes(search)
+        )
+        
+        // Si no coincide con nada, filtrar
+        if (!matchesNombre && !matchesDescripcion && !matchesCategoria && !matchesPrecio && !matchesVariantes) {
+          return false
+        }
+      }
       
+      // Filtro por categoría
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
 
+      // Filtro por colegio
       const matchesColegio = selectedColegio === '' || 
         producto.variantes?.some(v => v.colegio === selectedColegio)
 
+      // Filtro por talla
       const matchesTalla = selectedTalla === '' || 
         producto.variantes?.some(v => v.talla === selectedTalla)
 
-      return matchesSearch && matchesCategory && matchesColegio && matchesTalla
+      // Filtro por stock (NUEVO)
+      let matchesStock = true
+      if (selectedStockFilter === 'disponible') {
+        matchesStock = (producto.stock_total || 0) > 10
+      } else if (selectedStockFilter === 'bajo') {
+        matchesStock = (producto.stock_total || 0) > 0 && (producto.stock_total || 0) <= 10
+      } else if (selectedStockFilter === 'agotado') {
+        matchesStock = (producto.stock_total || 0) === 0
+      }
+
+      return matchesCategory && matchesColegio && matchesTalla && matchesStock
     })
-  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla])
+  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter])
 
   // Calcular stock específico según filtros de colegio y talla
   const stockEspecifico = useMemo(() => {
@@ -473,99 +504,138 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Dashboard Summary - NUEVO */}
+        <DashboardSummary productos={productos} />
+
         {/* Buscador y Filtros */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col gap-4">
-            {/* Primera fila: Búsqueda y Categoría */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar por nombre o descripción..."
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+            {/* Primera fila: Búsqueda */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Buscar por nombre, categoría, colegio, talla o precio..."
+                className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
+              />
+              {searchTerm && (
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Segunda fila: Filtros rápidos */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="md:w-64 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todas las categorías</option>
+                <option value="">📁 Todas las categorías</option>
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-            </div>
 
-            {/* Segunda fila: Colegio y Talla */}
-            <div className="flex flex-col md:flex-row gap-4">
               <select
                 value={selectedColegio}
                 onChange={(e) => setSelectedColegio(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todos los colegios</option>
+                <option value="">🏫 Todos los colegios</option>
                 {colegios.map(colegio => (
                   <option key={colegio} value={colegio}>{colegio}</option>
                 ))}
               </select>
+
               <select
                 value={selectedTalla}
                 onChange={(e) => setSelectedTalla(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Todas las tallas</option>
+                <option value="">📏 Todas las tallas</option>
                 {tallas.map(talla => (
                   <option key={talla} value={talla}>{talla}</option>
                 ))}
               </select>
-              {/* Botón para limpiar filtros */}
-              {(searchTerm || selectedCategory || selectedColegio || selectedTalla) && (
+
+              <select
+                value={selectedStockFilter}
+                onChange={(e) => setSelectedStockFilter(e.target.value)}
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-semibold"
+              >
+                <option value="">📦 Todo el stock</option>
+                <option value="disponible">🟢 Stock disponible (+10)</option>
+                <option value="bajo">🟡 Stock bajo (1-10)</option>
+                <option value="agotado">🔴 Agotados (0)</option>
+              </select>
+            </div>
+
+            {/* Botón limpiar filtros */}
+            {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
+              <div className="flex justify-end">
                 <Button
                   onClick={() => {
                     setSearchTerm('')
                     setSelectedCategory('')
                     setSelectedColegio('')
                     setSelectedTalla('')
+                    setSelectedStockFilter('')
                   }}
-                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold whitespace-nowrap"
+                  className="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-semibold flex items-center gap-2"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Limpiar Filtros
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Contador de resultados y filtros activos */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Mostrando <span className="font-bold text-gray-900 dark:text-white">{filteredProducts.length}</span> de {productos.length} productos
+            <p className="text-sm font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg">
+              📊 Mostrando <span className="text-blue-600 dark:text-blue-400">{filteredProducts.length}</span> de {productos.length} productos
             </p>
             {selectedCategory && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
-                Categoría: {selectedCategory}
-                <Button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold">
+                📁 {selectedCategory}
+                <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
                   ✕
-                </Button>
+                </button>
               </span>
             )}
             {selectedColegio && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold">
-                Colegio: {selectedColegio}
-                <Button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</Button>
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-semibold">
+                🏫 {selectedColegio}
+                <button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</button>
               </span>
             )}
             {selectedTalla && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
-                Talla: {selectedTalla}
-                <Button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</Button>
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-semibold">
+                📏 Talla {selectedTalla}
+                <button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</button>
+              </span>
+            )}
+            {selectedStockFilter && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-sm font-semibold">
+                📦 {selectedStockFilter === 'disponible' ? '🟢 Disponible' : selectedStockFilter === 'bajo' ? '🟡 Stock Bajo' : '🔴 Agotado'}
+                <button onClick={() => setSelectedStockFilter('')} className="hover:text-orange-900 dark:hover:text-orange-100">✕</button>
               </span>
             )}
           </div>
