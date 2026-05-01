@@ -39,7 +39,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
       {/* Botón de ayuda flotante */}
       <button
         onClick={() => setShowHelp(true)}
-        className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center font-bold text-xl z-40 print:hidden"
+        className="fixed bottom-24 right-6 w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center font-bold text-xl z-40 print:hidden"
         title="Atajos de teclado (presiona ?)"
       >
         ?

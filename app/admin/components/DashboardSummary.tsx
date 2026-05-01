@@ -61,7 +61,7 @@ export default function DashboardSummary({ productos }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{totalProductos}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{totalProductos}</span>
         </div>
         <p className="text-blue-100 font-semibold text-sm">Productos</p>
         <p className="text-blue-200 text-xs mt-1">{totalVariantes} variantes</p>
@@ -75,7 +75,7 @@ export default function DashboardSummary({ productos }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{unidadesDisponibles}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{unidadesDisponibles}</span>
         </div>
         <p className="text-green-100 font-semibold text-sm">🟢 Disponibles</p>
         <p className="text-green-200 text-xs mt-1">Unidades con +6 stock</p>
@@ -89,7 +89,7 @@ export default function DashboardSummary({ productos }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{unidadesStockBajo}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{unidadesStockBajo}</span>
         </div>
         <p className="text-yellow-100 font-semibold text-sm">🟡 Stock Bajo</p>
         <p className="text-yellow-200 text-xs mt-1">Unidades entre 1-6</p>

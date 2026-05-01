@@ -105,7 +105,7 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
           />
 
           {/* Controls - ahora dentro del contenedor de la imagen para quedar sobre la imagen */}
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
             <Button size='sm' variant='ghost'type="button" onClick={() => setScale(s => Math.max(1, +(s - 0.5).toFixed(2)))} aria-label="Disminuir zoom" className="bg-white bg-opacity-90 text-black px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">-</Button>
             <Button size='sm' variant='primary'type="button" onClick={() => setScale(1)} aria-label="Restablecer zoom" className="bg-white bg-opacity-90 text-black px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">Reset</Button>
             <Button size='sm' variant='ghost' type="button" onClick={() => setScale(s => Math.min(5, +(s + 0.5).toFixed(2)))} aria-label="Aumentar zoom" className="bg-white bg-opacity-90 text-black px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">+</Button>
@@ -141,8 +141,8 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
         </div>
 
         {/* Thumbnails */}
-        {images.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] pb-1">
               {images.map((img, i) => (
               <Button variant="ghost" size='sm'
                 key={i}

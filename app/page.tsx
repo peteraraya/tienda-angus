@@ -67,9 +67,9 @@ export default async function Home() {
                 <Image
                   src="/logo-confecciones.png"
                   alt="Confecciones Angus"
-                  width={90}
-                  height={90}
-                  className="object-contain rounded-full p-0 bg-transparent dark:bg-gray-800"
+                  width={64}
+                  height={64}
+                  className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full p-0 bg-transparent dark:bg-gray-800"
                   priority
                 />
            
@@ -95,7 +95,7 @@ export default async function Home() {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 py-12" id="catalogo">
         <div className="text-center mb-12">
-          <h2 className="text-5xl md:text-6xl font-bold mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
             <span className="bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
               Catálogo
             </span>

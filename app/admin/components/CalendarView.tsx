@@ -138,9 +138,11 @@ export default function CalendarView({ events, onEventClick }: CalendarViewProps
       </div>
 
       {/* Calendar Grid */}
-      <div className="p-6">
-        {/* Day headers */}
-        <div className="grid grid-cols-7 gap-2 mb-2">
+          <div className="p-3 sm:p-6">
+            <div className="overflow-x-auto">
+              <div className="min-w-[600px]">
+                {/* Day headers */}
+                <div className="grid grid-cols-7 gap-2 mb-2">
           {dayNames.map(day => (
             <div
               key={day}
@@ -151,8 +153,8 @@ export default function CalendarView({ events, onEventClick }: CalendarViewProps
           ))}
         </div>
 
-        {/* Days */}
-        <div className="grid grid-cols-7 gap-2">
+          {/* Days */}
+          <div className="grid grid-cols-7 gap-2">
           {daysInMonth.map((date, index) => {
             const dayEvents = getEventsForDate(date)
             const isTodayDate = isToday(date)
@@ -203,6 +205,8 @@ export default function CalendarView({ events, onEventClick }: CalendarViewProps
               </div>
             )
           })}
+            </div>
+          </div>
         </div>
       </div>
 

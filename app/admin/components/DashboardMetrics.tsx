@@ -158,7 +158,7 @@ export function DashboardMetrics() {
           
           {/* Resumen compacto cuando está cerrado */}
           {!isExpanded && (
-            <div className="flex items-center gap-6 text-sm">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-gray-600 dark:text-gray-400">Hoy:</span>
                 <span className="font-bold text-green-600 dark:text-green-400">

@@ -115,7 +115,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
                 {isMounted && (
                   <button
                     onClick={toggleFavorite}
-                    className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-2 shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
+                    className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-3 sm:p-2 min-w-[44px] min-h-[44px] shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
                     title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                   >
                     {isFavorite ? (
@@ -142,7 +142,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20 opacity-0 group-hover:opacity-100"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -150,7 +150,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20 opacity-0 group-hover:opacity-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -158,7 +158,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
                   </button>
                   
                   {/* Indicadores de imagen */}
-                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                     {imagenes.map((_, index) => (
                       <button
                         key={index}
@@ -166,7 +166,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
                           e.stopPropagation()
                           setCurrentImageIndex(index)
                         }}
-                        className={`w-2 h-2 rounded-full transition-all ${
+                        className={`w-3 h-3 rounded-full transition-all ${
                           index === currentImageIndex 
                             ? 'bg-white w-6' 
                             : 'bg-white/50 hover:bg-white/75'

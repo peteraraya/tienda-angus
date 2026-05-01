@@ -119,8 +119,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
         className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center z-10">
-          <h2 id="product-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 flex justify-between items-center z-10">
+          <h2 id="product-modal-title" className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
           <button type="button"
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -130,8 +130,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
           </button>
         </div>
 
-        <div className="p-6">
-          <div className="grid md:grid-cols-2 gap-8">
+        <div className="p-4 sm:p-6">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {/* Galería de Imágenes */}
             <div className="space-y-4">
               {/* Imagen Principal */}
@@ -197,7 +197,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
 
               {/* Miniaturas */}
               {imagenes.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                   {imagenes.map((img, index) => (
                     <button type="button"
                       key={index}
