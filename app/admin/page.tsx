@@ -22,6 +22,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
   insignia_url?: string
 }
 

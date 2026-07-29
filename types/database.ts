@@ -18,6 +18,7 @@ export interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
   created_at: string
 }
 

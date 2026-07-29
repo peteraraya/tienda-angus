@@ -16,6 +16,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
 }
 
 export default function EditarProducto({ params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   const [nuevaVariante, setNuevaVariante] = useState({
     talla: '',
     colegio: '',
-    stock: ''
+    stock: '',
+    precio: ''
   })
   const [loading, setLoading] = useState(true)
 
@@ -126,10 +128,11 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     setVariantes([...variantes, {
       talla: nuevaVariante.talla,
       colegio: nuevaVariante.colegio,
-      stock: parseInt(nuevaVariante.stock)
+      stock: parseInt(nuevaVariante.stock),
+      precio: nuevaVariante.precio ? parseFloat(nuevaVariante.precio) : null
     }])
 
-    setNuevaVariante({ talla: '', colegio: '', stock: '' })
+    setNuevaVariante({ talla: '', colegio: '', stock: '', precio: '' })
   }
 
   function eliminarVariante(index: number) {
@@ -175,7 +178,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
       producto_id: productoId,
       talla: v.talla,
       colegio: v.colegio,
-      stock: v.stock
+      stock: v.stock,
+      precio: v.precio
     }))
 
     const { error: errorVariantes } = await supabase
@@ -398,7 +402,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
             </div>
             
             <div className="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Talla</label>
                   <select
@@ -426,6 +430,18 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                     <option value="">Seleccionar</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Precio (Opcional)</label>
+                  <Input
+                    type="number"
+                    value={nuevaVariante.precio}
+                    onChange={(e) => setNuevaVariante({...nuevaVariante, precio: e.target.value})}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Ej: 12000"
+                    min="0"
+                  />
                 </div>
 
                 <div>
@@ -460,6 +476,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                     <tr>
                       <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Talla</th>
                       <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Colegio</th>
+                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Precio</th>
                       <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Stock</th>
                       <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Acción</th>
                     </tr>
@@ -469,6 +486,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                       <tr key={index} className="border-t border-gray-200 dark:border-gray-700">
                         <td className="p-3 font-semibold text-gray-900 dark:text-white">{v.talla}</td>
                         <td className="p-3 text-gray-900 dark:text-white">{v.colegio}</td>
+                        <td className="p-3 text-gray-900 dark:text-white">{v.precio ? formatPrice(v.precio) : 'Base'}</td>
                         <td className="p-3 font-semibold text-green-600 dark:text-green-400">{v.stock}</td>
                         <td className="p-3">
                           <Button

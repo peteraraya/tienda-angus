@@ -247,19 +247,6 @@ export default function SearchBarSimple({
               </select>
             )}
 
-            {/* Colegio */}
-            {colegios.length > 0 && (
-              <select
-                value={selectedColegio}
-                onChange={(e) => onColegioChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent shadow-sm dark:shadow-none transition-all"
-              >
-                <option value="">Todos los colegios</option>
-                {colegios.map(colegio => (
-                  <option key={colegio} value={colegio}>{colegio}</option>
-                ))}
-              </select>
-            )}
 
             {/* Ordenar */}
             <select

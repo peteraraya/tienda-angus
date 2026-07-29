@@ -11,6 +11,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
 }
 
 interface ProductCardProps {
@@ -84,9 +85,14 @@ export default function ProductCard({ producto }: ProductCardProps) {
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
   
+  // Determinar si hay diferentes precios entre las variantes
+  const preciosVariantes = producto.variantes.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[];
+  const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+  const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+
   const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
-    ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
-    : producto.precio
+    ? precioMinimo - (precioMinimo * producto.descuento_porcentaje / 100)
+    : precioMinimo
 
   // Obtener array de imágenes (priorizar imagenes, luego imagen_url)
   const imagenes = producto.imagenes && producto.imagenes.length > 0 
@@ -257,18 +263,18 @@ export default function ProductCard({ producto }: ProductCardProps) {
           
           {tallasDisponibles.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Tallas</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Tallas disponibles</p>
+              <div className="flex flex-wrap gap-1.5">
                 {tallasDisponibles.slice(0, 6).map(talla => (
                   <span 
                     key={talla} 
-                    className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-lg"
+                    className="flex items-center justify-center min-w-[28px] h-[28px] bg-white dark:bg-gray-800 border-2 border-gray-900 dark:border-gray-300 text-gray-900 dark:text-gray-100 text-xs font-bold px-1.5 rounded-sm shadow-sm"
                   >
                     {talla}
                   </span>
                 ))}
                 {tallasDisponibles.length > 6 && (
-                  <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600">
+                  <span className="flex items-center justify-center min-w-[28px] h-[28px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold px-1.5 rounded-sm border border-gray-300 dark:border-gray-600">
                     +{tallasDisponibles.length - 6}
                   </span>
                 )}
@@ -303,15 +309,15 @@ export default function ProductCard({ producto }: ProductCardProps) {
               {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                 <div>
                   <span className="text-lg text-gray-500 dark:text-gray-400 line-through block">
-                    {formatPrice(producto.precio)}
+                    {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                   </span>
                   <span className="text-3xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                    {formatPrice(precioFinal)}
+                    {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioFinal)}
                   </span>
                 </div>
               ) : (
                 <span className="text-3xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                  {formatPrice(producto.precio)}
+                  {tienePreciosDiferentes ? <span className="text-lg">Desde </span> : ''}{formatPrice(precioMinimo)}
                 </span>
               )}
             </div>

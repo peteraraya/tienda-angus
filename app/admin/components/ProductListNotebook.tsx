@@ -9,6 +9,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
   insignia_url?: string
 }
 
@@ -288,18 +289,26 @@ export default function ProductListNotebook({
                   e.stopPropagation()
                   onSetEditingProductPrice(producto.id)
                 }}>
-                  {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                    <div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
-                      <span className="font-bold text-base text-green-600 dark:text-green-400">
-                        {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                  {(() => {
+                    const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                    const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                    const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                    
+                    return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                      <div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">
+                          {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                        </span>
+                        <span className="font-bold text-base text-green-600 dark:text-green-400">
+                          {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(calcularPrecioFinal(precioMinimo, producto.descuento_porcentaje))}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                       </span>
-                    </div>
-                  ) : (
-                    <span className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {formatPrice(producto.precio)}
-                    </span>
-                  )}
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -506,16 +515,26 @@ export default function ProductListNotebook({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                  <div>
-                    <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
-                    <span className="font-bold text-xl text-green-600 dark:text-green-400">
-                      {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                {(() => {
+                  const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                  const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                  const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                  
+                  return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                    <div>
+                      <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                      </span>
+                      <span className="font-bold text-xl text-green-600 dark:text-green-400">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(calcularPrecioFinal(precioMinimo, producto.descuento_porcentaje))}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-bold text-xl text-slate-900 dark:text-white">
+                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                     </span>
-                  </div>
-                ) : (
-                  <span className="font-bold text-xl text-slate-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                )}
+                  )
+                })()}
               </div>
               <button
                 onClick={() => onToggleExpand(producto.id)}
@@ -678,6 +697,11 @@ export default function ProductListNotebook({
                         <div className="flex-1 min-w-0">
                           <span className="font-bold text-slate-900 dark:text-white block text-sm truncate">{variante.colegio}</span>
                           <span className="text-xs text-slate-600 dark:text-slate-400">Talla: <span className="font-semibold">{variante.talla}</span></span>
+                          {variante.precio !== null && variante.precio !== undefined && (
+                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 ml-2 block">
+                              {formatPrice(variante.precio)}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <span className={`px-2 py-1 rounded-md text-xs font-bold flex-shrink-0 ${

@@ -10,11 +10,14 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { LazyImage } from './ui'
 import ImageLightbox from './ImageLightbox'
 import { formatPrice } from '@/lib/formatPrice'
+import SizeGuideModal from './SizeGuideModal'
+import { useCart } from '../contexts/CartContext'
 
 interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
 }
 
 interface ProductModalProps {
@@ -63,9 +66,25 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
     }
   }, [onClose])
 
+  // Obtener precio basado en la selección
+  const getPrecioActual = () => {
+    if (selectedTalla) {
+      // Buscar variante con esa talla
+      const variante = producto.variantes.find(v => 
+        v.talla === selectedTalla && 
+        (!selectedColegio || v.colegio === selectedColegio)
+      );
+      if (variante && variante.precio) {
+        return variante.precio;
+      }
+    }
+    return producto.precio;
+  }
+
+  const precioActual = getPrecioActual();
   const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
-    ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
-    : producto.precio
+    ? precioActual - (precioActual * producto.descuento_porcentaje / 100)
+    : precioActual;
 
   // Obtener array de imágenes
   const imagenes = producto.imagenes && producto.imagenes.length > 0 
@@ -83,6 +102,8 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   }
 
   const [openLightbox, setOpenLightbox] = useState(false)
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const { addToCart } = useCart()
 
   // Obtener tallas y colegios únicos disponibles
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
@@ -248,7 +269,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                   {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                     <div className="flex items-center gap-3">
                       <span className="text-2xl text-gray-400 dark:text-gray-500 line-through">
-                        {formatPrice(producto.precio)}
+                        {formatPrice(precioActual)}
                       </span>
                       <span className="text-4xl font-bold text-gray-900 dark:text-white">
                         {formatPrice(precioFinal)}
@@ -256,7 +277,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     </div>
                   ) : (
                     <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      {formatPrice(producto.precio)}
+                      {formatPrice(precioActual)}
                     </span>
                   )}
                 </div>
@@ -318,6 +339,13 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                         ¿Cuál es mi talla?
                       </h4>
                     </div>
+                    <button 
+                      type="button"
+                      className="text-xs text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none"
+                      onClick={() => setShowSizeGuide(true)}
+                    >
+                      Ver Guía de Tallas
+                    </button>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     Talla: {selectedTalla || '-'}
@@ -368,14 +396,69 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                 )}
               </div>
 
-              {/* Botón Cerrar */}
-              <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button type="button"
-                  onClick={onClose}
-                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {/* Instrucciones de compra breves */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-6">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">¿Cómo comprar?</h4>
+                <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal pl-4">
+                  <li>Selecciona tu colegio y talla.</li>
+                  <li>Haz clic en el botón de WhatsApp.</li>
+                  <li>Coordinamos el pago y la entrega por chat.</li>
+                </ol>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-3">
+                {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} />}
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio)) {
+                      alert('Por favor selecciona talla y colegio primero.')
+                      return
+                    }
+                    addToCart({
+                      producto_id: producto.id,
+                      nombre: producto.nombre,
+                      precio: precioFinal,
+                      talla: selectedTalla,
+                      colegio: selectedColegio || 'General',
+                      cantidad: 1,
+                      imagen_url: imagenes[0] || undefined,
+                      stock_disponible: stockDisponible
+                    })
+                  }}
+                  disabled={!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio) || stockDisponible <= 0}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  Cerrar
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Añadir a mi pedido
                 </button>
+
+                <div className="flex gap-2">
+                  <a
+                    href={`https://wa.me/56983852967?text=${encodeURIComponent(
+                      `Hola, me interesa el producto "${producto.nombre}".${selectedTalla ? ` Talla: ${selectedTalla}.` : ''}${selectedColegio ? ` Colegio: ${selectedColegio}.` : ''} Valor: ${formatPrice(precioFinal)}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#25D366]"
+                    title="Comprar sólo este producto"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                    Consulta Rápida
+                  </a>
+                  <button type="button"
+                    onClick={onClose}
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold py-3 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
             </div>
           </div>

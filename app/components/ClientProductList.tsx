@@ -57,12 +57,18 @@ interface Producto {
   en_oferta?: boolean
 }
 
+interface ColegioData {
+  nombre: string
+  insignia_url?: string
+}
+
 interface ClientProductListProps {
   productos: Producto[]
+  colegiosData?: ColegioData[]
 }
 
 
-export default function ClientProductList({ productos }: ClientProductListProps) {
+export default function ClientProductList({ productos, colegiosData = [] }: ClientProductListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSort, setSelectedSort] = useState('newest')
@@ -97,9 +103,9 @@ export default function ClientProductList({ productos }: ClientProductListProps)
   }, [filteredProductsForFilters])
 
   const colegios = useMemo(() => {
-    const allColegios = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.colegio) || [])
-    return [...new Set(allColegios)].sort()
-  }, [filteredProductsForFilters])
+    const allColegios = productos.flatMap(p => p.variantes?.map(v => v.colegio) || [])
+    return [...new Set(allColegios)].filter(Boolean).sort()
+  }, [productos])
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = productos.filter(producto => {
@@ -172,6 +178,43 @@ export default function ClientProductList({ productos }: ClientProductListProps)
 
   return (
     <div>
+      {/* Selector Rápido de Colegios */}
+      {colegios.length > 0 && (
+        <div className="mb-8 overflow-x-auto pb-4 hide-scrollbar">
+          <div className="flex gap-3 min-w-max px-1">
+            <button
+              onClick={() => setSelectedColegio('')}
+              className={`px-5 py-3 rounded-2xl font-bold transition-all shadow-sm ${
+                selectedColegio === ''
+                  ? 'bg-blue-600 text-white shadow-md scale-105'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              Todos los Colegios
+            </button>
+            {colegios.map(colegio => {
+              const colegioInfo = colegiosData?.find(c => c.nombre === colegio)
+              return (
+                <button
+                  key={colegio}
+                  onClick={() => setSelectedColegio(colegio)}
+                  className={`px-5 py-3 rounded-2xl font-bold transition-all shadow-sm flex items-center justify-center gap-2 ${
+                    selectedColegio === colegio
+                      ? 'bg-blue-600 text-white shadow-md scale-105'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  {colegioInfo?.insignia_url && (
+                    <img src={colegioInfo.insignia_url} alt={colegio} className="w-6 h-6 object-contain" />
+                  )}
+                  {colegio}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <SearchBarSimple 
         value={searchTerm}
         onChange={setSearchTerm}

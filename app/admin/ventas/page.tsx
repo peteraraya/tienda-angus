@@ -15,6 +15,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
   insignia_url?: string
 }
 
@@ -120,9 +121,10 @@ export default function VentasPage() {
   }
 
   function agregarAlCarrito(producto: Producto, variante: Variante) {
+    const precioBase = variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio;
     const precio_final = producto.descuento_porcentaje 
-      ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
-      : producto.precio
+      ? precioBase - (precioBase * producto.descuento_porcentaje / 100)
+      : precioBase;
 
     const itemExistente = cart.find(item => item.variante_id === variante.id)
 
@@ -145,7 +147,7 @@ export default function VentasPage() {
         producto_nombre: producto.nombre,
         talla: variante.talla,
         colegio: variante.colegio,
-        precio_unitario: producto.precio,
+        precio_unitario: precioBase,
         descuento_porcentaje: producto.descuento_porcentaje || 0,
         precio_final,
         cantidad: 1,
@@ -448,17 +450,30 @@ export default function VentasPage() {
                               </span>
                             </div>
                             <div className="text-right">
-                              {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                                <div>
-                                  <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">{formatPrice(producto.precio)}</span>
-                                  <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                                    {formatPrice(producto.precio - (producto.precio * producto.descuento_porcentaje / 100))}
+                              {(() => {
+                                const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                                const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                                const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                                const precioFinalMinimo = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
+                                  ? precioMinimo - (precioMinimo * producto.descuento_porcentaje / 100)
+                                  : precioMinimo;
+
+                                return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                                  <div>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">
+                                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                                    </span>
+                                    <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioFinalMinimo)}
+                                    </span>
+                                    <span className="block text-xs text-orange-600 dark:text-orange-400 font-semibold">-{producto.descuento_porcentaje}%</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-xl font-bold text-gray-900 dark:text-white">
+                                    {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                                   </span>
-                                  <span className="block text-xs text-orange-600 dark:text-orange-400 font-semibold">-{producto.descuento_porcentaje}%</span>
-                                </div>
-                              ) : (
-                                <span className="text-xl font-bold text-gray-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                              )}
+                                );
+                              })()}
                             </div>
                           </div>
 

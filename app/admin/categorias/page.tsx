@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
+import { clearAllCache } from '@/app/hooks/useStaticData'
 
 interface Categoria {
   id: string
@@ -83,6 +84,7 @@ export default function CategoriasPage() {
 
     toast.success('Categoría agregada exitosamente')
     setNuevaCategoria({ nombre: '', descripcion: '' })
+    clearAllCache()
     loadCategorias()
   }
 
@@ -108,6 +110,7 @@ export default function CategoriasPage() {
     }
 
     toast.success(activo ? 'Categoría desactivada' : 'Categoría activada')
+    clearAllCache()
     loadCategorias()
   }
 
@@ -137,6 +140,7 @@ export default function CategoriasPage() {
     toast.success('Categoría actualizada exitosamente')
     setEditando(null)
     setCategoriaEditada({ nombre: '', descripcion: '' })
+    clearAllCache()
     loadCategorias()
   }
 
@@ -161,6 +165,7 @@ export default function CategoriasPage() {
     }
 
     toast.success('Categoría eliminada exitosamente')
+    clearAllCache()
     loadCategorias()
   }
 
