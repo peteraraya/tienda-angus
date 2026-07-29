@@ -7,6 +7,7 @@ import { CartProvider } from "./contexts/CartContext";
 import ClientCartSidebar from "./components/ClientCartSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 import { appConfig } from "@/config/app.config";
+import { QueryProvider } from "./providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,9 @@ export const metadata: Metadata = {
     apple: appConfig.company.favicon,
   },
   manifest: "/manifest.json",
+};
+
+export const viewport = {
   themeColor: "#2563eb",
 };
 
@@ -88,6 +92,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <QueryProvider>
         {/* Schema.org JSON-LD para LocalBusiness */}
         <script
           type="application/ld+json"
@@ -132,6 +137,7 @@ export default function RootLayout({
             <ScrollToTop />
           </ToastProvider>
         </CartProvider>
+        </QueryProvider>
       </body>
     </html>
   );
