@@ -52,6 +52,8 @@ export const metadata: Metadata = {
     shortcut: appConfig.company.favicon,
     apple: appConfig.company.favicon,
   },
+  manifest: "/manifest.json",
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({

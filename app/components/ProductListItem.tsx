@@ -26,9 +26,10 @@ interface ProductListItemProps {
     descuento_porcentaje?: number
     en_oferta?: boolean
   }
+  relatedProducts?: any[]
 }
 
-export default function ProductListItem({ producto }: ProductListItemProps) {
+export default function ProductListItem({ producto, relatedProducts = [] }: ProductListItemProps) {
   const [showModal, setShowModal] = useState(false)
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
@@ -52,7 +53,15 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
   return (
     <>
       <div 
-        className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowModal(true);
+          }
+        }}
+        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
         onClick={() => setShowModal(true)}
       >
         <div className="flex flex-col sm:flex-row">
@@ -214,7 +223,7 @@ export default function ProductListItem({ producto }: ProductListItemProps) {
       </div>
 
       {showModal && (
-        <ProductModal producto={producto} onClose={() => setShowModal(false)} />
+        <ProductModal producto={producto} relatedProducts={relatedProducts} onClose={() => setShowModal(false)} />
       )}
     </>
   )

@@ -367,14 +367,28 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
           </div>
 
       {filteredAndSortedProducts.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-            <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
+            <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xl font-semibold">No se encontraron productos</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Intenta con otros términos de búsqueda</p>
+          <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">No encontramos resultados</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-base font-medium max-w-sm mb-8">
+            Lo sentimos, no hay productos que coincidan con tus filtros actuales.
+          </p>
+          <button
+            onClick={() => {
+              setSearchTerm('')
+              setSelectedCategory('')
+              setSelectedColegio('')
+              setSelectedTalla('')
+              setShowOnlyFavorites(false)
+            }}
+            className="px-6 py-3 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 rounded-xl font-bold transition-all shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
+          >
+            Limpiar todos los filtros
+          </button>
         </div>
       ) : (
         <div>
