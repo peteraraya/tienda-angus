@@ -5,6 +5,7 @@ import FloatingSocialButtons from "./components/FloatingSocialButtons";
 import { ToastProvider } from "./components/ui/ToastContainer";
 import { CartProvider } from "./contexts/CartContext";
 import ClientCartSidebar from "./components/ClientCartSidebar";
+import ScrollToTop from "./components/ScrollToTop";
 import { appConfig } from "@/config/app.config";
 
 const geistSans = Geist({
@@ -126,6 +127,7 @@ export default function RootLayout({
             <main className="min-h-screen">{children}</main>
             <FloatingSocialButtons />
             <ClientCartSidebar />
+            <ScrollToTop />
           </ToastProvider>
         </CartProvider>
       </body>

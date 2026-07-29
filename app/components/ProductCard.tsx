@@ -28,9 +28,10 @@ interface ProductCardProps {
     descuento_porcentaje?: number
     en_oferta?: boolean
   }
+  relatedProducts?: any[]
 }
 
-export default function ProductCard({ producto }: ProductCardProps) {
+export default function ProductCard({ producto, relatedProducts = [] }: ProductCardProps) {
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isMounted, setIsMounted] = useState(false)
@@ -114,14 +115,22 @@ export default function ProductCard({ producto }: ProductCardProps) {
   return (
     <>
       <div 
-        className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl dark:hover:shadow-blue-900/20 transition-all duration-500 transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700 cursor-pointer relative"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowModal(true);
+          }
+        }}
+        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-blue-900/20 transition-all duration-300 transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 cursor-pointer relative focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
         onClick={() => setShowModal(true)}
       >
                 {/* Botón de favorito - solo mostrar cuando está montado */}
                 {isMounted && (
                   <button
                     onClick={toggleFavorite}
-                    className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-gray-900/80 rounded-full p-3 sm:p-2 min-w-[44px] min-h-[44px] shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors"
+                    className="absolute top-4 right-4 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-full p-3 sm:p-2 min-w-[44px] min-h-[44px] flex items-center justify-center shadow-md hover:bg-pink-50 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
                     title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                   >
                     {isFavorite ? (
@@ -245,15 +254,15 @@ export default function ProductCard({ producto }: ProductCardProps) {
           </div>
 
           {/* Botón Ver Detalles en hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
-            <button className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold transform scale-90 group-hover:scale-100 transition-transform shadow-xl">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+            <span className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-6 py-3 rounded-2xl font-bold transform scale-90 group-hover:scale-100 transition-transform duration-300 shadow-xl pointer-events-auto">
               Ver Detalles
-            </button>
+            </span>
           </div>
         </div>
         
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="p-5 sm:p-6 flex flex-col h-full">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
             {producto.nombre}
           </h2>
           
@@ -337,7 +346,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
       </div>
 
       {showModal && (
-        <ProductModal producto={producto} onClose={() => setShowModal(false)} />
+        <ProductModal producto={producto} relatedProducts={relatedProducts} onClose={() => setShowModal(false)} />
       )}
     </>
   )
