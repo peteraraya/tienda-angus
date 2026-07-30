@@ -8,8 +8,8 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
 import { useColegios, useCategorias } from '@/app/hooks/useStaticData'
 
-const TALLAS_NUMERICAS = ['6', '8', '10', '12', '14', '16']
-const TALLAS_LETRAS = ['S', 'M', 'L', 'XL']
+const TALLAS_NUMERICAS = ['6-8', '10-12', '14-16']
+const TALLAS_LETRAS = ['S-M', 'L-XL']
 
 interface Variante {
   id?: string
@@ -111,32 +111,52 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   }, [])
 
   function agregarVariante() {
-    if (!nuevaVariante.talla || !nuevaVariante.colegio || !nuevaVariante.stock) {
-      toast.error('Completa todos los campos de la variante')
+    if (!nuevaVariante.talla || !nuevaVariante.colegio) {
+      toast.error('Completa la talla y el colegio')
       return
     }
 
-    const existe = variantes.find(
-      v => v.talla === nuevaVariante.talla && v.colegio === nuevaVariante.colegio
-    )
-
-    if (existe) {
-      toast.error('Ya existe una variante con esa talla y colegio')
-      return
+    let tallasAAgregar = [nuevaVariante.talla]
+    if (nuevaVariante.talla === 'TODAS_NUMERICAS') {
+      tallasAAgregar = TALLAS_NUMERICAS
+    } else if (nuevaVariante.talla === 'TODAS_LETRAS') {
+      tallasAAgregar = TALLAS_LETRAS
+    } else {
+      if (!nuevaVariante.stock) {
+        toast.error('Completa el stock para esta talla')
+        return
+      }
     }
 
-    setVariantes([...variantes, {
-      talla: nuevaVariante.talla,
+    const nuevas = tallasAAgregar.map(t => ({
+      talla: t,
       colegio: nuevaVariante.colegio,
-      stock: parseInt(nuevaVariante.stock),
+      stock: parseInt(nuevaVariante.stock) || 0,
       precio: nuevaVariante.precio ? parseFloat(nuevaVariante.precio) : null
-    }])
+    })).filter(nv => !variantes.some(v => v.talla === nv.talla && v.colegio === nv.colegio))
 
-    setNuevaVariante({ talla: '', colegio: '', stock: '', precio: '' })
+    if (nuevas.length === 0) {
+      toast.error('Las variantes seleccionadas ya existen para este colegio')
+      return
+    }
+
+    setVariantes([...variantes, ...nuevas])
+    setNuevaVariante({ talla: '', colegio: nuevaVariante.colegio, stock: '', precio: '' })
+    toast.success(`${nuevas.length} variante(s) agregada(s)`)
   }
 
   function eliminarVariante(index: number) {
     setVariantes(variantes.filter((_, i) => i !== index))
+  }
+
+  function actualizarVarianteInline(index: number, campo: 'stock' | 'precio', valor: string) {
+    const nuevasVariantes = [...variantes];
+    if (campo === 'stock') {
+      nuevasVariantes[index].stock = parseInt(valor) || 0;
+    } else if (campo === 'precio') {
+      nuevasVariantes[index].precio = valor ? parseFloat(valor) : null;
+    }
+    setVariantes(nuevasVariantes);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -222,75 +242,104 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Nombre del Producto</label>
-            <Input
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Ej: Camisa Polo Clásica"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Descripción</label>
-            <textarea
-              value={formData.descripcion}
-              onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={4}
-              placeholder="Describe las características del producto..."
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Precio (CLP)</label>
-              <Input
-                type="number"
-                step="1"
-                value={formData.precio}
-                onChange={(e) => setFormData({...formData, precio: e.target.value})}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="10000"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">Sin decimales. Ej: 10000 = $10.000</p>
-            </div>
-
-            <div>
-              <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Categoría</label>
-              <div className="flex gap-2">
-                <select
-                  value={formData.categoria}
-                  onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                  className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          
+          {/* SECCIÓN: Información Básica */}
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Información Básica
+            </h2>
+            
+            <div className="space-y-5">
+              <div>
+                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Nombre del Producto</label>
+                <Input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  placeholder="Ej: Polera Piqué Blanca"
                   required
-                >
-                  <option value="">Seleccionar categoría</option>
-                  {categorias.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <Button
-                  variant="info"
-                  onClick={() => router.push('/admin/categorias')}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold whitespace-nowrap"
-                  title="Gestionar Categorías"
-                >
-                  ⚙️
-                </Button>
+                />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Selecciona una categoría o gestiona las categorías disponibles</p>
+
+              <div>
+                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Descripción</label>
+                <textarea
+                  value={formData.descripcion}
+                  onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors resize-none"
+                  rows={4}
+                  placeholder="Describe las características de la prenda, material, calce, etc..."
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Categoría</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.categoria}
+                      onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                      className="flex-1 p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors cursor-pointer"
+                      required
+                    >
+                      <option value="" disabled>Selecciona una categoría</option>
+                      {categorias.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="info"
+                      onClick={() => router.push('/admin/categorias')}
+                      className="px-4 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl transition-colors border border-indigo-200 dark:border-indigo-800"
+                      title="Gestionar Categorías"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Precio Base (CLP)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-gray-500 font-bold">$</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={formData.precio}
+                      onChange={(e) => setFormData({...formData, precio: e.target.value})}
+                      className="w-full pl-8 p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold text-lg"
+                      placeholder="10000"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5 ml-1">Sin puntos ni comas (Ej: 15990)</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Imágenes del Producto (1-5)</label>
-            <div className="space-y-3">
+          {/* SECCIÓN: Imágenes */}
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Galería de Imágenes
+            </h2>
+            
+            <div className="space-y-4">
               {imagenes.map((img, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
@@ -312,120 +361,161 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                 </div>
               ))}
               {imagenes.length < 5 && (
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   onClick={agregarImagen}
-                  className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-semibold"
+                  className="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold flex flex-col items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  + Agregar otra imagen
-                </Button>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Añadir otra imagen ({imagenes.length}/5)</span>
+                </button>
               )}
             </div>
-            {imagenes.some(img => img) && (
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-                {imagenes.filter(img => img).map((img, index) => (
-                  <div key={index} className="relative group">
-                    <LazyImage
-                      src={img}
-                      alt={`Preview ${index + 1}`}
-                      width={300}
-                      height={300}
-                      className="w-full aspect-square object-cover rounded-lg border-2 border-gray-300"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                      unoptimized
-                    />
-                    <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                      {index + 1}
+            
+            {imagenes.some(img => img.trim() !== '') && (
+              <div className="mt-6">
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Vista Previa</p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {imagenes.filter(img => img.trim() !== '').map((img, index) => (
+                    <div key={index} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 aspect-square bg-white dark:bg-gray-800">
+                      <LazyImage
+                        src={img}
+                        alt={`Preview ${index + 1}`}
+                        width={300}
+                        height={300}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        unoptimized
+                      />
+                      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                        {index + 1}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Ofertas y Descuentos (Opcional)</h3>
+          {/* SECCIÓN: Ofertas */}
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Ofertas y Descuentos
+            </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Descuento (%)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.descuento_porcentaje}
-                  onChange={(e) => setFormData({...formData, descuento_porcentaje: e.target.value})}
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="0"
-                />
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Porcentaje de descuento (0-100)</p>
+                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Descuento (%)</label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.descuento_porcentaje}
+                    onChange={(e) => setFormData({...formData, descuento_porcentaje: e.target.value})}
+                    className="w-full p-3.5 pr-10 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold"
+                    placeholder="0"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <span className="text-gray-500 font-bold">%</span>
+                  </div>
+                </div>
+                
+                {formData.descuento_porcentaje && parseInt(formData.descuento_porcentaje) > 0 ? (
+                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl">
+                    <p className="text-sm font-bold text-green-700 dark:text-green-400 flex justify-between">
+                      <span>Precio final:</span>
+                      <span className="font-mono">{formatPrice(parseFloat(formData.precio || '0') * (1 - parseInt(formData.descuento_porcentaje) / 100))}</span>
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-2 ml-1">Dejar en 0 si no hay descuento</p>
+                )}
               </div>
 
               <div>
-                <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Estado de Oferta</label>
-                <label className="flex items-center gap-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={formData.en_oferta}
-                    onChange={(e) => setFormData({...formData, en_oferta: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-900 dark:text-white font-medium">Marcar como producto en oferta</span>
+                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Destacar en Catálogo</label>
+                <label className="flex items-center gap-4 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-all group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.en_oferta}
+                      onChange={(e) => setFormData({...formData, en_oferta: e.target.checked})}
+                      className="sr-only"
+                    />
+                    <div className={`w-12 h-6 rounded-full transition-colors ${formData.en_oferta ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                    <div className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform ${formData.en_oferta ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  </div>
+                  <div>
+                    <span className={`font-bold transition-colors ${formData.en_oferta ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                      Marcar como "OFERTA 🔥"
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">Se mostrará con un badge animado</p>
+                  </div>
                 </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Se mostrará con badge especial</p>
               </div>
             </div>
-
-            {formData.descuento_porcentaje && parseInt(formData.descuento_porcentaje) > 0 && (
-              <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <p className="text-sm font-semibold text-green-800 dark:text-green-300">
-                  Precio con descuento: {formatPrice(parseFloat(formData.precio || '0') * (1 - parseInt(formData.descuento_porcentaje) / 100))}
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  Ahorro: {formatPrice(parseFloat(formData.precio || '0') * (parseInt(formData.descuento_porcentaje) / 100))}
-                </p>
-              </div>
-            )}
           </div>
 
-          <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Variantes (Tallas y Colegios)</h2>
+          {/* SECCIÓN: Inventario y Variantes */}
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                Inventario (Variantes)
+              </h2>
               <Button
                 type="button"
-                variant="info"
+                variant='info'
                 onClick={() => router.push('/admin/colegios')}
-                className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                className="text-sm bg-white hover:bg-gray-100 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 transition-all font-bold flex items-center gap-2 shadow-sm"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
                 Gestionar Colegios
               </Button>
             </div>
             
-            <div className="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-blue-100 dark:border-gray-600 shadow-sm mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wide">Agregar Variante / Generación Rápida</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Talla</label>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300 text-xs uppercase">Talla / Grupo</label>
                   <select
                     value={nuevaVariante.talla}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, talla: e.target.value})}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
                   >
                     <option value="">Seleccionar</option>
-                    <optgroup label="Tallas Numéricas">
+                    <optgroup label="⚡ Generación Rápida">
+                      <option value="TODAS_NUMERICAS">Todas Numéricas (6-8 al 14-16)</option>
+                      <option value="TODAS_LETRAS">Todas Letras (S-M, L-XL)</option>
+                    </optgroup>
+                    <optgroup label="Tallas Individuales (Numéricas)">
                       {TALLAS_NUMERICAS.map(t => <option key={t} value={t}>{t}</option>)}
                     </optgroup>
-                    <optgroup label="Tallas Letras">
+                    <optgroup label="Tallas Individuales (Letras)">
                       {TALLAS_LETRAS.map(t => <option key={t} value={t}>{t}</option>)}
                     </optgroup>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Colegio</label>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300 text-xs uppercase">Colegio</label>
                   <select
                     value={nuevaVariante.colegio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, colegio: e.target.value})}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
                   >
                     <option value="">Seleccionar</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
@@ -433,95 +523,139 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Precio (Opcional)</label>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300 text-xs uppercase" title="Precio distinto al base">Precio Específico</label>
                   <Input
                     type="number"
                     value={nuevaVariante.precio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, precio: e.target.value})}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Ej: 12000"
+                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                    placeholder="Opcional"
                     min="0"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300 text-sm">Stock</label>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300 text-xs uppercase">Unids. Stock</label>
                   <Input
                     type="number"
                     value={nuevaVariante.stock}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, stock: e.target.value})}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono font-bold"
                     placeholder="0"
                     min="0"
                   />
                 </div>
 
-                <div className="flex items-end">
+                <div>
                   <Button
                     type="button"
                     variant="success"
                     onClick={agregarVariante}
-                    className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 font-semibold"
+                    className="w-full bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
                   >
-                    Agregar
+                    + Añadir
                   </Button>
                 </div>
               </div>
             </div>
 
-            {variantes.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-100 dark:bg-gray-700">
-                    <tr>
-                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Talla</th>
-                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Colegio</th>
-                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Precio</th>
-                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Stock</th>
-                      <th className="p-3 text-left text-sm font-bold text-gray-900 dark:text-white">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {variantes.map((v, index) => (
-                      <tr key={index} className="border-t border-gray-200 dark:border-gray-700">
-                        <td className="p-3 font-semibold text-gray-900 dark:text-white">{v.talla}</td>
-                        <td className="p-3 text-gray-900 dark:text-white">{v.colegio}</td>
-                        <td className="p-3 text-gray-900 dark:text-white">{v.precio ? formatPrice(v.precio) : 'Base'}</td>
-                        <td className="p-3 font-semibold text-green-600 dark:text-green-400">{v.stock}</td>
-                        <td className="p-3">
-                          <Button
-                            variant="danger"
-                            onClick={() => eliminarVariante(index)}
-                            className="text-red-600 hover:text-red-800 font-semibold"
-                          >
-                            Eliminar
-                          </Button>
-                        </td>
+            {variantes.length > 0 ? (
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+                      <tr>
+                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Talla</th>
+                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Colegio</th>
+                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Precio Esp.</th>
+                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Stock</th>
+                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Acción</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {variantes.map((v, index) => (
+                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 bg-gray-100 dark:bg-gray-700 rounded-md font-black text-gray-900 dark:text-white text-sm">
+                              {v.talla}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{v.colegio}</td>
+                          <td className="px-4 py-3">
+                            <div className="relative w-24">
+                              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-xs">$</span>
+                              </div>
+                              <input
+                                type="number"
+                                min="0"
+                                value={v.precio || ''}
+                                onChange={(e) => actualizarVarianteInline(index, 'precio', e.target.value)}
+                                placeholder="Base"
+                                className="w-full pl-6 pr-2 py-1.5 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono"
+                              />
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <input
+                              type="number"
+                              min="0"
+                              value={v.stock}
+                              onChange={(e) => actualizarVarianteInline(index, 'stock', e.target.value)}
+                              className={`w-20 text-center px-2 py-1.5 rounded-lg border-2 text-sm font-bold transition-colors ${
+                                v.stock > 0 
+                                  ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 focus:border-green-500' 
+                                  : 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 focus:border-red-500'
+                              }`}
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => eliminarVariante(index)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                              title="Eliminar variante"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            )}
-
-            {variantes.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No hay variantes agregadas</p>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Sin variantes</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Agrega al menos una talla y colegio para este producto.
+                </p>
+              </div>
             )}
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              type="submit"
-              className="flex-1 bg-linear-to-br from-blue-600 to-blue-700 text-white p-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
-            >
-              Actualizar Producto
-            </Button>
+          {/* Barra de acciones flotante (Sticky Bottom Bar) */}
+          <div className="sticky bottom-4 z-50 mt-8 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex gap-4 transition-all">
             <Button
               variant="secondary"
               onClick={() => router.push('/admin')}
-              className="flex-1 bg-gray-600 text-white p-4 rounded-lg font-semibold hover:bg-gray-700 transition-all"
+              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white p-4 rounded-xl font-bold transition-all shadow-sm hover:shadow"
             >
               Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              💾 Actualizar Producto
             </Button>
           </div>
         </form>

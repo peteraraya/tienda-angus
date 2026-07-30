@@ -69,6 +69,10 @@ export default function VentasPage() {
   const [processingVenta, setProcessingVenta] = useState(false)
   const [notasVenta, setNotasVenta] = useState('')
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
+  
+  // Estado para la boleta/ticket
+  const [showTicket, setShowTicket] = useState(false)
+  const [ultimaVenta, setUltimaVenta] = useState<any>(null)
 
   useEffect(() => {
     loadProductos()
@@ -306,6 +310,17 @@ export default function VentasPage() {
 
       toast.success('¡Venta procesada exitosamente!')
       
+      // Guardar datos para el ticket
+      setUltimaVenta({
+        id: venta.id,
+        fecha: new Date().toLocaleString('es-CL'),
+        cliente: selectedCliente,
+        items: [...cart],
+        totales,
+        vendedor
+      })
+      setShowTicket(true)
+      
       // Limpiar carrito y recargar productos
       setCart([])
       setNotasVenta('')
@@ -390,6 +405,147 @@ export default function VentasPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Modal de Ticket de Venta */}
+        {showTicket && ultimaVenta && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 text-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-1">¡Venta Exitosa!</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">La venta ha sido registrada en el sistema</p>
+              </div>
+              
+              {/* Ticket para imprimir */}
+              <div id="ticket-impresion" className="p-6 overflow-y-auto bg-white dark:bg-gray-800 flex-1">
+                <div className="text-center mb-6 border-b-2 border-dashed border-gray-300 dark:border-gray-600 pb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">Angus Confecciones</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Comprobante de Venta</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-mono">ID: {ultimaVenta.id.substring(0, 8).toUpperCase()}</p>
+                </div>
+                
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Fecha:</span>
+                    <span>{ultimaVenta.fecha}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Cliente:</span>
+                    <span className="text-right">{ultimaVenta.cliente.nombre}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Atendido por:</span>
+                    <span>{ultimaVenta.vendedor}</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 pb-2 mb-2 uppercase tracking-wider">
+                    <div className="col-span-6">Producto</div>
+                    <div className="col-span-2 text-center">Cant</div>
+                    <div className="col-span-4 text-right">Total</div>
+                  </div>
+                  <div className="space-y-3">
+                    {ultimaVenta.items.map((item: any, index: number) => (
+                      <div key={index} className="grid grid-cols-12 gap-2 text-sm text-gray-800 dark:text-gray-200 items-center">
+                        <div className="col-span-6">
+                          <p className="font-semibold line-clamp-1">{item.producto_nombre}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{item.colegio} - {item.talla}</p>
+                        </div>
+                        <div className="col-span-2 text-center font-mono">{item.cantidad}</div>
+                        <div className="col-span-4 text-right font-mono font-medium">{formatPrice(item.precio_final * item.cantidad)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-dashed border-gray-300 dark:border-gray-600 pt-4 space-y-2">
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">{formatPrice(ultimaVenta.totales.subtotal)}</span>
+                  </div>
+                  {ultimaVenta.totales.descuento_total > 0 && (
+                    <div className="flex justify-between text-sm text-green-600 dark:text-green-400 font-semibold">
+                      <span>Descuento:</span>
+                      <span className="font-mono">-{formatPrice(ultimaVenta.totales.descuento_total)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xl font-black text-gray-900 dark:text-white mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span>TOTAL:</span>
+                    <span className="font-mono">{formatPrice(ultimaVenta.totales.total)}</span>
+                  </div>
+                </div>
+                
+                <div className="text-center mt-8 text-xs text-gray-400 dark:text-gray-500 font-medium">
+                  ¡Gracias por su compra!
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                <Button
+                  onClick={() => setShowTicket(false)}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-xl font-bold transition-colors"
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Lógica simple para imprimir solo el ticket
+                    const printContent = document.getElementById('ticket-impresion');
+                    const windowPrint = window.open('', '', 'width=800,height=600');
+                    if (windowPrint && printContent) {
+                      windowPrint.document.write(`
+                        <html>
+                          <head>
+                            <title>Imprimir Comprobante</title>
+                            <style>
+                              body { font-family: monospace; padding: 20px; color: #000; }
+                              .text-center { text-align: center; }
+                              .flex { display: flex; }
+                              .justify-between { justify-content: space-between; }
+                              .font-bold { font-weight: bold; }
+                              .text-xl { font-size: 1.25rem; }
+                              .mt-6 { margin-top: 1.5rem; }
+                              .mb-6 { margin-bottom: 1.5rem; }
+                              .border-b-2 { border-bottom: 2px dashed #ccc; }
+                              .pt-4 { padding-top: 1rem; }
+                              .pb-4 { padding-bottom: 1rem; }
+                              .grid { display: grid; grid-template-columns: 6fr 2fr 4fr; gap: 10px; }
+                              .col-span-6 { grid-column: span 1; }
+                              .col-span-2 { grid-column: span 1; text-align: center; }
+                              .col-span-4 { grid-column: span 1; text-align: right; }
+                              @media print {
+                                body { width: 80mm; margin: 0 auto; }
+                              }
+                            </style>
+                          </head>
+                          <body>
+                            ${printContent.innerHTML}
+                            <script>
+                              window.onload = function() { window.print(); window.close(); }
+                            </script>
+                          </body>
+                        </html>
+                      `);
+                      windowPrint.document.close();
+                    }
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Imprimir Comprobante
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Panel de productos */}
           <div className="lg:col-span-2 space-y-6">

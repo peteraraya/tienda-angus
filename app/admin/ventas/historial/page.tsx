@@ -147,13 +147,6 @@ export default function HistorialVentasPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
               <Button
                 onClick={() => router.push('/admin/ventas')}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -162,16 +155,23 @@ export default function HistorialVentasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Button>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800 ml-2">
+                <img 
+                  src="/logo-confecciones.png" 
+                  alt="Confecciones Angus" 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                   📊 Historial de Ventas
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Registro completo de transacciones</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Registro completo de transacciones</p>
               </div>
             </div>
             <Button
               onClick={() => router.push('/admin')}
-              className="bg-gradient-to-br from-gray-600 to-gray-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg"
+              className="bg-gradient-to-br from-gray-600 to-gray-700 text-white px-5 py-2.5 rounded-xl font-bold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg"
             >
               Volver al Admin
             </Button>
@@ -181,66 +181,66 @@ export default function HistorialVentasPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Ventas</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.cantidadVentas}</p>
+                <p className="text-blue-100 font-semibold text-sm">Total Ventas</p>
+                <p className="text-3xl font-bold">{stats.cantidadVentas}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Ingresos</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(stats.totalVentas)}</p>
+                <p className="text-emerald-100 font-semibold text-sm">Ingresos</p>
+                <p className="text-3xl font-bold">{formatPrice(stats.totalVentas)}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Items Vendidos</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalItems}</p>
+                <p className="text-purple-100 font-semibold text-sm">Items Vendidos</p>
+                <p className="text-3xl font-bold">{stats.totalItems}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
-                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Promedio</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(stats.promedioVenta)}</p>
+                <p className="text-orange-100 font-semibold text-sm">Promedio de Venta</p>
+                <p className="text-3xl font-bold">{formatPrice(stats.promedioVenta)}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Fecha Inicio</label>
@@ -260,10 +260,10 @@ export default function HistorialVentasPage() {
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-3">
               <Button
                 onClick={loadVentas}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
                 Filtrar
               </Button>
@@ -273,7 +273,7 @@ export default function HistorialVentasPage() {
                   setFechaFin('')
                   loadVentas()
                 }}
-                className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all"
+                className="px-6 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
                 Limpiar
               </Button>
@@ -284,11 +284,14 @@ export default function HistorialVentasPage() {
         {/* Lista de ventas */}
         <div className="space-y-4">
           {ventas.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="text-gray-500 dark:text-gray-400 text-lg">No hay ventas registradas</p>
+            <div className="p-16 text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
+                <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2-2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin ventas</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron ventas para este rango de fechas.</p>
             </div>
           ) : (
             ventas.map(venta => (

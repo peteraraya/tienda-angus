@@ -312,8 +312,8 @@ export default function NuevoPedidoPage() {
                 </svg>
               </Button>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">📦 Nuevo Pedido</h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Crea una orden de compra</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">📦 Nuevo Pedido</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block mt-1">Crea una orden de compra para reabastecer inventario</p>
               </div>
             </div>
           </div>
@@ -323,21 +323,28 @@ export default function NuevoPedidoPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-              <div className="space-y-3 sm:space-y-4">
-                <Input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="🔍 Buscar..."
-                  className="w-full p-2.5 sm:p-3 border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
-                />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar insumos..."
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                  />
+                </div>
                 <select
                   value={selectedCategoria}
                   onChange={(e) => setSelectedCategoria(e.target.value)}
-                  className="w-full p-2.5 sm:p-3 border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
+                  className="w-full sm:w-1/3 p-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors"
                 >
-                  <option value="">📁 Categoría</option>
+                  <option value="">📁 Todas las categorías</option>
                   {categorias.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -347,8 +354,14 @@ export default function NuevoPedidoPage() {
 
             <div className="space-y-3 sm:space-y-4">
               {insumosFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 sm:p-12 text-center border border-gray-200 dark:border-gray-700">
-                  <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No hay insumos disponibles</p>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-16 text-center border border-gray-200 dark:border-gray-700">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
+                    <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron insumos con estos filtros.</p>
                 </div>
               ) : (
                 insumosFiltrados.map(insumo => (
@@ -388,35 +401,35 @@ export default function NuevoPedidoPage() {
                             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{insumo.descripcion}</p>
                           )}
 
-                          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2 mt-3 sm:mt-4">
-                            <div className="col-span-1">
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Cantidad</label>
+                          <div className="grid grid-cols-2 sm:flex sm:items-end gap-3 mt-4">
+                            <div className="col-span-1 flex-1">
+                              <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Cantidad</label>
                               <Input
                                 type="number"
-                                placeholder="Cant."
+                                placeholder="0"
                                 value={cantidades[insumo.id] || ''}
                                 onChange={(e) => setCantidades({ ...cantidades, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                                 step="0.01"
                               />
                             </div>
-                            <div className="col-span-1">
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Precio</label>
+                            <div className="col-span-1 flex-1">
+                              <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Precio C/U</label>
                               <Input
                                 type="number"
-                                placeholder="Precio"
+                                placeholder="$"
                                 value={preciosCompra[insumo.id] || ''}
                                 onChange={(e) => setPreciosCompra({ ...preciosCompra, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                               />
                             </div>
                             <button
                               onClick={() => agregarAlCarrito(insumo)}
-                              className="col-span-2 sm:col-span-1 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all"
+                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
                             >
-                              Agregar
+                              + Añadir
                             </button>
                           </div>
                         </div>
