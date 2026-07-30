@@ -4,33 +4,13 @@ import ThemeToggle from './components/ThemeToggle'
 import ClientCartIcon from './components/ClientCartIcon'
 import MapModalTrigger from './components/MapModalTrigger'
 import Image from 'next/image'
+import type { Colegio, Producto, Variante } from '@/types/database'
 
 export const revalidate = 0
 
-interface Variante {
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
-}
-
-interface ProductoConVariantes {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
-  imagenes?: string[]
+interface ProductoConVariantes extends Producto {
   variantes: Variante[]
   stock_total: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
-}
-
-interface Colegio {
-  nombre: string
-  insignia_url?: string
 }
 
 async function getColegios() {

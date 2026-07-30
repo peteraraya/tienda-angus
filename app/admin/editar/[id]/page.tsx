@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
 import { useColegios, useCategorias } from '@/app/hooks/useStaticData'
+import AdminHeader from '../../components/AdminHeader'
 
 const TALLAS_NUMERICAS = ['6-8', '10-12', '14-16']
 const TALLAS_LETRAS = ['S-M', 'L-XL']
@@ -227,21 +228,14 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            onClick={() => router.push('/admin')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </Button>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Editar Producto</h1>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-12">
+      <AdminHeader 
+        title="Editar Producto" 
+        subtitle="Actualiza los detalles y el inventario del producto"
+      />
+
+      <div className="max-w-4xl mx-auto mt-8 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-3xl shadow-xl">
+        <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* SECCIÓN: Información Básica */}
           <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">

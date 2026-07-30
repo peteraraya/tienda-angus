@@ -38,23 +38,13 @@ function useFavorites() {
   return favorites;
 }
 
-interface Variante {
-  talla: string
-  colegio: string
-  stock: number
-}
+import type { Colegio as DBColegio, Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
+interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock'> {}
+
+interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
   stock_total: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
 }
 
 interface ColegioData {

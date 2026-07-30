@@ -6,32 +6,9 @@ import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button } from '@/app/components/ui'
+import type { Venta as DBVenta, VentaItem } from '@/types/database'
 
-interface VentaItem {
-  id: string
-  producto_nombre: string
-  talla: string
-  colegio: string
-  precio_unitario: number
-  descuento_porcentaje: number
-  precio_final: number
-  cantidad: number
-  subtotal: number
-}
-
-interface Venta {
-  id: string
-  fecha: string
-  total: number
-  subtotal: number
-  descuento_total: number
-  cantidad_items: number
-  notas: string | null
-  vendedor: string
-  cliente_id?: string
-  cliente_nombre?: string
-  cliente_telefono?: string
-  cliente_contacto?: string
+interface Venta extends DBVenta {
   items?: VentaItem[]
 }
 

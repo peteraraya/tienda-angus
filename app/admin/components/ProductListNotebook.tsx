@@ -2,29 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
+export interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
+export interface Producto extends DBProducto {
   stock_total?: number
   variantes_count?: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
-  notas?: string
   variantes?: Variante[]
 }
 

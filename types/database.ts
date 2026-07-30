@@ -129,3 +129,34 @@ export interface PedidoItem {
 export interface PedidoConItems extends Pedido {
   items: PedidoItem[]
 }
+
+export interface Categoria {
+  id: string
+  nombre: string
+  descripcion?: string
+  activo: boolean
+  created_at: string
+}
+
+export interface Colegio {
+  id: string
+  nombre: string
+  insignia_url?: string
+  activo: boolean
+  created_at: string
+}
+
+export interface Insumo {
+  id: string
+  nombre: string
+  descripcion?: string
+  unidad_medida: string
+  precio_referencia: number
+  stock_actual: number
+  stock_minimo: number
+  imagen_url?: string
+  categoria?: string
+  notas?: string
+  activo: boolean
+  created_at: string
+}

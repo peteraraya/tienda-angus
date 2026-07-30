@@ -8,26 +8,13 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ClienteAutocomplete from '../components/ClienteAutocomplete'
+import type { Producto as DBProducto, Variante as DBVariante, Cliente } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
+interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
-  descuento_porcentaje?: number
-  en_oferta?: boolean
+interface Producto extends DBProducto {
   variantes?: Variante[]
 }
 
@@ -43,17 +30,6 @@ interface CartItem {
   cantidad: number
   stock_disponible: number
   imagen_url?: string
-}
-
-interface Cliente {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  red_social?: string
-  direccion?: string
-  cantidad_compras: number
-  total_compras: number
 }
 
 export default function VentasPage() {

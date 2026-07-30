@@ -14,28 +14,18 @@ import SizeGuideModal from './SizeGuideModal'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from './ui/ToastContainer'
 
-interface Variante {
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
+
+interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+
+interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
+  variantes: Variante[]
+  stock_total: number
 }
 
 interface ProductModalProps {
-  producto: {
-    id: string
-    nombre: string
-    descripcion: string
-    precio: number
-    categoria: string
-    imagen_url?: string
-    imagenes?: string[]
-    variantes: Variante[]
-    stock_total: number
-    descuento_porcentaje?: number
-    en_oferta?: boolean
-  }
-  relatedProducts?: any[]
+  producto: Producto
+  relatedProducts?: Producto[]
   onClose: () => void
 }
 
@@ -424,9 +414,9 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                         window.location.href = `/#catalogo`;
                       }}>
                         <div className="relative aspect-square">
-                          {relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes[0]) ? (
+                          {relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes.length > 0) ? (
                             <LazyImage 
-                              src={relProduct.imagen_url || relProduct.imagenes[0]} 
+                              src={relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes[0]) || ''} 
                               alt={relProduct.nombre}
                               width={200}
                               height={200}

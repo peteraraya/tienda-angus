@@ -8,21 +8,8 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ViewToggle from '../components/ViewToggle'
-
-interface Insumo {
-  id: string
-  nombre: string
-  descripcion?: string
-  unidad_medida: string
-  precio_referencia: number
-  stock_actual: number
-  stock_minimo: number
-  imagen_url?: string
-  categoria?: string
-  notas?: string
-  activo: boolean
-  created_at: string
-}
+import type { Insumo } from '@/types/database'
+import AdminHeader from '../components/AdminHeader'
 
 export default function InsumosPage() {
   const router = useRouter()
@@ -185,39 +172,21 @@ export default function InsumosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <Button onClick={() => router.push('/admin')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🧵 Gestión de Insumos</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Administra materiales y suministros</p>
-              </div>
-            </div>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold"
-            >
-              + Nuevo Insumo
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="🧵 Gestión de Insumos" 
+        subtitle="Administra materiales y suministros"
+        actions={
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            + Nuevo Insumo
+          </Button>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

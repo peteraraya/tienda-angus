@@ -7,14 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input, LazyImage } from '@/app/components/ui'
-
-interface Colegio {
-  id: string
-  nombre: string
-  insignia_url?: string
-  activo: boolean
-  created_at: string
-}
+import type { Colegio } from '@/types/database'
 
 export default function ColegiosPage() {
   const router = useRouter()

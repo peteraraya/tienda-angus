@@ -7,14 +7,8 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import { clearAllCache } from '@/app/hooks/useStaticData'
-
-interface Categoria {
-  id: string
-  nombre: string
-  descripcion?: string
-  activo: boolean
-  created_at: string
-}
+import type { Categoria } from '@/types/database'
+import AdminHeader from '../components/AdminHeader'
 
 export default function CategoriasPage() {
   const router = useRouter()
@@ -179,36 +173,17 @@ export default function CategoriasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={() => router.push('/admin')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Button>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800 ml-2">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Categorías</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Administra las categorías de productos</p>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="Gestión de Categorías" 
+        subtitle="Administra las categorías de productos"
+      />
 
+      <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden mb-8">
           {/* Agregar Nueva Categoría */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 sm:p-8 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

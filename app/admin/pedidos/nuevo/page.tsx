@@ -7,19 +7,8 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
-
-interface Insumo {
-  id: string
-  nombre: string
-  descripcion?: string
-  unidad_medida: string
-  precio_referencia: number
-  stock_actual: number
-  stock_minimo: number
-  imagen_url?: string
-  categoria?: string
-  activo: boolean
-}
+import type { Insumo, Proveedor } from '@/types/database'
+import AdminHeader from '../../components/AdminHeader'
 
 interface CartItem {
   insumo_id: string
@@ -28,18 +17,6 @@ interface CartItem {
   precio_unitario: number
   cantidad: number
   imagen_url?: string
-}
-
-interface Proveedor {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  email?: string
-  direccion?: string
-  rut?: string
-  cantidad_pedidos: number
-  total_pedidos: number
 }
 
 export default function NuevoPedidoPage() {
@@ -291,36 +268,14 @@ export default function NuevoPedidoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800 flex-shrink-0">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <Button
-                onClick={() => router.push('/admin/pedidos')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Button>
-              <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">📦 Nuevo Pedido</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block mt-1">Crea una orden de compra para reabastecer inventario</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="📦 Nuevo Pedido" 
+        subtitle="Crea una orden de compra para reabastecer inventario"
+        backPath="/admin/pedidos"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">

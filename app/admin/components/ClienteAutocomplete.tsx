@@ -3,17 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Input, Button } from '@/app/components/ui'
-
-interface Cliente {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  red_social?: string
-  direccion?: string
-  cantidad_compras: number
-  total_compras: number
-}
+import type { Cliente } from '@/types/database'
 
 interface ClienteAutocompleteProps {
   onClienteSelect: (cliente: Cliente | null) => void

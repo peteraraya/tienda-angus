@@ -5,28 +5,18 @@ import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 
-interface Variante {
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
+
+interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+
+interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
+  variantes: Variante[]
+  stock_total: number
 }
 
 interface ProductListItemProps {
-  producto: {
-    id: string
-    nombre: string
-    descripcion: string
-    precio: number
-    categoria: string
-    imagen_url?: string
-    imagenes?: string[]
-    variantes: Variante[]
-    stock_total: number
-    descuento_porcentaje?: number
-    en_oferta?: boolean
-  }
-  relatedProducts?: any[]
+  producto: Producto
+  relatedProducts?: Producto[]
 }
 
 export default function ProductListItem({ producto, relatedProducts = [] }: ProductListItemProps) {

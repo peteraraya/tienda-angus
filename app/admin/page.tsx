@@ -15,29 +15,16 @@ import KeyboardShortcuts from './components/KeyboardShortcuts'
 import NotificationCenter from './components/NotificationCenter'
 import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
 import { DashboardMetrics } from './components/DashboardMetrics'
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
-  precio?: number | null
+// Extendemos los tipos base con los campos computados que usamos en la UI
+interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
+interface Producto extends DBProducto {
   stock_total?: number
   variantes_count?: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
-  notas?: string
   variantes?: Variante[]
 }
 
