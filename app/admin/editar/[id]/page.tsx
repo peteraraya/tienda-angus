@@ -9,8 +9,8 @@ import { Button, Input, LazyImage } from '@/app/components/ui'
 import { useColegios, useCategorias } from '@/app/hooks/useStaticData'
 import AdminHeader from '../../components/AdminHeader'
 
-const TALLAS_NUMERICAS = ['6-8', '10-12', '14-16']
-const TALLAS_LETRAS = ['S-M', 'L-XL']
+const TALLAS_NUMERICAS = ['4', '6', '8', '10', '12', '14', '16', '18']
+const TALLAS_LETRAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
 interface Variante {
   id?: string
@@ -492,8 +492,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                   >
                     <option value="">Seleccionar</option>
                     <optgroup label="⚡ Generación Rápida">
-                      <option value="TODAS_NUMERICAS">Todas Numéricas (6-8 al 14-16)</option>
-                      <option value="TODAS_LETRAS">Todas Letras (S-M, L-XL)</option>
+                      <option value="TODAS_NUMERICAS">Todas Numéricas (4 al 18)</option>
+                      <option value="TODAS_LETRAS">Todas Letras (XS a XXL)</option>
                     </optgroup>
                     <optgroup label="Tallas Individuales (Numéricas)">
                       {TALLAS_NUMERICAS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -590,18 +590,30 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                               />
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <input
-                              type="number"
-                              min="0"
-                              value={v.stock}
-                              onChange={(e) => actualizarVarianteInline(index, 'stock', e.target.value)}
-                              className={`w-20 text-center px-2 py-1.5 rounded-lg border-2 text-sm font-bold transition-colors ${
-                                v.stock > 0 
-                                  ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 focus:border-green-500' 
-                                  : 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 focus:border-red-500'
-                              }`}
-                            />
+                          <td className="px-4 py-3">
+                            <div className={`flex items-center justify-between w-28 mx-auto rounded-lg border-2 overflow-hidden transition-colors ${v.stock > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 focus-within:border-green-500' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 focus-within:border-red-500'}`}>
+                              <button
+                                type="button"
+                                onClick={() => actualizarVarianteInline(index, 'stock', Math.max(0, v.stock - 1).toString())}
+                                className={`px-2.5 py-1.5 text-lg font-bold transition-colors ${v.stock > 0 ? 'text-green-600 hover:bg-green-200 dark:text-green-400 dark:hover:bg-green-800' : 'text-red-600 hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-800'}`}
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                value={v.stock}
+                                onChange={(e) => actualizarVarianteInline(index, 'stock', e.target.value)}
+                                className={`w-10 text-center p-0 border-none focus:ring-0 text-sm font-bold bg-transparent ${v.stock > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => actualizarVarianteInline(index, 'stock', (v.stock + 1).toString())}
+                                className={`px-2.5 py-1.5 text-lg font-bold transition-colors ${v.stock > 0 ? 'text-green-600 hover:bg-green-200 dark:text-green-400 dark:hover:bg-green-800' : 'text-red-600 hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-800'}`}
+                              >
+                                +
+                              </button>
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-right">
                             <button

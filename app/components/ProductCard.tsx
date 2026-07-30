@@ -113,7 +113,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             setShowModal(true);
           }
         }}
-        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-blue-900/20 transition-all duration-300 transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 cursor-pointer relative focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
+        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-blue-900/20 transition-all duration-300 transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 cursor-pointer relative focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 flex flex-col h-full"
         onClick={() => setShowModal(true)}
       >
                 {/* Botón de favorito - solo mostrar cuando está montado */}
@@ -130,7 +130,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                     )}
                   </button>
                 )}
-        <div className="relative h-72 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
+        <div className="relative aspect-square bg-white dark:bg-gray-800 overflow-hidden border-b border-gray-100 dark:border-gray-700/50">
           {imagenes.length > 0 ? (
             <>
               <LazyImage
@@ -138,7 +138,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                 alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 400px"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500"
                 priority={currentImageIndex === 0}
               />
               
@@ -237,8 +237,8 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             </div>
           )}
 
-          <div className="absolute bottom-4 right-4">
-            <span className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-gray-200 dark:border-gray-600">
+          <div className="absolute bottom-3 right-3">
+            <span className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-600">
               {producto.categoria}
             </span>
           </div>
@@ -251,30 +251,29 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           </div>
         </div>
         
-        <div className="p-5 sm:p-6 flex flex-col h-full">
-          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
+        <div className="p-4 flex flex-col  flex-1">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
             {producto.nombre}
           </h2>
           
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
+          <p className="text-gray-500 dark:text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">
             {producto.descripcion}
           </p>
           
           {tallasDisponibles.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Tallas disponibles</p>
-              <div className="flex flex-wrap gap-1.5">
-                {tallasDisponibles.slice(0, 6).map(talla => (
+            <div className="mb-2.5">
+              <div className="flex flex-wrap gap-1">
+                {tallasDisponibles.slice(0, 5).map(talla => (
                   <span 
                     key={talla} 
-                    className="flex items-center justify-center min-w-[28px] h-[28px] bg-white dark:bg-gray-800 border-2 border-gray-900 dark:border-gray-300 text-gray-900 dark:text-gray-100 text-xs font-bold px-1.5 rounded-sm shadow-sm"
+                    className="flex items-center justify-center min-w-[22px] h-[22px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[10px] font-bold px-1 rounded-sm"
                   >
                     {talla}
                   </span>
                 ))}
-                {tallasDisponibles.length > 6 && (
-                  <span className="flex items-center justify-center min-w-[28px] h-[28px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold px-1.5 rounded-sm border border-gray-300 dark:border-gray-600">
-                    +{tallasDisponibles.length - 6}
+                {tallasDisponibles.length > 5 && (
+                  <span className="flex items-center justify-center min-w-[22px] h-[22px] bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold px-1 rounded-sm border border-gray-200 dark:border-gray-600">
+                    +{tallasDisponibles.length - 5}
                   </span>
                 )}
               </div>
@@ -282,53 +281,51 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           )}
 
           {colegiosDisponibles.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Colegios</p>
-              <div className="flex flex-wrap gap-2">
-                {colegiosDisponibles.slice(0, 3).map(colegio => (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1.5">
+                {colegiosDisponibles.slice(0, 2).map(colegio => (
                   <span 
                     key={colegio} 
-                    className="bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-semibold px-3 py-1.5 rounded-lg"
+                    className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[10px] font-semibold px-2 py-0.5 rounded-md truncate max-w-[120px]"
                   >
                     {colegio}
                   </span>
                 ))}
-                {colegiosDisponibles.length > 3 && (
-                  <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600">
-                    +{colegiosDisponibles.length - 3}
+                {colegiosDisponibles.length > 2 && (
+                  <span className="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-700">
+                    +{colegiosDisponibles.length - 2}
                   </span>
                 )}
               </div>
             </div>
           )}
           
-          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-auto flex justify-between items-end pt-3 border-t border-gray-100 dark:border-gray-700/50">
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Precio</p>
               {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                <div>
-                  <span className="text-lg text-gray-500 dark:text-gray-400 line-through block">
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 line-through">
                     {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                   </span>
-                  <span className="text-3xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                    {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioFinal)}
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                    {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioFinal)}
                   </span>
                 </div>
               ) : (
-                <span className="text-3xl font-bold bg-linear-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                  {tienePreciosDiferentes ? <span className="text-lg">Desde </span> : ''}{formatPrice(precioMinimo)}
+                <span className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                  {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioMinimo)}
                 </span>
               )}
             </div>
             <div className="text-right">
-              <span className={`inline-block text-xs font-bold px-4 py-2 rounded-full ${
+              <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full ${
                 producto.stock_total > 6 
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700' 
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' 
                   : producto.stock_total > 0 
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700' 
-                  : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-700'
+                  ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' 
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
               }`}>
-                {producto.stock_total > 0 ? `${producto.stock_total} unid.` : 'Sin stock'}
+                {producto.stock_total > 0 ? `${producto.stock_total} unid.` : 'Agotado'}
               </span>
             </div>
           </div>

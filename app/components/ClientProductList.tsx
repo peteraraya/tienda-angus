@@ -66,6 +66,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   const [selectedTalla, setSelectedTalla] = useState('')
   const [selectedColegio, setSelectedColegio] = useState('')
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
+  const [showOnlyOffers, setShowOnlyOffers] = useState(false)
   const favorites = useFavorites();
   // Paginación / carga infinita
   const PAGE_SIZE = 12
@@ -110,6 +111,9 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
     if (showOnlyFavorites) {
       filtered = filtered.filter(producto => favorites.includes(producto.id));
     }
+    if (showOnlyOffers) {
+      filtered = filtered.filter(producto => producto.en_oferta || (producto.descuento_porcentaje && producto.descuento_porcentaje > 0));
+    }
     // Ordenar
     switch (selectedSort) {
       case 'price-asc':
@@ -131,7 +135,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
         break
     }
     return filtered
-  }, [productos, searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, favorites])
+  }, [productos, searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites])
 
   // Reiniciar página cuando cambian filtros o el conjunto de resultados
   useEffect(() => {
@@ -139,7 +143,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
     const t = window.setTimeout(() => setPage(1), 0)
     // scroll to top of product list? leave to consumer
     return () => clearTimeout(t)
-  }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, favorites])
+  }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites])
 
   const displayedProducts = useMemo(() => {
     return filteredAndSortedProducts.slice(0, page * PAGE_SIZE)
@@ -279,6 +283,37 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                 </div>
               </div>
             )}
+
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Especiales</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
+                    showOnlyFavorites 
+                      ? 'bg-pink-600 text-white shadow-md' 
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill={showOnlyFavorites ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  Favoritos
+                </button>
+                <button
+                  onClick={() => setShowOnlyOffers(!showOnlyOffers)}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
+                    showOnlyOffers 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <span className="text-lg leading-none mb-0.5">🔥</span>
+                  En Oferta
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -304,6 +339,8 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               onColegioChange={setSelectedColegio}
               showOnlyFavorites={showOnlyFavorites}
               onShowOnlyFavoritesChange={setShowOnlyFavorites}
+              showOnlyOffers={showOnlyOffers}
+              onShowOnlyOffersChange={setShowOnlyOffers}
             />
           </div>
           
@@ -374,6 +411,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               setSelectedColegio('')
               setSelectedTalla('')
               setShowOnlyFavorites(false)
+              setShowOnlyOffers(false)
             }}
             className="px-6 py-3 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 rounded-xl font-bold transition-all shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
@@ -390,7 +428,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
           {currentView === 'grid' ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                 {displayedProducts.map((producto) => {
                   const relacionados = productos
                     .filter(p => p.id !== producto.id && p.categoria === producto.categoria)
