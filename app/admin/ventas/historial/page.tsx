@@ -120,8 +120,8 @@ export default function HistorialVentasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
       {/* Header */}
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
               <Button
@@ -132,7 +132,7 @@ export default function HistorialVentasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Button>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800 ml-2">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 ml-2">
                 <img 
                   src="/logo-confecciones.png" 
                   alt="Confecciones Angus" 
@@ -148,7 +148,7 @@ export default function HistorialVentasPage() {
             </div>
             <Button
               onClick={() => router.push('/admin')}
-              className="bg-gradient-to-br from-gray-600 to-gray-700 text-white px-5 py-2.5 rounded-xl font-bold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg"
+              className="bg-gradient-to-br from-gray-600 to-gray-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-bold hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-sm"
             >
               Volver al Admin
             </Button>
@@ -156,10 +156,10 @@ export default function HistorialVentasPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@ export default function HistorialVentasPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +187,7 @@ export default function HistorialVentasPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +201,7 @@ export default function HistorialVentasPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +217,7 @@ export default function HistorialVentasPage() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Fecha Inicio</label>
@@ -240,7 +240,7 @@ export default function HistorialVentasPage() {
             <div className="flex items-end gap-3">
               <Button
                 onClick={loadVentas}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
                 Filtrar
               </Button>
@@ -250,7 +250,7 @@ export default function HistorialVentasPage() {
                   setFechaFin('')
                   loadVentas()
                 }}
-                className="px-6 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                className="px-6 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
                 Limpiar
               </Button>
@@ -267,12 +267,12 @@ export default function HistorialVentasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2-2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin ventas</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin ventas</h3>
               <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron ventas para este rango de fechas.</p>
             </div>
           ) : (
             ventas.map(venta => (
-              <div key={venta.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div key={venta.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div 
                   className="p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   onClick={() => loadVentaItems(venta.id)}

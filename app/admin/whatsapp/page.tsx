@@ -126,7 +126,7 @@ export default function WhatsAppPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="w-full max-w-[1600px] mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             WhatsApp Business
@@ -136,7 +136,7 @@ export default function WhatsAppPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
           <div className="flex h-full">
             {/* Lista de conversaciones */}
             <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
@@ -167,7 +167,7 @@ export default function WhatsAppPage() {
                           {conv.customerName || conv.phoneNumber}
                         </span>
                         {conv.unreadCount > 0 && (
-                          <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                          <span className="bg-blue-600 text-gray-900 dark:text-white text-xs font-bold px-2 py-1 rounded-full">
                             {conv.unreadCount}
                           </span>
                         )}
@@ -207,7 +207,7 @@ export default function WhatsAppPage() {
                         <div
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                             msg.direction === 'outgoing'
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-blue-600 text-gray-900 dark:text-white'
                               : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
                           }`}
                         >
@@ -244,7 +244,7 @@ export default function WhatsAppPage() {
                       <button
                         onClick={handleSendMessage}
                         disabled={!messageText.trim() || sendMessageMutation.isPending}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-gray-900 dark:text-white rounded-lg font-semibold transition-colors"
                       >
                         {sendMessageMutation.isPending ? 'Enviando...' : 'Enviar'}
                       </button>

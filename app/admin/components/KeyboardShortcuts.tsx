@@ -39,7 +39,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
       {/* Botón de ayuda flotante */}
       <button
         onClick={() => setShowHelp(true)}
-        className="fixed bottom-24 right-6 w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center font-bold text-xl z-40 print:hidden"
+        className="fixed bottom-24 right-6 w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 text-gray-900 dark:text-white rounded-full shadow-sm hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center font-bold text-xl z-40 print:hidden"
         title="Atajos de teclado (presiona ?)"
       >
         ?
@@ -52,7 +52,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
           onClick={() => setShowHelp(false)}
         >
           <div 
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full border-2 border-slate-200 dark:border-slate-700"
+            className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-lg w-full border border-slate-200 dark:border-slate-700"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -85,7 +85,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
               {/* Búsqueda */}
               <div className="flex items-center gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
+                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
                     Ctrl+F
                   </kbd>
                 </div>
@@ -98,7 +98,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
               {/* Guardar */}
               <div className="flex items-center gap-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
+                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
                     Enter
                   </kbd>
                 </div>
@@ -111,7 +111,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
               {/* Cancelar */}
               <div className="flex items-center gap-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
+                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
                     Esc
                   </kbd>
                 </div>
@@ -124,7 +124,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
               {/* Ayuda */}
               <div className="flex items-center gap-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                 <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
+                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-900 dark:text-white shadow-sm">
                     ?
                   </kbd>
                 </div>

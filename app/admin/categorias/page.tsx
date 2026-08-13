@@ -179,9 +179,9 @@ export default function CategoriasPage() {
         subtitle="Administra las categorías de productos"
       />
 
-      <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
         
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden mb-8">
           {/* Agregar Nueva Categoría */}
           <div className="bg-gray-50 dark:bg-gray-700/30 p-6 sm:p-8 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function CategoriasPage() {
                   type="text"
                   value={nuevaCategoria.nombre}
                   onChange={(e) => setNuevaCategoria({...nuevaCategoria, nombre: e.target.value})}
-                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   placeholder="Ej: Pantalones"
                 />
               </div>
@@ -207,7 +207,7 @@ export default function CategoriasPage() {
                   type="text"
                   value={nuevaCategoria.descripcion}
                   onChange={(e) => setNuevaCategoria({...nuevaCategoria, descripcion: e.target.value})}
-                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   placeholder="Ej: Pantalones escolares y deportivos"
                 />
               </div>
@@ -215,7 +215,7 @@ export default function CategoriasPage() {
               <div className="sm:col-span-2">
                 <Button
                   onClick={agregarCategoria}
-                  className="w-full bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
+                  className="w-full bg-blue-600 text-gray-900 dark:text-white py-3.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
                 >
                   + Agregar
                 </Button>
@@ -225,7 +225,7 @@ export default function CategoriasPage() {
         </div>
 
         {/* Lista de Categorías */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               Categorías Registradas ({categorias.length})
@@ -239,7 +239,7 @@ export default function CategoriasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin categorías</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin categorías</h3>
               <p className="text-gray-500 dark:text-gray-400 text-base font-medium">Aún no has registrado ninguna categoría en el sistema.</p>
             </div>
           ) : (
@@ -265,7 +265,7 @@ export default function CategoriasPage() {
                             value={categoriaEditada.nombre}
                             onChange={(e) => setCategoriaEditada({...categoriaEditada, nombre: e.target.value})}
                             placeholder="Nombre de la categoría"
-                            className="w-full p-2.5 border-2 border-blue-500 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold"
+                            className="w-full p-2.5 border border-blue-500 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold"
                             autoFocus
                           />
                           <Input
@@ -273,7 +273,7 @@ export default function CategoriasPage() {
                             value={categoriaEditada.descripcion}
                             onChange={(e) => setCategoriaEditada({...categoriaEditada, descripcion: e.target.value})}
                             placeholder="Descripción (opcional)"
-                            className="w-full p-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                           />
                         </div>
                       ) : (
@@ -305,7 +305,7 @@ export default function CategoriasPage() {
                         <>
                           <button
                             onClick={() => actualizarCategoria(categoria.id)}
-                            className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-sm"
+                            className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
                           >
                             Guardar
                           </button>
@@ -314,7 +314,7 @@ export default function CategoriasPage() {
                               setEditando(null)
                               setCategoriaEditada({ nombre: '', descripcion: '' })
                             }}
-                            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-xl font-bold transition-all shadow-sm"
+                            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
                           >
                             Cancelar
                           </button>

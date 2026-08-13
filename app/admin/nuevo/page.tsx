@@ -36,6 +36,7 @@ export default function NuevoProducto() {
     en_oferta: false
   })
   const [imagenes, setImagenes] = useState<string[]>([''])
+  const [uploadingIndexes, setUploadingIndexes] = useState<number[]>([])
   const [variantes, setVariantes] = useState<Variante[]>([])
   const [nuevaVariante, setNuevaVariante] = useState({
     talla: '',
@@ -63,27 +64,77 @@ export default function NuevoProducto() {
     setImagenes(imagenes.filter((_, i) => i !== index))
   }
 
-  function agregarVariante() {
-    if (!nuevaVariante.talla || !nuevaVariante.colegio) {
-      toast.error('Completa la talla y el colegio')
-      return
-    }
+  async function handleFileUpload(index: number, file: File) {
+    if (!file) return
 
-    let tallasAAgregar = [nuevaVariante.talla]
-    if (nuevaVariante.talla === 'TODAS_NUMERICAS') {
+    setUploadingIndexes(prev => [...prev, index])
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok && data.secure_url) {
+        actualizarImagen(index, data.secure_url)
+        toast.success('Imagen subida con éxito')
+      } else {
+        toast.error(data.error || 'Error al subir la imagen')
+      }
+    } catch (error) {
+      toast.error('Error de red al subir la imagen')
+    } finally {
+      setUploadingIndexes(prev => prev.filter(i => i !== index))
+    }
+  }
+
+  async function handleUrlUpload(index: number, url: string) {
+    if (!url || !url.startsWith('http')) return
+
+    setUploadingIndexes(prev => [...prev, index])
+    const formData = new FormData()
+    formData.append('url', url)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok && data.secure_url) {
+        actualizarImagen(index, data.secure_url)
+        toast.success('URL optimizada en Cloudinary')
+      } else {
+        toast.error(data.error || 'Error al procesar la URL')
+      }
+    } catch (error) {
+      toast.error('Error de red al procesar la URL')
+    } finally {
+      setUploadingIndexes(prev => prev.filter(i => i !== index))
+    }
+  }
+
+  function agregarVariante() {
+    const tallaFinal = nuevaVariante.talla || 'Única'
+    const colegioFinal = nuevaVariante.colegio || 'General'
+
+    let tallasAAgregar = [tallaFinal]
+    if (tallaFinal === 'TODAS_NUMERICAS') {
       tallasAAgregar = TALLAS_NUMERICAS
-    } else if (nuevaVariante.talla === 'TODAS_LETRAS') {
+    } else if (tallaFinal === 'TODAS_LETRAS') {
       tallasAAgregar = TALLAS_LETRAS
     } else {
       if (!nuevaVariante.stock) {
-        toast.error('Completa el stock para esta talla')
+        toast.error('Completa el stock')
         return
       }
     }
 
     const nuevas = tallasAAgregar.map(t => ({
       talla: t,
-      colegio: nuevaVariante.colegio,
+      colegio: colegioFinal,
       stock: parseInt(nuevaVariante.stock) || 0,
       precio: nuevaVariante.precio ? parseFloat(nuevaVariante.precio) : null
     })).filter(nv => !variantes.some(v => v.talla === nv.talla && v.colegio === nv.colegio))
@@ -173,11 +224,11 @@ export default function NuevoProducto() {
         subtitle="Crea un nuevo producto con variantes y stock"
       />
 
-      <div className="max-w-4xl mx-auto mt-8 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-3xl shadow-xl">
+      <div className="w-full max-w-6xl mx-auto mt-8 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-xl shadow-xl">
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* SECCIÓN: Información Básica */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,7 +243,7 @@ export default function NuevoProducto() {
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   placeholder="Ej: Polera Piqué Blanca"
                   required
                 />
@@ -203,7 +254,7 @@ export default function NuevoProducto() {
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-                  className="w-full p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors resize-none"
+                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors resize-none"
                   rows={4}
                   placeholder="Describe las características de la prenda, material, calce, etc..."
                   required
@@ -217,7 +268,7 @@ export default function NuevoProducto() {
                     <select
                       value={formData.categoria}
                       onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                      className="flex-1 p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors cursor-pointer"
+                      className="flex-1 p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors cursor-pointer"
                       required
                     >
                       <option value="" disabled>Selecciona una categoría</option>
@@ -252,7 +303,7 @@ export default function NuevoProducto() {
                       min="0"
                       value={formData.precio}
                       onChange={(e) => setFormData({...formData, precio: e.target.value})}
-                      className="w-full pl-8 p-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold text-lg"
+                      className="w-full pl-8 p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold text-lg"
                       placeholder="10000"
                       required
                     />
@@ -264,7 +315,7 @@ export default function NuevoProducto() {
           </div>
 
           {/* SECCIÓN: Imágenes */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -274,19 +325,55 @@ export default function NuevoProducto() {
             
             <div className="space-y-4">
               {imagenes.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    type="url"
-                    value={img}
-                    onChange={(e) => actualizarImagen(index, e.target.value)}
-                    className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder={`URL de imagen ${index + 1}`}
-                  />
+                <div key={index} className="flex gap-2 items-start">
+                  <div className="flex-1 flex flex-col gap-2 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-sm">
+                    {uploadingIndexes.includes(index) ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        <span className="ml-2 text-sm text-gray-500">Subiendo a Cloudinary...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="url"
+                            value={img}
+                            onChange={(e) => actualizarImagen(index, e.target.value)}
+                            className="flex-1 p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-sm"
+                            placeholder={`Pegar URL de imagen ${index + 1}`}
+                          />
+                          <Button 
+                            type="button" 
+                            variant="secondary" 
+                            onClick={() => handleUrlUpload(index, img)}
+                            disabled={!img || !img.startsWith('http') || img.includes('cloudinary.com')}
+                            className="text-xs px-3 py-2 disabled:opacity-50"
+                            title="Guardar URL externa en Cloudinary para optimización"
+                          >
+                            Optimizar URL
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-400 font-bold uppercase">o subir archivo local:</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg, image/png, image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) handleFileUpload(index, file)
+                            }}
+                            className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400 cursor-pointer"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                   {imagenes.length > 1 && (
                     <Button
                       variant="danger"
                       onClick={() => eliminarImagen(index)}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      className="px-3 py-3 mt-1 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 rounded-xl transition-colors"
+                      title="Eliminar imagen"
                     >
                       ✕
                     </Button>
@@ -297,7 +384,7 @@ export default function NuevoProducto() {
                 <button
                   type="button"
                   onClick={agregarImagen}
-                  className="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold flex flex-col items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full py-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold flex flex-col items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -322,7 +409,7 @@ export default function NuevoProducto() {
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                         unoptimized
                       />
-                      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-gray-900 dark:text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
                         {index + 1}
                       </div>
                     </div>
@@ -333,7 +420,7 @@ export default function NuevoProducto() {
           </div>
 
           {/* SECCIÓN: Ofertas */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -351,7 +438,7 @@ export default function NuevoProducto() {
                     max="100"
                     value={formData.descuento_porcentaje}
                     onChange={(e) => setFormData({...formData, descuento_porcentaje: e.target.value})}
-                    className="w-full p-3.5 pr-10 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold"
+                    className="w-full p-3.5 pr-10 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono font-bold"
                     placeholder="0"
                   />
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -373,7 +460,7 @@ export default function NuevoProducto() {
 
               <div>
                 <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Destacar en Catálogo</label>
-                <label className="flex items-center gap-4 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-all group">
+                <label className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-all group">
                   <div className="relative flex items-center">
                     <input
                       type="checkbox"
@@ -396,7 +483,7 @@ export default function NuevoProducto() {
           </div>
 
           {/* SECCIÓN: Inventario y Variantes */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -427,9 +514,9 @@ export default function NuevoProducto() {
                   <select
                     value={nuevaVariante.talla}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, talla: e.target.value})}
-                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
                   >
-                    <option value="">Seleccionar</option>
+                    <option value="">Única / Sin Talla</option>
                     <optgroup label="⚡ Generación Rápida">
                       <option value="TODAS_NUMERICAS">Todas Numéricas (4 al 18)</option>
                       <option value="TODAS_LETRAS">Todas Letras (XS a XXL)</option>
@@ -448,9 +535,9 @@ export default function NuevoProducto() {
                   <select
                     value={nuevaVariante.colegio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, colegio: e.target.value})}
-                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
                   >
-                    <option value="">Seleccionar</option>
+                    <option value="">General / Sin Colegio</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
@@ -461,7 +548,7 @@ export default function NuevoProducto() {
                     type="number"
                     value={nuevaVariante.precio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, precio: e.target.value})}
-                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
                     placeholder="Opcional"
                     min="0"
                   />
@@ -473,7 +560,7 @@ export default function NuevoProducto() {
                     type="number"
                     value={nuevaVariante.stock}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, stock: e.target.value})}
-                    className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono font-bold"
                     placeholder="0"
                     min="0"
                   />
@@ -484,7 +571,7 @@ export default function NuevoProducto() {
                     type="button"
                     variant="success"
                     onClick={agregarVariante}
-                    className="w-full bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
+                    className="w-full bg-blue-600 text-gray-900 dark:text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
                   >
                     + Añadir
                   </Button>
@@ -493,23 +580,23 @@ export default function NuevoProducto() {
             </div>
 
             {variantes.length > 0 ? (
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50 dark:bg-gray-900/50">
                       <tr>
-                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Talla</th>
-                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Colegio</th>
-                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">Precio Esp.</th>
-                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Stock</th>
-                        <th className="px-4 py-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Acción</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Talla</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Colegio</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Precio Esp.</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Stock</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {variantes.map((v, index) => (
                         <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 bg-gray-100 dark:bg-gray-700 rounded-md font-black text-gray-900 dark:text-white text-sm">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 bg-gray-100 dark:bg-gray-700 rounded-md font-bold text-gray-900 dark:text-white text-sm">
                               {v.talla}
                             </span>
                           </td>
@@ -525,12 +612,12 @@ export default function NuevoProducto() {
                                 value={v.precio || ''}
                                 onChange={(e) => actualizarVarianteInline(index, 'precio', e.target.value)}
                                 placeholder="Base"
-                                className="w-full pl-6 pr-2 py-1.5 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono"
+                                className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors font-mono"
                               />
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className={`flex items-center justify-between w-28 mx-auto rounded-lg border-2 overflow-hidden transition-colors ${v.stock > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 focus-within:border-green-500' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 focus-within:border-red-500'}`}>
+                            <div className={`flex items-center justify-between w-28 mx-auto rounded-lg border overflow-hidden transition-colors ${v.stock > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 focus-within:border-green-500' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 focus-within:border-red-500'}`}>
                               <button
                                 type="button"
                                 onClick={() => actualizarVarianteInline(index, 'stock', Math.max(0, v.stock - 1).toString())}
@@ -573,7 +660,7 @@ export default function NuevoProducto() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center">
+              <div className="bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
                   <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -588,17 +675,17 @@ export default function NuevoProducto() {
           </div>
 
           {/* Barra de acciones flotante (Sticky Bottom Bar) */}
-          <div className="sticky bottom-4 z-50 mt-8 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex gap-4 transition-all">
+          <div className="sticky bottom-4 z-50 mt-8 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 flex gap-4 transition-all">
             <Button
               variant="secondary"
               onClick={() => router.push('/admin')}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white p-4 rounded-xl font-bold transition-all shadow-sm hover:shadow"
+              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="flex-1  transition-all shadow-sm hover:shadow-xl hover:-translate-y-0.5"
             >
               💾 Crear Producto
             </Button>

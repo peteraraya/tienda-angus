@@ -26,6 +26,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isMounted, setIsMounted] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   // Montar el componente y cargar favoritos solo en el cliente
   useEffect(() => {
@@ -73,8 +74,8 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
       // no-op en entornos donde window no está disponible
     }
   }
-  const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
-  const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
+  const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))].filter(t => t !== 'Única')
+  const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))].filter(c => c !== 'General')
   
   // Determinar si hay diferentes precios entre las variantes
   const preciosVariantes = producto.variantes.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[];
@@ -102,11 +103,18 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
     setCurrentImageIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length)
   }
 
+  const displayImageIndex = isHovered && imagenes.length > 1 && currentImageIndex === 0 ? 1 : currentImageIndex
+
   return (
     <>
       <div 
         role="button"
         tabIndex={0}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setCurrentImageIndex(0)
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -134,11 +142,11 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           {imagenes.length > 0 ? (
             <>
               <LazyImage
-                src={imagenes[currentImageIndex]}
-                alt={`${producto.nombre} - Imagen ${currentImageIndex + 1}`}
+                src={imagenes[displayImageIndex]}
+                alt={`${producto.nombre} - Imagen ${displayImageIndex + 1}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 400px"
-                className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full object-contain p-2 transition-transform duration-700 ease-in-out group-hover:scale-110"
                 priority={currentImageIndex === 0}
               />
               
@@ -190,143 +198,106 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             </div>
           )}
           
-          {/* Badge de Descuento */}
-          {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 && (
-            <div className="absolute top-4 left-4 z-10">
-              <div className="bg-linear-to-br from-red-600 to-red-500 text-white px-4 py-2 rounded-xl shadow-lg transform -rotate-3 hover:rotate-0 transition-transform">
-                <div className="flex items-center gap-1">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <span className="font-black text-lg">-{producto.descuento_porcentaje}%</span>
-                </div>
+          {/* Consolidador de Badges Superiores */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
+            {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+              <div className="bg-linear-to-br from-red-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg">
+                <span className="font-black text-sm">-{producto.descuento_porcentaje}%</span>
               </div>
-            </div>
-          )}
+            ) : null}
 
-          {/* Badge de Últimas unidades (poco stock) */}
-          {producto.stock_total > 0 && producto.stock_total <= 2 && (
-            <div className="absolute top-0 left-0 z-10">
-              <div className="bg-red-600 text-white px-3 py-1 rounded-lg shadow-md">
-                <div className="flex items-center gap-2 text-sm font-bold">
-                  <span>¡Últimas unidades!</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{producto.stock_total}</span>
-                </div>
+            {producto.en_oferta && (
+              <div className="bg-linear-to-br from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg animate-pulse">
+                <span className="font-black text-xs">🔥 OFERTA</span>
               </div>
-            </div>
-          )}
-
-          {/* Badge de Oferta */}
-          {producto.en_oferta && (
-            <div className="absolute top-16 right-4 z-10">
-              <div className="bg-linear-to-br from-orange-500 to-red-500 text-white px-4 py-2 rounded-xl shadow-lg animate-pulse">
-                <div className="flex items-center gap-1 font-black text-sm">
-                  <span>🔥</span>
-                  <span>OFERTA</span>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
           
           {producto.stock_total === 0 && (
-            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm z-20">
-              <div className="text-center">
-                <span className="text-white text-2xl font-bold">AGOTADO</span>
-                <p className="text-gray-300 text-sm mt-2">Próximamente disponible</p>
-              </div>
+            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-20">
+              <span className="text-white text-xl font-bold tracking-widest">AGOTADO</span>
             </div>
           )}
 
-          <div className="absolute bottom-3 right-3">
-            <span className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-600">
-              {producto.categoria}
-            </span>
-          </div>
-
-          {/* Botón Ver Detalles en hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
-            <span className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-6 py-3 rounded-2xl font-bold transform scale-90 group-hover:scale-100 transition-transform duration-300 shadow-xl pointer-events-auto">
-              Ver Detalles
+          {/* Botón Ver Detalles y Vista Previa de Tallas en Hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent transition-all duration-300 flex flex-col justify-end opacity-0 group-hover:opacity-100 z-10 pointer-events-none p-4">
+            
+            {/* Tallas disponibles preview */}
+            {tallasDisponibles.length > 0 && (
+              <div className="mb-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+                <p className="text-[10px] text-white/80 font-semibold mb-1.5 uppercase tracking-widest">Tallas Disponibles</p>
+                <div className="flex flex-wrap gap-1">
+                  {tallasDisponibles.slice(0, 5).map(talla => (
+                    <span key={talla} className="flex items-center justify-center min-w-[24px] h-[24px] bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-1 rounded-md border border-white/30">
+                      {talla}
+                    </span>
+                  ))}
+                  {tallasDisponibles.length > 5 && (
+                    <span className="flex items-center justify-center min-w-[24px] h-[24px] bg-white/10 backdrop-blur-md text-white/70 text-[10px] font-bold px-1 rounded-md">
+                      +{tallasDisponibles.length - 5}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <span className="bg-white text-gray-900 w-full py-2.5 rounded-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl pointer-events-auto flex items-center justify-center gap-2 hover:bg-gray-100">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Vista Rápida
             </span>
           </div>
         </div>
         
-        <div className="p-4 flex flex-col  flex-1">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
+        <div className="p-4 sm:p-5 flex flex-col flex-1 relative bg-white dark:bg-gray-800 z-20">
+          <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1.5">
+            {producto.categoria}
+          </p>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-auto line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors tracking-tight">
             {producto.nombre}
           </h2>
           
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">
-            {producto.descripcion}
-          </p>
-          
-          {tallasDisponibles.length > 0 && (
-            <div className="mb-2.5">
-              <div className="flex flex-wrap gap-1">
-                {tallasDisponibles.slice(0, 5).map(talla => (
-                  <span 
-                    key={talla} 
-                    className="flex items-center justify-center min-w-[22px] h-[22px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[10px] font-bold px-1 rounded-sm"
-                  >
-                    {talla}
-                  </span>
-                ))}
-                {tallasDisponibles.length > 5 && (
-                  <span className="flex items-center justify-center min-w-[22px] h-[22px] bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold px-1 rounded-sm border border-gray-200 dark:border-gray-600">
-                    +{tallasDisponibles.length - 5}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {colegiosDisponibles.length > 0 && (
-            <div className="mb-3">
-              <div className="flex flex-wrap gap-1.5">
-                {colegiosDisponibles.slice(0, 2).map(colegio => (
-                  <span 
-                    key={colegio} 
-                    className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-[10px] font-semibold px-2 py-0.5 rounded-md truncate max-w-[120px]"
-                  >
-                    {colegio}
-                  </span>
-                ))}
-                {colegiosDisponibles.length > 2 && (
-                  <span className="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-700">
-                    +{colegiosDisponibles.length - 2}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-          
-          <div className="mt-auto flex justify-between items-end pt-3 border-t border-gray-100 dark:border-gray-700/50">
-            <div>
+          <div className="mt-4 flex justify-between items-end">
+            <div className="flex flex-col">
               {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                <div className="flex flex-col">
+                <>
                   <span className="text-xs text-gray-400 dark:text-gray-500 line-through">
                     {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                   </span>
-                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                  <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-none mt-0.5">
                     {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioFinal)}
                   </span>
-                </div>
+                </>
               ) : (
-                <span className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-none">
                   {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioMinimo)}
                 </span>
               )}
             </div>
-            <div className="text-right">
-              <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                producto.stock_total > 6 
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' 
-                  : producto.stock_total > 0 
-                  ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' 
-                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-              }`}>
-                {producto.stock_total > 0 ? `${producto.stock_total} unid.` : 'Agotado'}
-              </span>
+
+            <div className="flex flex-col items-end gap-1.5">
+              {producto.stock_total > 0 && producto.stock_total <= 5 && (
+                <div className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded text-red-600 dark:text-red-400">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                  <span className="text-[10px] font-bold">¡Quedan {producto.stock_total}!</span>
+                </div>
+              )}
+              {producto.stock_total > 5 ? (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span className="text-[10px] font-bold text-green-700 dark:text-green-400">En stock</span>
+                </div>
+              ) : producto.stock_total === 0 ? (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                  <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Agotado</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

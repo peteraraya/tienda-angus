@@ -3,7 +3,7 @@
 import Image, { ImageProps } from 'next/image'
 import { useState } from 'react'
 
-type Props = Omit<ImageProps, 'onLoadingComplete'> & {
+type Props = Omit<ImageProps, 'onLoad'> & {
   className?: string
 }
 
@@ -23,7 +23,7 @@ export default function LazyImage(props: Props) {
         alt={alt as string}
         className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         priority={priority}
-        onLoadingComplete={() => setLoaded(true)}
+        onLoad={() => setLoaded(true)}
         loading={priority ? 'eager' : 'lazy'}
       />
     </div>

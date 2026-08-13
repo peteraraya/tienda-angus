@@ -187,16 +187,16 @@ export default function ProveedoresPage() {
         actions={
           <Button
             onClick={() => router.push('/admin/pedidos')}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-sm hover:-translate-y-0.5"
           >
             📦 Ver Pedidos
           </Button>
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export default function ProveedoresPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +226,7 @@ export default function ProveedoresPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@ export default function ProveedoresPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -256,12 +256,12 @@ export default function ProveedoresPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="🔍 Buscar proveedor..."
-                className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
               />
             </div>
             <button
               onClick={() => setShowNewForm(!showNewForm)}
-              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
             >
               {showNewForm ? 'Cancelar' : '+ Nuevo Proveedor'}
             </button>
@@ -269,7 +269,7 @@ export default function ProveedoresPage() {
         </div>
 
         {showNewForm && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border-2 border-blue-300 dark:border-blue-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-blue-300 dark:border-blue-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
               {editingId ? 'Editar Proveedor' : 'Nuevo Proveedor'}
             </h3>
@@ -329,7 +329,7 @@ export default function ProveedoresPage() {
                 rows={3}
               />
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold">
+                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white py-3 rounded-lg font-semibold">
                   {editingId ? 'Actualizar' : 'Crear'} Proveedor
                 </Button>
                 <Button type="button" onClick={resetForm} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold">
@@ -340,7 +340,7 @@ export default function ProveedoresPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {proveedoresFiltrados.length === 0 ? (
             <div className="p-16 text-center">
               <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
@@ -348,7 +348,7 @@ export default function ProveedoresPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
               <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron proveedores con este filtro.</p>
             </div>
           ) : (

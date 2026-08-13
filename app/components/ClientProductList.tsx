@@ -90,12 +90,12 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
   const tallas = useMemo(() => {
     const allTallas = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.talla) || [])
-    return [...new Set(allTallas)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    return [...new Set(allTallas)].filter(t => t !== 'Única').sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   }, [filteredProductsForFilters])
 
   const colegios = useMemo(() => {
     const allColegios = productos.flatMap(p => p.variantes?.map(v => v.colegio) || [])
-    return [...new Set(allColegios)].filter(Boolean).sort()
+    return [...new Set(allColegios)].filter(Boolean).filter(c => c !== 'General').sort()
   }, [productos])
 
   const filteredAndSortedProducts = useMemo(() => {
@@ -174,7 +174,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
     <div>
       {/* Selector Rápido de Colegios */}
       {colegios.length > 0 && (
-        <div className="mb-8 overflow-x-auto pb-4 hide-scrollbar">
+        <div className="mb-8 overflow-x-auto pb-4 hide-scrollbar lg:hidden">
           <div className="flex gap-3 min-w-max px-1">
             <button
               onClick={() => setSelectedColegio('')}
@@ -215,50 +215,56 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
           <div className="sticky top-28 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Colegios</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setSelectedColegio('')}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                    selectedColegio === '' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Todos los Colegios
-                </button>
+              <div className="space-y-1">
+                <label className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <input
+                    type="radio"
+                    name="colegio"
+                    checked={selectedColegio === ''}
+                    onChange={() => setSelectedColegio('')}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className={`text-sm ${selectedColegio === '' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>Todos los Colegios</span>
+                </label>
                 {colegios.map(colegio => (
-                  <button
-                    key={colegio}
-                    onClick={() => setSelectedColegio(colegio)}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      selectedColegio === colegio ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {colegio}
-                  </button>
+                  <label key={colegio} className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <input
+                      type="radio"
+                      name="colegio"
+                      checked={selectedColegio === colegio}
+                      onChange={() => setSelectedColegio(colegio)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className={`text-sm ${selectedColegio === colegio ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>{colegio}</span>
+                  </label>
                 ))}
               </div>
             </div>
 
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Categorías</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setSelectedCategory('')}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                    selectedCategory === '' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Todas las Categorías
-                </button>
+              <div className="space-y-1">
+                <label className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <input
+                    type="radio"
+                    name="categoria"
+                    checked={selectedCategory === ''}
+                    onChange={() => setSelectedCategory('')}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className={`text-sm ${selectedCategory === '' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>Todas las Categorías</span>
+                </label>
                 {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      selectedCategory === cat ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {cat}
-                  </button>
+                  <label key={cat} className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <input
+                      type="radio"
+                      name="categoria"
+                      checked={selectedCategory === cat}
+                      onChange={() => setSelectedCategory(cat)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className={`text-sm ${selectedCategory === cat ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>{cat}</span>
+                  </label>
                 ))}
               </div>
             </div>
@@ -428,7 +434,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
           {currentView === 'grid' ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
                 {displayedProducts.map((producto) => {
                   const relacionados = productos
                     .filter(p => p.id !== producto.id && p.categoria === producto.categoria)

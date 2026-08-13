@@ -275,10 +275,10 @@ export default function NuevoPedidoPage() {
         backPath="/admin/pedidos"
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -291,13 +291,13 @@ export default function NuevoPedidoPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar insumos..."
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                   />
                 </div>
                 <select
                   value={selectedCategoria}
                   onChange={(e) => setSelectedCategoria(e.target.value)}
-                  className="w-full sm:w-1/3 p-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors"
+                  className="w-full sm:w-1/3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors"
                 >
                   <option value="">📁 Todas las categorías</option>
                   {categorias.map(cat => (
@@ -309,18 +309,18 @@ export default function NuevoPedidoPage() {
 
             <div className="space-y-3 sm:space-y-4">
               {insumosFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-16 text-center border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-16 text-center border border-gray-200 dark:border-gray-700">
                   <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
                     <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
                   <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron insumos con estos filtros.</p>
                 </div>
               ) : (
                 insumosFiltrados.map(insumo => (
-                  <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                  <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
                     <div className="p-3 sm:p-6">
                       <div className="flex gap-3 sm:gap-4">
                         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
@@ -364,7 +364,7 @@ export default function NuevoPedidoPage() {
                                 placeholder="0"
                                 value={cantidades[insumo.id] || ''}
                                 onChange={(e) => setCantidades({ ...cantidades, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                                className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                                 step="0.01"
                               />
@@ -376,13 +376,13 @@ export default function NuevoPedidoPage() {
                                 placeholder="$"
                                 value={preciosCompra[insumo.id] || ''}
                                 onChange={(e) => setPreciosCompra({ ...preciosCompra, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                                className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                               />
                             </div>
                             <button
                               onClick={() => agregarAlCarrito(insumo)}
-                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
+                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
                             >
                               + Añadir
                             </button>
@@ -398,7 +398,7 @@ export default function NuevoPedidoPage() {
 
           {/* Carrito - Sidebar responsivo */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24">
               <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,7 +410,7 @@ export default function NuevoPedidoPage() {
 
               <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
                 {selectedProveedor ? (
-                  <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-700 rounded-xl p-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-xl p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -445,7 +445,7 @@ export default function NuevoPedidoPage() {
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-xl p-4">
+                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
                       <label className="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -463,7 +463,7 @@ export default function NuevoPedidoPage() {
                       />
 
                       {showProveedorSuggestions && searchProveedor.length >= 1 && proveedoresFiltrados.length > 0 && (
-                        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border-2 border-orange-300 dark:border-orange-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-orange-300 dark:border-orange-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                           {proveedoresFiltrados.map(proveedor => (
                             <button
                               key={proveedor.id}
@@ -597,9 +597,10 @@ export default function NuevoPedidoPage() {
                         Vaciar
                       </Button>
                       <Button
+                        variant="primary"
                         onClick={crearPedido}
                         disabled={processingPedido || !selectedProveedor}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 py-3 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {processingPedido ? 'Creando...' : 'Crear Pedido'}
                       </Button>

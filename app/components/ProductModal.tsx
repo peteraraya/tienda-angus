@@ -107,6 +107,16 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
 
+  // Auto-seleccionar si solo hay una opción disponible
+  useEffect(() => {
+    if (tallasDisponibles.length === 1 && !selectedTalla) {
+      setSelectedTalla(tallasDisponibles[0])
+    }
+    if (colegiosDisponibles.length === 1 && !selectedColegio) {
+      setSelectedColegio(colegiosDisponibles[0])
+    }
+  }, [tallasDisponibles.length, colegiosDisponibles.length])
+
   // Verificar disponibilidad según selección
   const getStockDisponible = () => {
     if (!selectedTalla && !selectedColegio) return producto.stock_total
@@ -292,7 +302,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
               </div>
 
               {/* Selector de Colegio */}
-              {colegiosDisponibles.length > 0 && (
+              {colegiosDisponibles.length > 1 || (colegiosDisponibles.length === 1 && colegiosDisponibles[0] !== 'General') ? (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">
@@ -318,10 +328,10 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Selector de Talla */}
-              {tallasDisponibles.length > 0 && (
+              {tallasDisponibles.length > 1 || (tallasDisponibles.length === 1 && tallasDisponibles[0] !== 'Única') ? (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -371,7 +381,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     })}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Disponibilidad */}
               <div className="mb-6">

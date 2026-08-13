@@ -132,7 +132,7 @@ export function DashboardMetrics() {
   if (loading) {
     return (
       <div className="mb-8">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg animate-pulse">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm animate-pulse">
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
         </div>
       </div>
@@ -146,7 +146,7 @@ export function DashboardMetrics() {
       {/* Header colapsable */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg hover:shadow-xl transition-all mb-4"
+        className="w-full bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-xl transition-all mb-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export function DashboardMetrics() {
           {/* Alertas y productos más vendidos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Alertas */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span>⚠️</span>
                 Alertas
@@ -265,7 +265,7 @@ export function DashboardMetrics() {
             </div>
 
             {/* Productos más vendidos */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span>🏆</span>
                 Top 5 Productos (30 días)
@@ -323,7 +323,7 @@ function MetricCard({ title, value, subtitle, icon, color }: MetricCardProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-xl transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">

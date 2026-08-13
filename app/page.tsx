@@ -100,7 +100,7 @@ export default async function Home() {
       </div>
 
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/80 dark:border-gray-800/80 sticky top-0 z-40 shadow-xs transition-colors duration-300">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_-10px_rgba(0,0,0,0.5)] sticky top-0 z-40 transition-colors duration-300 border-none">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
           <div className="flex items-center justify-between">
             <a href="#" className="flex items-center gap-3 sm:gap-4 group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-xl p-1">
@@ -137,7 +137,7 @@ export default async function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 sm:py-16 lg:py-20" id="catalogo">
+      <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20" id="catalogo">
         <div className="text-center mb-10 sm:mb-16 max-w-4xl mx-auto">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight text-balance">
             Descubre nuestro <br className="hidden sm:block" />

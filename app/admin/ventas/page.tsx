@@ -339,11 +339,11 @@ export default function VentasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
       {/* Header */}
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800">
                 <img 
                   src="/logo-confecciones.png" 
                   alt="Confecciones Angus" 
@@ -368,7 +368,7 @@ export default function VentasPage() {
             <div className="flex gap-3">
               <Button
                 onClick={() => router.push('/admin/ventas/historial')}
-                className="bg-gradient-to-br from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-gradient-to-br from-purple-600 to-purple-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-sm flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -380,19 +380,19 @@ export default function VentasPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Modal de Ticket de Venta */}
         {showTicket && ultimaVenta && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-[90vh]">
               <div className="p-6 text-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                 <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-1">¡Venta Exitosa!</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">¡Venta Exitosa!</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">La venta ha sido registrada en el sistema</p>
               </div>
               
@@ -450,7 +450,7 @@ export default function VentasPage() {
                       <span className="font-mono">-{formatPrice(ultimaVenta.totales.descuento_total)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-xl font-black text-gray-900 dark:text-white mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <span>TOTAL:</span>
                     <span className="font-mono">{formatPrice(ultimaVenta.totales.total)}</span>
                   </div>
@@ -464,7 +464,7 @@ export default function VentasPage() {
               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <Button
                   onClick={() => setShowTicket(false)}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-xl font-bold transition-colors"
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white rounded-xl font-bold transition-colors"
                 >
                   Cerrar
                 </Button>
@@ -510,7 +510,7 @@ export default function VentasPage() {
                       windowPrint.document.close();
                     }
                   }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -526,7 +526,7 @@ export default function VentasPage() {
           {/* Panel de productos */}
           <div className="lg:col-span-2 space-y-6">
             {/* Búsqueda y filtros */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
               <div className="space-y-4">
                 <Input
                   type="text"
@@ -551,12 +551,12 @@ export default function VentasPage() {
             {/* Lista de productos */}
             <div className="space-y-4">
               {productosFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-200 dark:border-gray-700">
                   <p className="text-gray-500 dark:text-gray-400 text-lg">No hay productos disponibles</p>
                 </div>
               ) : (
                 productosFiltrados.map(producto => (
-                  <div key={producto.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                  <div key={producto.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
                     <div className="p-6">
                       <div className="flex gap-4">
                         {/* Imagen */}
@@ -617,7 +617,7 @@ export default function VentasPage() {
                                 <button
                                   key={variante.id}
                                   onClick={() => agregarAlCarrito(producto, variante)}
-                                  className="p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
+                                  className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
                                 >
                                   <div className="flex items-center gap-2 mb-1">
                                     {variante.insignia_url && (
@@ -650,7 +650,7 @@ export default function VentasPage() {
 
           {/* Panel del carrito */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,9 +752,10 @@ export default function VentasPage() {
                           Vaciar
                         </Button>
                         <Button
+                          variant="success"
                           onClick={procesarVenta}
                           disabled={processingVenta || !selectedCliente}
-                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 py-3 rounded-xl font-semibold transition-all shadow-sm hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingVenta ? 'Procesando...' : 'Procesar Venta'}
                         </Button>

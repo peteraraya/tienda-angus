@@ -94,7 +94,7 @@ export default function WhatsAppNotificationButton({
       <button
         onClick={() => setShowConfirm(true)}
         disabled={isPending}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-gray-900 dark:text-white rounded-lg font-semibold transition-colors"
         title={`Enviar notificación por WhatsApp a ${data.phoneNumber}`}
       >
         {getIcon()}
@@ -124,7 +124,7 @@ export default function WhatsAppNotificationButton({
               <button
                 onClick={handleSend}
                 disabled={isPending}
-                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-gray-900 dark:text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {isPending ? (
                   <>

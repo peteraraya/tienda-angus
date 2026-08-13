@@ -20,6 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.confeccionesangus.cl"),
   title: {
     default: `${appConfig.company.name} | Uniformes Escolares y Reparaciones`,
     template: `%s | ${appConfig.company.name}`

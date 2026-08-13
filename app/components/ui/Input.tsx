@@ -32,9 +32,9 @@ export default function Input({
           </div>
         )}
         <input
-          className={`w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-3 border ${
+          className={`w-full ${icon ? 'pl-10' : 'pl-4'} pr-4 py-2.5 border ${
             error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
-          } rounded-lg focus:ring-2 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all ${className}`}
+          } rounded-lg focus:ring-2 focus:border-transparent bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white transition-all ${className}`}
           {...props}
         />
       </div>
