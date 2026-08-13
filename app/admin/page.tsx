@@ -597,7 +597,7 @@ export default function AdminPage() {
         <div className="flex flex-col md:flex-row gap-6 items-start">
           
           {/* Menú Lateral de Módulos (Sidebar) */}
-          <div className=" md:w-56 flex-shrink-0 sticky top-24">
+          <div className="w-full md:w-56 flex-shrink-0 sticky top-24">
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-4 px-2">Módulos</h2>
               <div className="flex flex-col gap-2">
