@@ -7,19 +7,8 @@ import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
-
-interface Insumo {
-  id: string
-  nombre: string
-  descripcion?: string
-  unidad_medida: string
-  precio_referencia: number
-  stock_actual: number
-  stock_minimo: number
-  imagen_url?: string
-  categoria?: string
-  activo: boolean
-}
+import type { Insumo, Proveedor } from '@/types/database'
+import AdminHeader from '../../components/AdminHeader'
 
 interface CartItem {
   insumo_id: string
@@ -28,18 +17,6 @@ interface CartItem {
   precio_unitario: number
   cantidad: number
   imagen_url?: string
-}
-
-interface Proveedor {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  email?: string
-  direccion?: string
-  rut?: string
-  cantidad_pedidos: number
-  total_pedidos: number
 }
 
 export default function NuevoPedidoPage() {
@@ -291,51 +268,36 @@ export default function NuevoPedidoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <Button
-                onClick={() => router.push('/admin/pedidos')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">📦 Nuevo Pedido</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Crea una orden de compra de insumos</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="📦 Nuevo Pedido" 
+        subtitle="Crea una orden de compra para reabastecer inventario"
+        backPath="/admin/pedidos"
+      />
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-              <div className="space-y-4">
-                <Input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="🔍 Buscar insumos..."
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar insumos..."
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                  />
+                </div>
                 <select
                   value={selectedCategoria}
                   onChange={(e) => setSelectedCategoria(e.target.value)}
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full sm:w-1/3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors"
                 >
                   <option value="">📁 Todas las categorías</option>
                   {categorias.map(cat => (
@@ -345,17 +307,23 @@ export default function NuevoPedidoPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {insumosFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">No hay insumos disponibles</p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-16 text-center border border-gray-200 dark:border-gray-700">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
+                    <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron insumos con estos filtros.</p>
                 </div>
               ) : (
                 insumosFiltrados.map(insumo => (
-                  <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
-                    <div className="p-6">
-                      <div className="flex gap-4">
-                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                  <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                    <div className="p-3 sm:p-6">
+                      <div className="flex gap-3 sm:gap-4">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
                           {insumo.imagen_url ? (
                             <img src={insumo.imagen_url} alt={insumo.nombre} className="w-full h-full object-cover" />
                           ) : (
@@ -368,55 +336,55 @@ export default function NuevoPedidoPage() {
                         </div>
 
                         <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{insumo.nombre}</h3>
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-2 sm:mb-2">
+                            <div className="min-w-0">
+                              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">{insumo.nombre}</h3>
                               {insumo.categoria && (
                                 <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded-md mt-1">
                                   {insumo.categoria}
                                 </span>
                               )}
                             </div>
-                            <div className="text-right">
-                              <span className="text-sm text-gray-500 dark:text-gray-400">Precio ref.:</span>
-                              <span className="block text-lg font-bold text-gray-900 dark:text-white">{formatPrice(insumo.precio_referencia)}</span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">Stock: {insumo.stock_actual} {insumo.unidad_medida}</span>
+                            <div className="text-right flex-shrink-0">
+                              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Precio ref.:</span>
+                              <span className="block text-base sm:text-lg font-bold text-gray-900 dark:text-white">{formatPrice(insumo.precio_referencia)}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Stock: {insumo.stock_actual}</span>
                             </div>
                           </div>
 
                           {insumo.descripcion && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{insumo.descripcion}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{insumo.descripcion}</p>
                           )}
 
-                          <div className="flex items-center gap-2 mt-4">
-                            <div className="flex-1">
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Cantidad ({insumo.unidad_medida})</label>
+                          <div className="grid grid-cols-2 sm:flex sm:items-end gap-3 mt-4">
+                            <div className="col-span-1 flex-1">
+                              <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Cantidad</label>
                               <Input
                                 type="number"
-                                placeholder="Cantidad"
+                                placeholder="0"
                                 value={cantidades[insumo.id] || ''}
                                 onChange={(e) => setCantidades({ ...cantidades, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                                 step="0.01"
                               />
                             </div>
-                            <div className="flex-1">
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Precio compra</label>
+                            <div className="col-span-1 flex-1">
+                              <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Precio C/U</label>
                               <Input
                                 type="number"
-                                placeholder="Precio"
+                                placeholder="$"
                                 value={preciosCompra[insumo.id] || ''}
                                 onChange={(e) => setPreciosCompra({ ...preciosCompra, [insumo.id]: parseFloat(e.target.value) || 0 })}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                                 min="0"
                               />
                             </div>
                             <button
                               onClick={() => agregarAlCarrito(insumo)}
-                              className="mt-5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all"
+                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
                             >
-                              Agregar
+                              + Añadir
                             </button>
                           </div>
                         </div>
@@ -428,20 +396,21 @@ export default function NuevoPedidoPage() {
             </div>
           </div>
 
+          {/* Carrito - Sidebar responsivo */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24">
+              <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  Pedido ({cart.length})
+                  <span className="truncate">Pedido ({cart.length})</span>
                 </h2>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
                 {selectedProveedor ? (
-                  <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-700 rounded-xl p-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-xl p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -476,7 +445,7 @@ export default function NuevoPedidoPage() {
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-xl p-4">
+                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
                       <label className="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -494,7 +463,7 @@ export default function NuevoPedidoPage() {
                       />
 
                       {showProveedorSuggestions && searchProveedor.length >= 1 && proveedoresFiltrados.length > 0 && (
-                        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border-2 border-orange-300 dark:border-orange-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-orange-300 dark:border-orange-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                           {proveedoresFiltrados.map(proveedor => (
                             <button
                               key={proveedor.id}
@@ -628,9 +597,10 @@ export default function NuevoPedidoPage() {
                         Vaciar
                       </Button>
                       <Button
+                        variant="primary"
                         onClick={crearPedido}
                         disabled={processingPedido || !selectedProveedor}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 py-3 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {processingPedido ? 'Creando...' : 'Crear Pedido'}
                       </Button>

@@ -8,25 +8,13 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ClienteAutocomplete from '../components/ClienteAutocomplete'
+import type { Producto as DBProducto, Variante as DBVariante, Cliente } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
+interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
-  descuento_porcentaje?: number
-  en_oferta?: boolean
+interface Producto extends DBProducto {
   variantes?: Variante[]
 }
 
@@ -44,17 +32,6 @@ interface CartItem {
   imagen_url?: string
 }
 
-interface Cliente {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  red_social?: string
-  direccion?: string
-  cantidad_compras: number
-  total_compras: number
-}
-
 export default function VentasPage() {
   const router = useRouter()
   const toast = useToast()
@@ -68,6 +45,10 @@ export default function VentasPage() {
   const [processingVenta, setProcessingVenta] = useState(false)
   const [notasVenta, setNotasVenta] = useState('')
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
+  
+  // Estado para la boleta/ticket
+  const [showTicket, setShowTicket] = useState(false)
+  const [ultimaVenta, setUltimaVenta] = useState<any>(null)
 
   useEffect(() => {
     loadProductos()
@@ -120,9 +101,10 @@ export default function VentasPage() {
   }
 
   function agregarAlCarrito(producto: Producto, variante: Variante) {
+    const precioBase = variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio;
     const precio_final = producto.descuento_porcentaje 
-      ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
-      : producto.precio
+      ? precioBase - (precioBase * producto.descuento_porcentaje / 100)
+      : precioBase;
 
     const itemExistente = cart.find(item => item.variante_id === variante.id)
 
@@ -145,7 +127,7 @@ export default function VentasPage() {
         producto_nombre: producto.nombre,
         talla: variante.talla,
         colegio: variante.colegio,
-        precio_unitario: producto.precio,
+        precio_unitario: precioBase,
         descuento_porcentaje: producto.descuento_porcentaje || 0,
         precio_final,
         cantidad: 1,
@@ -304,6 +286,17 @@ export default function VentasPage() {
 
       toast.success('¡Venta procesada exitosamente!')
       
+      // Guardar datos para el ticket
+      setUltimaVenta({
+        id: venta.id,
+        fecha: new Date().toLocaleString('es-CL'),
+        cliente: selectedCliente,
+        items: [...cart],
+        totales,
+        vendedor
+      })
+      setShowTicket(true)
+      
       // Limpiar carrito y recargar productos
       setCart([])
       setNotasVenta('')
@@ -346,11 +339,11 @@ export default function VentasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
       {/* Header */}
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800">
                 <img 
                   src="/logo-confecciones.png" 
                   alt="Confecciones Angus" 
@@ -375,7 +368,7 @@ export default function VentasPage() {
             <div className="flex gap-3">
               <Button
                 onClick={() => router.push('/admin/ventas/historial')}
-                className="bg-gradient-to-br from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                className="bg-gradient-to-br from-purple-600 to-purple-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-sm flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -387,12 +380,153 @@ export default function VentasPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Modal de Ticket de Venta */}
+        {showTicket && ultimaVenta && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 text-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">¡Venta Exitosa!</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">La venta ha sido registrada en el sistema</p>
+              </div>
+              
+              {/* Ticket para imprimir */}
+              <div id="ticket-impresion" className="p-6 overflow-y-auto bg-white dark:bg-gray-800 flex-1">
+                <div className="text-center mb-6 border-b-2 border-dashed border-gray-300 dark:border-gray-600 pb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">Angus Confecciones</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Comprobante de Venta</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-mono">ID: {ultimaVenta.id.substring(0, 8).toUpperCase()}</p>
+                </div>
+                
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Fecha:</span>
+                    <span>{ultimaVenta.fecha}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Cliente:</span>
+                    <span className="text-right">{ultimaVenta.cliente.nombre}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Atendido por:</span>
+                    <span>{ultimaVenta.vendedor}</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 pb-2 mb-2 uppercase tracking-wider">
+                    <div className="col-span-6">Producto</div>
+                    <div className="col-span-2 text-center">Cant</div>
+                    <div className="col-span-4 text-right">Total</div>
+                  </div>
+                  <div className="space-y-3">
+                    {ultimaVenta.items.map((item: any, index: number) => (
+                      <div key={index} className="grid grid-cols-12 gap-2 text-sm text-gray-800 dark:text-gray-200 items-center">
+                        <div className="col-span-6">
+                          <p className="font-semibold line-clamp-1">{item.producto_nombre}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{item.colegio} - {item.talla}</p>
+                        </div>
+                        <div className="col-span-2 text-center font-mono">{item.cantidad}</div>
+                        <div className="col-span-4 text-right font-mono font-medium">{formatPrice(item.precio_final * item.cantidad)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-dashed border-gray-300 dark:border-gray-600 pt-4 space-y-2">
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">{formatPrice(ultimaVenta.totales.subtotal)}</span>
+                  </div>
+                  {ultimaVenta.totales.descuento_total > 0 && (
+                    <div className="flex justify-between text-sm text-green-600 dark:text-green-400 font-semibold">
+                      <span>Descuento:</span>
+                      <span className="font-mono">-{formatPrice(ultimaVenta.totales.descuento_total)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span>TOTAL:</span>
+                    <span className="font-mono">{formatPrice(ultimaVenta.totales.total)}</span>
+                  </div>
+                </div>
+                
+                <div className="text-center mt-8 text-xs text-gray-400 dark:text-gray-500 font-medium">
+                  ¡Gracias por su compra!
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                <Button
+                  onClick={() => setShowTicket(false)}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white rounded-xl font-bold transition-colors"
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Lógica simple para imprimir solo el ticket
+                    const printContent = document.getElementById('ticket-impresion');
+                    const windowPrint = window.open('', '', 'width=800,height=600');
+                    if (windowPrint && printContent) {
+                      windowPrint.document.write(`
+                        <html>
+                          <head>
+                            <title>Imprimir Comprobante</title>
+                            <style>
+                              body { font-family: monospace; padding: 20px; color: #000; }
+                              .text-center { text-align: center; }
+                              .flex { display: flex; }
+                              .justify-between { justify-content: space-between; }
+                              .font-bold { font-weight: bold; }
+                              .text-xl { font-size: 1.25rem; }
+                              .mt-6 { margin-top: 1.5rem; }
+                              .mb-6 { margin-bottom: 1.5rem; }
+                              .border-b-2 { border-bottom: 2px dashed #ccc; }
+                              .pt-4 { padding-top: 1rem; }
+                              .pb-4 { padding-bottom: 1rem; }
+                              .grid { display: grid; grid-template-columns: 6fr 2fr 4fr; gap: 10px; }
+                              .col-span-6 { grid-column: span 1; }
+                              .col-span-2 { grid-column: span 1; text-align: center; }
+                              .col-span-4 { grid-column: span 1; text-align: right; }
+                              @media print {
+                                body { width: 80mm; margin: 0 auto; }
+                              }
+                            </style>
+                          </head>
+                          <body>
+                            ${printContent.innerHTML}
+                            <script>
+                              window.onload = function() { window.print(); window.close(); }
+                            </script>
+                          </body>
+                        </html>
+                      `);
+                      windowPrint.document.close();
+                    }
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Imprimir Comprobante
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Panel de productos */}
           <div className="lg:col-span-2 space-y-6">
             {/* Búsqueda y filtros */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
               <div className="space-y-4">
                 <Input
                   type="text"
@@ -417,12 +551,12 @@ export default function VentasPage() {
             {/* Lista de productos */}
             <div className="space-y-4">
               {productosFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-200 dark:border-gray-700">
                   <p className="text-gray-500 dark:text-gray-400 text-lg">No hay productos disponibles</p>
                 </div>
               ) : (
                 productosFiltrados.map(producto => (
-                  <div key={producto.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                  <div key={producto.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
                     <div className="p-6">
                       <div className="flex gap-4">
                         {/* Imagen */}
@@ -448,17 +582,30 @@ export default function VentasPage() {
                               </span>
                             </div>
                             <div className="text-right">
-                              {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                                <div>
-                                  <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">{formatPrice(producto.precio)}</span>
-                                  <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                                    {formatPrice(producto.precio - (producto.precio * producto.descuento_porcentaje / 100))}
+                              {(() => {
+                                const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                                const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                                const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                                const precioFinalMinimo = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
+                                  ? precioMinimo - (precioMinimo * producto.descuento_porcentaje / 100)
+                                  : precioMinimo;
+
+                                return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                                  <div>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 line-through block">
+                                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                                    </span>
+                                    <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioFinalMinimo)}
+                                    </span>
+                                    <span className="block text-xs text-orange-600 dark:text-orange-400 font-semibold">-{producto.descuento_porcentaje}%</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-xl font-bold text-gray-900 dark:text-white">
+                                    {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                                   </span>
-                                  <span className="block text-xs text-orange-600 dark:text-orange-400 font-semibold">-{producto.descuento_porcentaje}%</span>
-                                </div>
-                              ) : (
-                                <span className="text-xl font-bold text-gray-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                              )}
+                                );
+                              })()}
                             </div>
                           </div>
 
@@ -470,7 +617,7 @@ export default function VentasPage() {
                                 <button
                                   key={variante.id}
                                   onClick={() => agregarAlCarrito(producto, variante)}
-                                  className="p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
+                                  className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
                                 >
                                   <div className="flex items-center gap-2 mb-1">
                                     {variante.insignia_url && (
@@ -503,7 +650,7 @@ export default function VentasPage() {
 
           {/* Panel del carrito */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -605,9 +752,10 @@ export default function VentasPage() {
                           Vaciar
                         </Button>
                         <Button
+                          variant="success"
                           onClick={procesarVenta}
                           disabled={processingVenta || !selectedCliente}
-                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 py-3 rounded-xl font-semibold transition-all shadow-sm hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingVenta ? 'Procesando...' : 'Procesar Venta'}
                         </Button>

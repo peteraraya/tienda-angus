@@ -54,49 +54,49 @@ export default function DashboardSummary({ productos }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       {/* Total Productos */}
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{totalProductos}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{totalProductos}</span>
         </div>
         <p className="text-blue-100 font-semibold text-sm">Productos</p>
         <p className="text-blue-200 text-xs mt-1">{totalVariantes} variantes</p>
       </div>
 
       {/* Stock Disponible */}
-      <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-green-100 dark:border-slate-700 dark:from-green-600 dark:to-green-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{unidadesDisponibles}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{unidadesDisponibles}</span>
         </div>
         <p className="text-green-100 font-semibold text-sm">🟢 Disponibles</p>
         <p className="text-green-200 text-xs mt-1">Unidades con +6 stock</p>
       </div>
 
       {/* Stock Bajo */}
-      <div className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+      <div className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <span className="text-4xl font-bold">{unidadesStockBajo}</span>
+          <span className="text-3xl lg:text-4xl font-bold">{unidadesStockBajo}</span>
         </div>
         <p className="text-yellow-100 font-semibold text-sm">🟡 Stock Bajo</p>
         <p className="text-yellow-200 text-xs mt-1">Unidades entre 1-6</p>
       </div>
 
       {/* Agotados */}
-      <div className="bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-slate-700 dark:from-red-600 dark:to-red-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ export default function DashboardSummary({ productos }: Props) {
       </div>
 
       {/* Valor Inventario */}
-      <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+      <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex flex-col h-full justify-between">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-white/20 rounded-xl">

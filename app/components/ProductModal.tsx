@@ -10,31 +10,26 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { LazyImage } from './ui'
 import ImageLightbox from './ImageLightbox'
 import { formatPrice } from '@/lib/formatPrice'
+import SizeGuideModal from './SizeGuideModal'
+import { useCart } from '../contexts/CartContext'
+import { useToast } from './ui/ToastContainer'
 
-interface Variante {
-  talla: string
-  colegio: string
-  stock: number
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
+
+interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+
+interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
+  variantes: Variante[]
+  stock_total: number
 }
 
 interface ProductModalProps {
-  producto: {
-    id: string
-    nombre: string
-    descripcion: string
-    precio: number
-    categoria: string
-    imagen_url?: string
-    imagenes?: string[]
-    variantes: Variante[]
-    stock_total: number
-    descuento_porcentaje?: number
-    en_oferta?: boolean
-  }
+  producto: Producto
+  relatedProducts?: Producto[]
   onClose: () => void
 }
 
-export default function ProductModal({ producto, onClose }: ProductModalProps) {
+export default function ProductModal({ producto, relatedProducts = [], onClose }: ProductModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedTalla, setSelectedTalla] = useState<string>('')
   const [selectedColegio, setSelectedColegio] = useState<string>('')
@@ -63,9 +58,25 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
     }
   }, [onClose])
 
+  // Obtener precio basado en la selección
+  const getPrecioActual = () => {
+    if (selectedTalla) {
+      // Buscar variante con esa talla
+      const variante = producto.variantes.find(v => 
+        v.talla === selectedTalla && 
+        (!selectedColegio || v.colegio === selectedColegio)
+      );
+      if (variante && variante.precio) {
+        return variante.precio;
+      }
+    }
+    return producto.precio;
+  }
+
+  const precioActual = getPrecioActual();
   const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
-    ? producto.precio - (producto.precio * producto.descuento_porcentaje / 100)
-    : producto.precio
+    ? precioActual - (precioActual * producto.descuento_porcentaje / 100)
+    : precioActual;
 
   // Obtener array de imágenes
   const imagenes = producto.imagenes && producto.imagenes.length > 0 
@@ -83,6 +94,9 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
   }
 
   const [openLightbox, setOpenLightbox] = useState(false)
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const { addToCart } = useCart()
+  const toast = useToast()
 
   // Obtener tallas y colegios únicos disponibles
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
@@ -92,6 +106,16 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
     })
   
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
+
+  // Auto-seleccionar si solo hay una opción disponible
+  useEffect(() => {
+    if (tallasDisponibles.length === 1 && !selectedTalla) {
+      setSelectedTalla(tallasDisponibles[0])
+    }
+    if (colegiosDisponibles.length === 1 && !selectedColegio) {
+      setSelectedColegio(colegiosDisponibles[0])
+    }
+  }, [tallasDisponibles.length, colegiosDisponibles.length])
 
   // Verificar disponibilidad según selección
   const getStockDisponible = () => {
@@ -119,19 +143,19 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
         className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center z-10">
-          <h2 id="product-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">Detalles del Producto</h2>
+        <div className="sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center z-10">
+          <h2 id="product-modal-title" className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-white">Detalles del Producto</h2>
           <button type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label="Cerrar diálogo"
           >
             <CloseIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
-        <div className="p-6">
-          <div className="grid md:grid-cols-2 gap-8">
+        <div className="p-4 sm:p-6">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {/* Galería de Imágenes */}
             <div className="space-y-4">
               {/* Imagen Principal */}
@@ -197,7 +221,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
 
               {/* Miniaturas */}
               {imagenes.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                   {imagenes.map((img, index) => (
                     <button type="button"
                       key={index}
@@ -236,7 +260,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     </span>
                   )}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{producto.nombre}</h3>
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-3 text-balance">{producto.nombre}</h3>
               </div>
                 {openLightbox && (
                   <ImageLightbox images={imagenes} startIndex={currentImageIndex} onClose={() => setOpenLightbox(false)} />
@@ -248,7 +272,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                   {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                     <div className="flex items-center gap-3">
                       <span className="text-2xl text-gray-400 dark:text-gray-500 line-through">
-                        {formatPrice(producto.precio)}
+                        {formatPrice(precioActual)}
                       </span>
                       <span className="text-4xl font-bold text-gray-900 dark:text-white">
                         {formatPrice(precioFinal)}
@@ -256,7 +280,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     </div>
                   ) : (
                     <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      {formatPrice(producto.precio)}
+                      {formatPrice(precioActual)}
                     </span>
                   )}
                 </div>
@@ -278,7 +302,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
               </div>
 
               {/* Selector de Colegio */}
-              {colegiosDisponibles.length > 0 && (
+              {colegiosDisponibles.length > 1 || (colegiosDisponibles.length === 1 && colegiosDisponibles[0] !== 'General') ? (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">
@@ -293,21 +317,21 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                       <button type="button"
                         key={colegio}
                         onClick={() => setSelectedColegio(selectedColegio === colegio ? '' : colegio)}
-                        className={`px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                        className={`px-4 py-2 min-h-[44px] rounded-xl border-2 font-bold transition-all ${
                           selectedColegio === colegio
-                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
-                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        } focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900`}
                       >
                         {colegio}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Selector de Talla */}
-              {tallasDisponibles.length > 0 && (
+              {tallasDisponibles.length > 1 || (tallasDisponibles.length === 1 && tallasDisponibles[0] !== 'Única') ? (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -318,6 +342,13 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                         ¿Cuál es mi talla?
                       </h4>
                     </div>
+                    <button 
+                      type="button"
+                      className="text-xs text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none"
+                      onClick={() => setShowSizeGuide(true)}
+                    >
+                      Ver Guía de Tallas
+                    </button>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     Talla: {selectedTalla || '-'}
@@ -336,13 +367,13 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                           key={talla}
                           onClick={() => disponible && setSelectedTalla(selectedTalla === talla ? '' : talla)}
                           disabled={!disponible}
-                          className={`aspect-square flex items-center justify-center rounded-lg border-2 font-bold text-lg transition-all ${
+                          className={`aspect-square min-w-[48px] min-h-[48px] flex items-center justify-center rounded-xl border-2 font-black text-lg transition-all ${
                             selectedTalla === talla
-                              ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                              ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                               : disponible
-                              ? 'border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-white text-gray-700 dark:text-gray-300'
-                              : 'border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50'
-                          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                              ? 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800'
+                              : 'border-gray-100 dark:border-gray-800 bg-transparent text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                          } focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900`}
                         >
                           {talla}
                         </button>
@@ -350,7 +381,7 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                     })}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Disponibilidad */}
               <div className="mb-6">
@@ -368,14 +399,101 @@ export default function ProductModal({ producto, onClose }: ProductModalProps) {
                 )}
               </div>
 
-              {/* Botón Cerrar */}
-              <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button type="button"
-                  onClick={onClose}
-                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {/* Instrucciones de compra breves */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-6">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">¿Cómo comprar?</h4>
+                <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal pl-4">
+                  <li>Selecciona tu colegio y talla.</li>
+                  <li>Haz clic en el botón de WhatsApp.</li>
+                  <li>Coordinamos el pago y la entrega por chat.</li>
+                </ol>
+              </div>
+
+              {/* Productos Relacionados */}
+              {relatedProducts && relatedProducts.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wide">
+                    También te podría interesar
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {relatedProducts.map((relProduct) => (
+                      <div key={relProduct.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 group cursor-pointer" onClick={() => {
+                        // Aquí podríamos cambiar de producto, pero por ahora solo es visual o requiere reload.
+                        // Idealmente deberíamos manejar una navegación o cambiar el estado del modal.
+                        // Como es un MVP, lo dejamos como sugerencia visual o redirigimos.
+                        window.location.href = `/#catalogo`;
+                      }}>
+                        <div className="relative aspect-square">
+                          {relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes.length > 0) ? (
+                            <LazyImage 
+                              src={relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes[0]) || ''} 
+                              alt={relProduct.nombre}
+                              width={200}
+                              height={200}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-600">
+                              <span className="text-xs text-gray-500">Sin foto</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{relProduct.nombre}</p>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 font-bold mt-1">{formatPrice(relProduct.precio)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Botones de Acción */}
+              <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
+                {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} />}
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio)) {
+                      alert('Por favor selecciona talla y colegio primero.')
+                      return
+                    }
+                    addToCart({
+                      producto_id: producto.id,
+                      nombre: producto.nombre,
+                      precio: precioFinal,
+                      talla: selectedTalla,
+                      colegio: selectedColegio || 'General',
+                      cantidad: 1,
+                      imagen_url: imagenes[0] || undefined,
+                      stock_disponible: stockDisponible
+                    })
+                    toast.success('¡Añadido a tu pedido!')
+                  }}
+                  disabled={!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio) || stockDisponible <= 0}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"
                 >
-                  Cerrar
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Añadir a mi pedido
                 </button>
+
+                  <a
+                    href={`https://wa.me/56983852967?text=${encodeURIComponent(
+                      `Hola, me interesa el producto "${producto.nombre}".${selectedTalla ? ` Talla: ${selectedTalla}.` : ''}${selectedColegio ? ` Colegio: ${selectedColegio}.` : ''} Valor: ${formatPrice(precioFinal)}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"
+                    title="Comprar sólo este producto"
+                  >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                    Consulta Rápida
+                  </a>
               </div>
             </div>
           </div>

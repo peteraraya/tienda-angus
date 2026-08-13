@@ -15,28 +15,16 @@ import KeyboardShortcuts from './components/KeyboardShortcuts'
 import NotificationCenter from './components/NotificationCenter'
 import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
 import { DashboardMetrics } from './components/DashboardMetrics'
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
+// Extendemos los tipos base con los campos computados que usamos en la UI
+interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
+interface Producto extends DBProducto {
   stock_total?: number
   variantes_count?: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
-  notas?: string
   variantes?: Variante[]
 }
 
@@ -341,7 +329,7 @@ export default function AdminPage() {
   const tallas = useMemo(() => {
     const allTallas = productos.flatMap(p => p.variantes?.map(v => v.talla) || [])
     const uniqueTallas = [...new Set(allTallas)]
-    const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
+    const order = ['6-8', '10-12', '14-16', 'S-M', 'L-XL', '6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
     return uniqueTallas.sort((a, b) => order.indexOf(a) - order.indexOf(b))
   }, [productos])
 
@@ -445,10 +433,10 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE0YzMuMzEgMCA2IDIuNjkgNiA2cy0yLjY5IDYtNiA2LTYtMi42OS02LTYgMi42OS02IDYtNnpNNiAzNGMzLjMxIDAgNiAyLjY5IDYgNnMtMi42OSA2LTYgNi02LTIuNjktNi02IDIuNjktNiA2LTZ6TTM2IDM0YzMuMzEgMCA2IDIuNjkgNiA2cy0yLjY5IDYtNiA2LTYtMi42OS02LTYgMi42OS02IDYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
         
-        <form onSubmit={handleLogin} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 border border-white/20 dark:border-gray-700">
+        <form onSubmit={handleLogin} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-10 rounded-xl shadow-xl w-full max-w-md relative z-10 border border-white/20 dark:border-gray-700">
           <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-linear-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-block p-4 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl mb-4 shadow-sm">
+              <svg className="w-12 h-12 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
@@ -499,7 +487,7 @@ export default function AdminPage() {
             
             <Button 
               type="submit" 
-              className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-gray-900 dark:text-white px-5 py-2.5 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Iniciar Sesión
             </Button>
@@ -512,10 +500,10 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 transition-colors duration-300">
       <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
                 <img 
                   src="/logo-confecciones.png" 
                   alt="Confecciones Angus" 
@@ -530,134 +518,204 @@ export default function AdminPage() {
               </div>
               <NotificationCenter />
             </div>
-            <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
+            <div className="flex gap-3 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
               <Button
-                onClick={() => router.push('/')}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Ver Tienda"
+                variant="primary"
+                onClick={() => router.push('/admin/nuevo')}
+                className="w-full sm:w-auto  shadow-md hover:shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="hidden sm:inline">Tienda</span>
+                <span className="hidden sm:inline">Ver Tienda</span>
               </Button>
               <Button
-                onClick={() => router.push('/admin/colegios')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Colegios"
+                onClick={() => {
+                  // Generar CSV
+                  const headers = ['ID', 'Nombre', 'Categoria', 'Precio Original', 'Descuento %', 'Precio Final', 'Stock Total', 'En Oferta', 'Notas']
+                  const csvRows = filteredProducts.map(p => {
+                    const precioFinal = p.descuento_porcentaje ? p.precio - (p.precio * p.descuento_porcentaje / 100) : p.precio
+                    return [
+                      p.id,
+                      `"${p.nombre.replace(/"/g, '""')}"`,
+                      `"${p.categoria}"`,
+                      p.precio,
+                      p.descuento_porcentaje || 0,
+                      precioFinal,
+                      p.stock_total || 0,
+                      p.en_oferta ? 'Si' : 'No',
+                      `"${p.notas?.replace(/"/g, '""') || ''}"`
+                    ].join(',')
+                  })
+                  
+                  const csvContent = [headers.join(','), ...csvRows].join('\n')
+                  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+                  const url = URL.createObjectURL(blob)
+                  const link = document.createElement('a')
+                  link.href = url
+                  link.setAttribute('download', `inventario_angus_${new Date().toISOString().split('T')[0]}.csv`)
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                  toast.success('Inventario exportado a CSV')
+                }}
+                className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
+                title="Exportar a Excel/CSV"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="hidden sm:inline">Colegios</span>
+                <span className="hidden sm:inline">Exportar</span>
               </Button>
               <Button
-                onClick={() => router.push('/admin/categorias')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Categorías"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                <span className="hidden sm:inline">Categorías</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/ventas')}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Ventas"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="hidden sm:inline">Ventas</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/clientes')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Clientes"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="hidden sm:inline">Clientes</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/proveedores')}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Proveedores"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <span className="hidden sm:inline">Proveedores</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/insumos')}
-                className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Insumos"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <span className="hidden sm:inline">Insumos</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/pedidos')}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Pedidos"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span className="hidden sm:inline">Pedidos</span>
-              </Button>
-              <Button
-                onClick={() => router.push('/admin/nuevo')}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Nuevo Producto"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span className="hidden sm:inline">Nuevo</span>
-              </Button>
-              <Button
-                onClick={() => window.print()}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
-                title="Imprimir"
+                variant="success"
+                onClick={() => router.push('/admin/ventas/nueva')}
+                className="w-full sm:w-auto  shadow-md hover:shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
+                <span className="hidden sm:inline">Imprimir</span>
               </Button>
               <Button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-1.5"
+                className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
                 title="Cerrar Sesión"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
+                <span className="hidden sm:inline">Salir</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          
+          {/* Menú Lateral de Módulos (Sidebar) */}
+          <div className=" md:w-56 flex-shrink-0 sticky top-24">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-4 px-2">Módulos</h2>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => router.push('/admin/ventas')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Punto de Venta</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/nuevo')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Nuevo Producto</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/colegios')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Colegios</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/categorias')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Categorías</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/clientes')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Clientes</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/proveedores')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Proveedores</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/insumos')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Insumos</span>
+                </button>
+
+                <button 
+                  onClick={() => router.push('/admin/pedidos')}
+                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Pedidos</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Contenido Principal (Mas grande a la derecha) */}
+          <div className="flex-1 min-w-0 w-full">      
         {/* Dashboard de Métricas - NUEVO */}
         <DashboardMetrics />
 
         {/* Dashboard Summary */}
         <DashboardSummary productos={productos} />
 
-        {/* Buscador y Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+        {/* Buscador y Filtros Superiores */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-6 border border-slate-200 dark:border-slate-700">
           <div className="flex flex-col gap-4">
-            {/* Primera fila: Búsqueda */}
-            <div className="relative">
+            
+            {/* Fila Principal: Buscador */}
+            <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -666,14 +724,15 @@ export default function AdminPage() {
                 ref={searchInputRef}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 Buscar por nombre, categoría, colegio, talla, precio, stock o notas..."
-                className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
+                placeholder="Busca por nombre, notas, descripción..."
+                className="w-full pl-12 pr-12 py-4 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white text-lg font-medium transition-all shadow-inner"
               />
               {searchTerm && (
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="p-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-colors focus:outline-none"
+                    title="Borrar búsqueda"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -683,55 +742,87 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* Segunda fila: Filtros rápidos */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="">📁 Todas las categorías</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+            {/* Fila Secundaria: Filtros Rápidos */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-slate-400 text-sm">📁</span>
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Todas las categorías</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
 
-              <select
-                value={selectedColegio}
-                onChange={(e) => setSelectedColegio(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="">🏫 Todos los colegios</option>
-                {colegios.map(colegio => (
-                  <option key={colegio} value={colegio}>{colegio}</option>
-                ))}
-              </select>
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-slate-400 text-sm">🏫</span>
+                </div>
+                <select
+                  value={selectedColegio}
+                  onChange={(e) => setSelectedColegio(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Todos los colegios</option>
+                  {colegios.map(colegio => (
+                    <option key={colegio} value={colegio}>{colegio}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
 
-              <select
-                value={selectedTalla}
-                onChange={(e) => setSelectedTalla(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="">📏 Todas las tallas</option>
-                {tallas.map(talla => (
-                  <option key={talla} value={talla}>{talla}</option>
-                ))}
-              </select>
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-slate-400 text-sm">📏</span>
+                </div>
+                <select
+                  value={selectedTalla}
+                  onChange={(e) => setSelectedTalla(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Todas las tallas</option>
+                  {tallas.map(talla => (
+                    <option key={talla} value={talla}>{talla}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
 
-              <select
-                value={selectedStockFilter}
-                onChange={(e) => setSelectedStockFilter(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-semibold"
-              >
-                <option value="">📦 Todo el stock</option>
-                <option value="disponible">🟢 Stock disponible (+6)</option>
-                <option value="bajo">🟡 Stock bajo (1-6)</option>
-                <option value="agotado">🔴 Agotados (0)</option>
-              </select>
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-slate-400 text-sm">📦</span>
+                </div>
+                <select
+                  value={selectedStockFilter}
+                  onChange={(e) => setSelectedStockFilter(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Todo el inventario</option>
+                  <option value="disponible">🟢 Stock disponible (+6)</option>
+                  <option value="bajo">🟡 Stock bajo (1-6)</option>
+                  <option value="agotado">🔴 Agotados (0)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
 
-              {/* Botón limpiar filtros - integrado en la misma fila */}
+              {/* Botón limpiar filtros (solo aparece si hay filtros activos) */}
               {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
-                <Button
+                <button
                   onClick={() => {
                     setSearchTerm('')
                     setSelectedCategory('')
@@ -739,53 +830,54 @@ export default function AdminPage() {
                     setSelectedTalla('')
                     setSelectedStockFilter('')
                   }}
-                  className="col-span-2 md:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold flex items-center justify-center gap-2 text-sm"
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  title="Restablecer todos los filtros"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Limpiar
-                </Button>
+                  <span className="hidden sm:inline">Limpiar</span>
+                </button>
               )}
             </div>
           </div>
 
-          {/* Contador de resultados y filtros activos */}
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg">
-              📊 Mostrando <span className="text-blue-600 dark:text-blue-400">{filteredProducts.length}</span> de {productos.length} productos
-            </p>
+          {/* Área de Tags (Filtros Activos) y Contador */}
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-bold border border-blue-200 dark:border-blue-800 mr-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+            </div>
+            
             {selectedCategory && (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
                 📁 {selectedCategory}
-                <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900 dark:hover:text-blue-100">
-                  ✕
-                </button>
+                <button onClick={() => setSelectedCategory('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
               </span>
             )}
             {selectedColegio && (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
                 🏫 {selectedColegio}
-                <button onClick={() => setSelectedColegio('')} className="hover:text-purple-900 dark:hover:text-purple-100">✕</button>
+                <button onClick={() => setSelectedColegio('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
               </span>
             )}
             {selectedTalla && (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
                 📏 Talla {selectedTalla}
-                <button onClick={() => setSelectedTalla('')} className="hover:text-green-900 dark:hover:text-green-100">✕</button>
+                <button onClick={() => setSelectedTalla('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
               </span>
             )}
             {selectedStockFilter && (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-sm font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
                 📦 {selectedStockFilter === 'disponible' ? '🟢 Disponible' : selectedStockFilter === 'bajo' ? '🟡 Stock Bajo' : '🔴 Agotado'}
-                <button onClick={() => setSelectedStockFilter('')} className="hover:text-orange-900 dark:hover:text-orange-100">✕</button>
+                <button onClick={() => setSelectedStockFilter('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
               </span>
             )}
           </div>
 
           {/* Mensaje de stock específico según filtros */}
           {stockEspecifico && (
-            <div className={`mt-4 p-4 rounded-xl border-2 ${
+            <div className={`mt-4 p-4 rounded-xl border ${
               stockEspecifico.totalStock > 0 
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700' 
                 : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
@@ -864,18 +956,20 @@ export default function AdminPage() {
           onSetVariantSearchTerm={setVariantSearchTerm}
         />
 
-        {/* Paginación */}
-        {filteredProducts.length > 20 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={goToPage}
-              itemsPerPage={20}
-              totalItems={filteredProducts.length}
-            />
+            {/* Paginación */}
+            {filteredProducts.length > 20 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                  itemsPerPage={20}
+                  totalItems={filteredProducts.length}
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
       
       <KeyboardShortcuts searchInputRef={searchInputRef} />

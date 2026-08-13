@@ -2,28 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante {
-  id: string
-  producto_id: string
-  talla: string
-  colegio: string
-  stock: number
+export interface Variante extends DBVariante {
   insignia_url?: string
 }
 
-interface Producto {
-  id: string
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  imagen_url?: string
+export interface Producto extends DBProducto {
   stock_total?: number
   variantes_count?: number
-  descuento_porcentaje?: number
-  en_oferta?: boolean
-  notas?: string
   variantes?: Variante[]
 }
 
@@ -131,7 +118,7 @@ export default function ProductListNotebook({
 
   if (productos.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-12 text-center border-2 border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-12 text-center border border-slate-200 dark:border-slate-700">
         <div className="inline-block p-6 bg-slate-100 dark:bg-slate-700 rounded-full mb-4">
           <svg className="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -144,31 +131,32 @@ export default function ProductListNotebook({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 overflow-x-auto pb-8">
+      <div className="min-w-[1000px] lg:min-w-[900px]">
       {/* Header estilo cuaderno - Solo visible en desktop */}
-      <div className="hidden lg:block bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-6 py-3 shadow-sm border-2 border-slate-300 dark:border-slate-600">
-        <div className="grid grid-cols-12 gap-4 items-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+      <div className="hidden lg:block bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-4 py-2 shadow-md border border-slate-300 dark:border-slate-600 sticky  z-30">
+        <div className="grid grid-cols-12 gap-4 items-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
           <div className="col-span-1">Imagen</div>
           <div className="col-span-2">Nombre</div>
           <div className="col-span-1">Categoría</div>
           <div className="col-span-1">Precio</div>
           <div className="col-span-2">Descuento</div>
           <div className="col-span-1">Oferta</div>
-          <div className="col-span-1">Stock</div>
+          <div className="col-span-1 text-center">Stock</div>
           <div className="col-span-3 text-center">Acciones</div>
         </div>
       </div>
 
       {/* Lista de productos */}
       {productos.map((producto) => (
-        <div key={producto.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 overflow-hidden">
+        <div key={producto.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 overflow-hidden group/row relative">
           
           {/* Vista Desktop - Grid de 12 columnas */}
-          <div className="hidden lg:block px-6 py-4">
+          <div className="hidden lg:block px-4 py-2">
             <div className="grid grid-cols-12 gap-4 items-center">
               {/* Imagen */}
               <div className="col-span-1">
-                <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-sm border-2 border-slate-200 dark:border-slate-600">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600">
                   {producto.imagen_url ? (
                     <img 
                       src={producto.imagen_url}
@@ -200,7 +188,7 @@ export default function ProductListNotebook({
                         }
                       }}
                       onBlur={() => onSetEditingProductName(null)}
-                      className="flex-1 px-2 py-1 text-sm border-2 border-blue-500 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
                     <button
@@ -234,41 +222,25 @@ export default function ProductListNotebook({
                           e.stopPropagation()
                           onSetEditingProductName(producto.id)
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-all flex-shrink-0"
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition-all flex-shrink-0"
                         title="Editar nombre"
                       >
                         <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
-                      {producto.notas && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onSetEditingProductNotas(producto.id)
-                          }}
-                          className="p-1 bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 rounded transition-all flex-shrink-0"
-                          title="Ver/editar notas"
-                        >
-                          <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
-                        </button>
-                      )}
-                      {!producto.notas && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onSetEditingProductNotas(producto.id)
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded transition-all flex-shrink-0"
-                          title="Agregar notas"
-                        >
-                          <svg className="w-4 h-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSetEditingProductNotas(producto.id)
+                        }}
+                        className={`p-1 rounded transition-all flex-shrink-0 ${producto.notas ? 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-600 hover:bg-amber-100' : 'opacity-0 group-hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400'}`}
+                        title={producto.notas ? "Ver/editar notas" : "Agregar notas"}
+                      >
+                        <svg className="w-4 h-4" fill={producto.notas ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{producto.descripcion}</p>
                   </div>
@@ -277,7 +249,7 @@ export default function ProductListNotebook({
 
               {/* Categoría */}
               <div className="col-span-1">
-                <span className="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2.5 py-1 rounded-md">
+                <span className="inline-block bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs">
                   {producto.categoria}
                 </span>
               </div>
@@ -288,18 +260,26 @@ export default function ProductListNotebook({
                   e.stopPropagation()
                   onSetEditingProductPrice(producto.id)
                 }}>
-                  {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                    <div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
-                      <span className="font-bold text-base text-green-600 dark:text-green-400">
-                        {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                  {(() => {
+                    const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                    const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                    const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                    
+                    return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                      <div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 line-through block">
+                          {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                        </span>
+                        <span className="font-bold text-base text-green-600 dark:text-green-400">
+                          {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(calcularPrecioFinal(precioMinimo, producto.descuento_porcentaje))}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                       </span>
-                    </div>
-                  ) : (
-                    <span className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {formatPrice(producto.precio)}
-                    </span>
-                  )}
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -308,7 +288,7 @@ export default function ProductListNotebook({
                 <select
                   value={producto.descuento_porcentaje || 0}
                   onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
-                  className="w-full px-2 py-1.5 text-sm border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
+                  className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
                 >
                   <option value="0">Sin descuento</option>
                   <option value="5">5%</option>
@@ -329,13 +309,13 @@ export default function ProductListNotebook({
               <div className="col-span-1">
                 <button
                   onClick={() => onToggleOferta(producto.id, producto.en_oferta || false)}
-                  className={`w-full px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${
+                  className={`w-full px-3 py-2 rounded-xl font-bold text-xs transition-all border shadow-sm ${
                     producto.en_oferta
-                      ? 'bg-linear-to-r from-orange-500 to-red-500 text-white shadow-md'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
+                      ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-100'
+                      : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  {producto.en_oferta ? '🔥 Sí' : 'No'}
+                  {producto.en_oferta ? '🔥 OFERTA' : 'Normal'}
                 </button>
               </div>
 
@@ -360,11 +340,11 @@ export default function ProductListNotebook({
 
               {/* Acciones */}
               <div className="col-span-3">
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center opacity-0 group-hover/row:opacity-100 transition-opacity duration-300">
                   <button
                     onClick={() => router.push(`/admin/editar/${producto.id}`)}
-                    className="p-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all shadow-sm hover:shadow-md"
-                    title="Editar"
+                    className="p-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg transition-all shadow-sm border border-blue-200 dark:border-blue-800"
+                    title="Editar producto"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -372,8 +352,8 @@ export default function ProductListNotebook({
                   </button>
                   <button
                     onClick={() => onDuplicate(producto)}
-                    className="p-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all shadow-sm hover:shadow-md"
-                    title="Duplicar"
+                    className="p-2 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-lg transition-all shadow-sm border border-purple-200 dark:border-purple-800"
+                    title="Duplicar producto"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -381,8 +361,8 @@ export default function ProductListNotebook({
                   </button>
                   <button
                     onClick={() => onDelete(producto.id)}
-                    className="p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all shadow-sm hover:shadow-md"
-                    title="Eliminar"
+                    className="p-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg transition-all shadow-sm border border-red-200 dark:border-red-800"
+                    title="Eliminar producto"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -396,8 +376,8 @@ export default function ProductListNotebook({
           {/* Vista Móvil - Diseño tipo tarjeta */}
           <div className="lg:hidden p-4 space-y-3">
             {/* Header con imagen y nombre */}
-            <div className="flex gap-3">
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-sm border-2 border-slate-200 dark:border-slate-600 flex-shrink-0">
+            <div className="flex gap-4">
+              <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex-shrink-0">
                 {producto.imagen_url ? (
                   <img 
                     src={producto.imagen_url}
@@ -426,7 +406,7 @@ export default function ProductListNotebook({
                         }
                       }}
                       onBlur={() => onSetEditingProductName(null)}
-                      className="flex-1 px-2 py-1 text-sm border-2 border-blue-500 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
                     <button
@@ -506,16 +486,26 @@ export default function ProductListNotebook({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-                  <div>
-                    <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">{formatPrice(producto.precio)}</span>
-                    <span className="font-bold text-xl text-green-600 dark:text-green-400">
-                      {formatPrice(calcularPrecioFinal(producto.precio, producto.descuento_porcentaje))}
+                {(() => {
+                  const preciosVariantes = producto.variantes?.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[] || [];
+                  const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
+                  const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
+                  
+                  return producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
+                    <div>
+                      <span className="text-sm text-slate-500 dark:text-slate-400 line-through block">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
+                      </span>
+                      <span className="font-bold text-xl text-green-600 dark:text-green-400">
+                        {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(calcularPrecioFinal(precioMinimo, producto.descuento_porcentaje))}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-bold text-xl text-slate-900 dark:text-white">
+                      {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                     </span>
-                  </div>
-                ) : (
-                  <span className="font-bold text-xl text-slate-900 dark:text-white">{formatPrice(producto.precio)}</span>
-                )}
+                  )
+                })()}
               </div>
               <button
                 onClick={() => onToggleExpand(producto.id)}
@@ -541,7 +531,7 @@ export default function ProductListNotebook({
                 <select
                   value={producto.descuento_porcentaje || 0}
                   onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
-                  className="w-full px-2 py-2 text-sm border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-2 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="0">Sin descuento</option>
                   <option value="5">5%</option>
@@ -563,7 +553,7 @@ export default function ProductListNotebook({
                   onClick={() => onToggleOferta(producto.id, producto.en_oferta || false)}
                   className={`w-full px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
                     producto.en_oferta
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-gray-900 dark:text-white shadow-md'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
@@ -599,7 +589,7 @@ export default function ProductListNotebook({
           {expandedProduct === producto.id && producto.variantes && producto.variantes.length > 0 && (() => {
             const filteredVariantes = filterVariantes(producto.variantes)
             return (
-              <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-6 py-4">
+              <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -617,7 +607,7 @@ export default function ProductListNotebook({
                         value={variantSearchTerm}
                         onChange={(e) => onSetVariantSearchTerm(e.target.value)}
                         placeholder="🔍 Buscar variante..."
-                        className="w-full pl-3 pr-8 py-1.5 text-sm border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-3 pr-8 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       {variantSearchTerm && (
                         <button
@@ -633,12 +623,12 @@ export default function ProductListNotebook({
                   )}
                 </div>
                 {filteredVariantes.length === 0 ? (
-                  <div className="text-center py-8">
-                    <svg className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <svg className="w-12 h-12 text-slate-400 dark:text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <p className="text-slate-600 dark:text-slate-400 font-semibold">No se encontraron variantes</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                    <p className="text-slate-600 dark:text-slate-300 font-semibold">No se encontraron variantes</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                       {variantSearchTerm || selectedColegio || selectedTalla 
                         ? 'Intenta con otros filtros' 
                         : 'Este producto no tiene variantes'}
@@ -650,17 +640,17 @@ export default function ProductListNotebook({
                       .sort((a, b) => {
                         const colegioCompare = a.colegio.localeCompare(b.colegio)
                         if (colegioCompare !== 0) return colegioCompare
-                        const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
+                        const order = ['6-8', '10-12', '14-16', 'S-M', 'L-XL', '6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
                         return order.indexOf(a.talla) - order.indexOf(b.talla)
                       })
                       .map((variante) => (
                   <div 
                     key={variante.id} 
-                    className="bg-white dark:bg-slate-800 p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm"
+                    className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 transition-all shadow-sm"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1 flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 flex-shrink-0 p-0.5">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 flex-shrink-0 p-0.5">
                           {variante.insignia_url ? (
                             <img 
                               src={variante.insignia_url}
@@ -678,6 +668,11 @@ export default function ProductListNotebook({
                         <div className="flex-1 min-w-0">
                           <span className="font-bold text-slate-900 dark:text-white block text-sm truncate">{variante.colegio}</span>
                           <span className="text-xs text-slate-600 dark:text-slate-400">Talla: <span className="font-semibold">{variante.talla}</span></span>
+                          {variante.precio !== null && variante.precio !== undefined && (
+                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 ml-2 block">
+                              {formatPrice(variante.precio)}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <span className={`px-2 py-1 rounded-md text-xs font-bold flex-shrink-0 ${
@@ -702,7 +697,7 @@ export default function ProductListNotebook({
                                 onUpdateVarianteStock(variante.id, parseInt((e.target as HTMLInputElement).value) || 0)
                               }
                             }}
-                            className="flex-1 px-2 py-1 text-sm border-2 border-blue-500 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-semibold focus:ring-2 focus:ring-blue-500"
                             autoFocus
                           />
                           <button
@@ -757,7 +752,7 @@ export default function ProductListNotebook({
       {/* Modal de Notas */}
       {editingProductNotas && productos.find(p => p.id === editingProductNotas) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => onSetEditingProductNotas(null)}>
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full border-2 border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-2xl w-full border border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -787,7 +782,7 @@ export default function ProductListNotebook({
               <textarea
                 defaultValue={productos.find(p => p.id === editingProductNotas)?.notas || ''}
                 placeholder="Escribe notas sobre este producto... Ej: Pedir más tela, revisar stock el viernes, etc."
-                className="w-full h-40 px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
+                className="w-full h-40 px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') {
@@ -804,7 +799,7 @@ export default function ProductListNotebook({
                       onUpdateProductNotas(editingProductNotas, textarea.value)
                     }
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 dark:text-white rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md hover:shadow-sm"
                 >
                   💾 Guardar Notas
                 </button>
@@ -820,10 +815,12 @@ export default function ProductListNotebook({
         </div>
       )}
 
+      </div>
+
       {/* Modal de Precio */}
       {editingProductPrice && productos.find(p => p.id === editingProductPrice) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => onSetEditingProductPrice(null)}>
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border-2 border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -859,7 +856,7 @@ export default function ProductListNotebook({
                 step="1"
                 defaultValue={productos.find(p => p.id === editingProductPrice)?.precio || 0}
                 placeholder="Ej: 15000"
-                className="w-full px-4 py-3 text-lg border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 text-lg border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -884,7 +881,7 @@ export default function ProductListNotebook({
                       onUpdateProductPrice(editingProductPrice, parseInt(input.value) || 0)
                     }
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-gray-900 dark:text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-sm"
                 >
                   💰 Actualizar Precio
                 </button>

@@ -20,6 +20,8 @@ interface SearchBarSimpleProps {
   onColegioChange: (value: string) => void
   showOnlyFavorites: boolean
   onShowOnlyFavoritesChange: (value: boolean) => void
+  showOnlyOffers: boolean
+  onShowOnlyOffersChange: (value: boolean) => void
   productos?: Array<{ id: string; nombre: string; descripcion: string }>
 }
 
@@ -41,6 +43,8 @@ export default function SearchBarSimple({
   onColegioChange,
   showOnlyFavorites,
   onShowOnlyFavoritesChange,
+  showOnlyOffers,
+  onShowOnlyOffersChange,
   productos = []
 }: SearchBarSimpleProps) {
   
@@ -48,7 +52,7 @@ export default function SearchBarSimple({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
-  const hasActiveFilters = selectedCategory || selectedTalla || selectedColegio || showOnlyFavorites
+  const hasActiveFilters = selectedCategory || selectedTalla || selectedColegio || showOnlyFavorites || showOnlyOffers
 
   // Generar sugerencias basadas en los productos
   const suggestions = useMemo(() => {
@@ -105,6 +109,7 @@ export default function SearchBarSimple({
     onTallaChange('')
     onColegioChange('')
     onShowOnlyFavoritesChange(false)
+    onShowOnlyOffersChange(false)
   }
 
   return (
@@ -188,7 +193,7 @@ export default function SearchBarSimple({
             <span className="hidden sm:inline">Filtros</span>
             {hasActiveFilters && (
               <span className="bg-white dark:bg-blue-500 text-blue-600 dark:text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {[selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites].filter(Boolean).length}
+                {[selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers].filter(Boolean).length}
               </span>
             )}
           </button>
@@ -247,19 +252,6 @@ export default function SearchBarSimple({
               </select>
             )}
 
-            {/* Colegio */}
-            {colegios.length > 0 && (
-              <select
-                value={selectedColegio}
-                onChange={(e) => onColegioChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent shadow-sm dark:shadow-none transition-all"
-              >
-                <option value="">Todos los colegios</option>
-                {colegios.map(colegio => (
-                  <option key={colegio} value={colegio}>{colegio}</option>
-                ))}
-              </select>
-            )}
 
             {/* Ordenar */}
             <select
@@ -280,7 +272,7 @@ export default function SearchBarSimple({
               onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm ${
                 showOnlyFavorites 
-                  ? 'bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white shadow-red-500/30 dark:shadow-red-600/30' 
+                  ? 'bg-pink-600 hover:bg-pink-700 dark:bg-pink-600 dark:hover:bg-pink-700 text-white shadow-pink-500/30 dark:shadow-pink-600/30' 
                   : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -288,6 +280,19 @@ export default function SearchBarSimple({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
               <span className="hidden sm:inline">Favoritos</span>
+            </button>
+
+            {/* Ofertas */}
+            <button
+              onClick={() => onShowOnlyOffersChange(!showOnlyOffers)}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm ${
+                showOnlyOffers 
+                  ? 'bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white shadow-orange-500/30 dark:shadow-orange-600/30' 
+                  : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span className="text-lg leading-none mb-0.5">🔥</span>
+              <span className="hidden sm:inline font-bold">Ofertas</span>
             </button>
 
             {/* Limpiar filtros */}

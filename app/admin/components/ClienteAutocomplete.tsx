@@ -3,17 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Input, Button } from '@/app/components/ui'
-
-interface Cliente {
-  id: string
-  nombre: string
-  contacto: string
-  telefono: string
-  red_social?: string
-  direccion?: string
-  cantidad_compras: number
-  total_compras: number
-}
+import type { Cliente } from '@/types/database'
 
 interface ClienteAutocompleteProps {
   onClienteSelect: (cliente: Cliente | null) => void
@@ -122,7 +112,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
 
   if (selectedCliente) {
     return (
-      <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-700 rounded-xl p-4">
+      <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-xl p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -161,7 +151,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
 
   if (showNewClienteForm) {
     return (
-      <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-xl p-4">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,7 +237,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
 
           <Button
             onClick={crearNuevoCliente}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2 rounded-lg font-semibold transition-all"
+            className="w-full  text-gray-900 dark:text-white py-2 rounded-lg font-semibold transition-all"
           >
             Crear Cliente
           </Button>
@@ -258,7 +248,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
 
   return (
     <div ref={wrapperRef} className="relative">
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-4">
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-xl p-4">
         <label className="block text-sm font-bold text-yellow-900 dark:text-yellow-100 mb-2 flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -280,7 +270,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
         )}
 
         {showSuggestions && clientes.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-yellow-300 dark:border-yellow-700 rounded-lg shadow-xl max-h-64 overflow-y-auto">
             {clientes.map(cliente => (
               <button
                 key={cliente.id}
@@ -303,7 +293,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
         <div className="mt-3 flex gap-2">
           <Button
             onClick={() => setShowNewClienteForm(true)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

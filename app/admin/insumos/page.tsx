@@ -8,21 +8,8 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ViewToggle from '../components/ViewToggle'
-
-interface Insumo {
-  id: string
-  nombre: string
-  descripcion?: string
-  unidad_medida: string
-  precio_referencia: number
-  stock_actual: number
-  stock_minimo: number
-  imagen_url?: string
-  categoria?: string
-  notas?: string
-  activo: boolean
-  created_at: string
-}
+import type { Insumo } from '@/types/database'
+import AdminHeader from '../components/AdminHeader'
 
 export default function InsumosPage() {
   const router = useRouter()
@@ -185,54 +172,93 @@ export default function InsumosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="🧵 Gestión de Insumos" 
+        subtitle="Administra materiales y suministros"
+        actions={
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-sm hover:-translate-y-0.5"
+          >
+            + Nuevo Insumo
+          </Button>
+        }
+      />
+
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        {/* Estadísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white dark:bg-gray-800">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <Button onClick={() => router.push('/admin')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
-              </Button>
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🧵 Gestión de Insumos</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Administra materiales y suministros</p>
+                <p className="text-blue-100 font-semibold text-sm">Total Insumos</p>
+                <p className="text-3xl font-bold">{insumos.length}</p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold"
-            >
-              + Nuevo Insumo
-            </Button>
+          </div>
+
+          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-yellow-100 font-semibold text-sm">Stock Bajo</p>
+                <p className="text-3xl font-bold">
+                  {insumos.filter(i => i.stock_actual <= i.stock_minimo).length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-emerald-100 font-semibold text-sm">Insumos Activos</p>
+                <p className="text-3xl font-bold">
+                  {insumos.filter(i => i.activo).length}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 Buscar insumos..."
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="🔍 Buscar insumo..."
+                  className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                />
+              </div>
               <select
                 value={selectedCategoria}
                 onChange={(e) => setSelectedCategoria(e.target.value)}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors font-semibold"
               >
                 <option value="">📁 Todas las categorías</option>
                 {categorias.map(cat => (
@@ -248,15 +274,18 @@ export default function InsumosPage() {
         {viewMode === 'expanded' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {insumosFiltrados.length === 0 ? (
-              <div className="col-span-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <p className="text-gray-500 dark:text-gray-400 text-lg">No hay insumos</p>
+              <div className="col-span-full p-16 text-center">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-teal-50 dark:bg-gray-800 rounded-full mb-6">
+                  <svg className="w-12 h-12 text-teal-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron insumos con este filtro.</p>
               </div>
             ) : (
               insumosFiltrados.map(insumo => (
-                <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+                <div key={insumo.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
                   <div className="relative">
                     {insumo.imagen_url ? (
                       <img src={insumo.imagen_url} alt={insumo.nombre} className="w-full h-48 object-cover" />
@@ -268,12 +297,12 @@ export default function InsumosPage() {
                       </div>
                     )}
                     {!insumo.activo && (
-                      <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      <div className="absolute top-2 right-2 bg-red-600 text-gray-900 dark:text-white px-3 py-1 rounded-full text-xs font-semibold">
                         Inactivo
                       </div>
                     )}
                     {insumo.stock_actual <= insumo.stock_minimo && (
-                      <div className="absolute top-2 left-2 bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      <div className="absolute top-2 left-2 bg-yellow-600 text-gray-900 dark:text-white px-3 py-1 rounded-full text-xs font-semibold">
                         ⚠️ Stock bajo
                       </div>
                     )}
@@ -321,13 +350,13 @@ export default function InsumosPage() {
                     <div className="flex gap-2">
                       <Button
                         onClick={() => editarInsumo(insumo)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white py-2 rounded-lg font-semibold transition-all"
                       >
                         Editar
                       </Button>
                       <Button
                         onClick={() => eliminarInsumo(insumo.id, insumo.nombre)}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition-all"
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-gray-900 dark:text-white py-2 rounded-lg font-semibold transition-all"
                       >
                         Eliminar
                       </Button>
@@ -338,7 +367,7 @@ export default function InsumosPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
@@ -426,13 +455,13 @@ export default function InsumosPage() {
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             onClick={() => editarInsumo(insumo)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
+                            className="bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
                           >
                             Editar
                           </Button>
                           <Button
                             onClick={() => eliminarInsumo(insumo.id, insumo.nombre)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
+                            className="bg-red-600 hover:bg-red-700 text-gray-900 dark:text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
                           >
                             Eliminar
                           </Button>
@@ -450,7 +479,7 @@ export default function InsumosPage() {
       {/* Modal de formulario */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}
@@ -608,8 +637,9 @@ export default function InsumosPage() {
                 Cancelar
               </Button>
               <Button
+                variant="success"
                 onClick={guardarInsumo}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-xl font-semibold transition-all"
+                className="flex-1 py-3 rounded-xl font-semibold transition-all"
               >
                 {editingInsumo ? 'Actualizar' : 'Crear'}
               </Button>

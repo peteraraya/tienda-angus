@@ -7,11 +7,18 @@ import { Modal } from "./ui";
 const whatsappUrl = "https://wa.me/56983852967";
 const instagramUrl = "https://www.instagram.com/confecciones_angus/";
 const phoneUrl = "tel:+56983852967";
-const mapUrl = "https://www.google.com/maps/place/O'Higgins+1384,+2261543+Quillota,+Valpara%C3%ADso/@-32.8925184,-71.2704,14z/data=!4m6!3m5!1s0x9689d278fe242b47:0x4ed3023dc9ea90be!8m2!3d-32.8933438!4d-71.2486881!16s%2Fg%2F11f64gkw2y?entry=ttu&g_ep=EgoyMDI2MDIyMi4wIKXMDSoASAFQAw%3D%3D";
+const mapUrl = "https://www.google.com/maps/place/Sta.+Olga+288,+2261750+Quillota,+Valpara%C3%ADso/@-32.8955437,-71.2514322,17z/data=!3m1!4b1!4m6!3m5!1s0x9689d27982a49069:0xd98d7b61b01591da!8m2!3d-32.8955437!4d-71.2488519!16s%2Fg%2F11kf9qzf_h?entry=ttu&g_ep=EgoyMDI2MDcyNy4wIKXMDSoASAFQAw%3D%3D";
 
 export default function FloatingSocialButtons() {
   const [mapOpen, setMapOpen] = useState(false);
   const pathname = usePathname();
+
+  // Escuchar evento global para abrir el mapa desde cualquier lugar
+  React.useEffect(() => {
+    const handleOpenMap = () => setMapOpen(true);
+    window.addEventListener('open-map-modal', handleOpenMap);
+    return () => window.removeEventListener('open-map-modal', handleOpenMap);
+  }, []);
   
   // No mostrar en rutas de admin
   if (pathname?.startsWith('/admin')) {
@@ -70,11 +77,11 @@ export default function FloatingSocialButtons() {
       </div>
       <Modal isOpen={mapOpen} onClose={() => setMapOpen(false)} title="Ubicación en Google Maps" size="lg">
         <div className="mb-4 text-center text-base font-semibold text-gray-800 dark:text-gray-100">
-          O&apos;Higgins 1384, Quillota, Valparaíso
+          Nuestra Ubicación en Quillota
         </div>
         <div className="w-full aspect-video max-w-2xl mx-auto">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3347.858964893964!2d-71.2704!3d-32.8933438!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d278fe242b47%3A0x4ed3023dc9ea90be!2sO'Higgins%201384%2C%20Quillota%2C%20Valpara%C3%ADso!5e0!3m2!1ses-419!2scl!4v1708888888888!5m2!1ses-419!2scl"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3347.858964893964!2d-71.2514322!3d-32.8955437!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d27982a49069%3A0xd98d7b61b01591da!2sSta.%20Olga%20288%2C%20Quillota%2C%20Valpara%C3%ADso!5e0!3m2!1ses-419!2scl!4v1708888888888!5m2!1ses-419!2scl"
             width="100%"
             height="350"
             style={{ border: 0, borderRadius: '1rem', width: '100%' }}

@@ -9,6 +9,7 @@ interface Variante {
   talla: string
   colegio: string
   stock: number
+  precio?: number | null
 }
 
 interface Producto {
@@ -245,7 +246,8 @@ export function useDuplicateProducto() {
           producto_id: nuevoProducto.id,
           talla: v.talla,
           colegio: v.colegio,
-          stock: v.stock
+          stock: v.stock,
+          precio: v.precio
         }))
 
         await supabase.from('variantes').insert(nuevasVariantes)
