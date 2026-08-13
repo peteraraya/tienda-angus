@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button } from '@/app/components/ui'
 import NotificationCenter from './NotificationCenter'
-import { formatPrice } from '@/lib/formatPrice'
 import type { Producto } from '@/app/hooks/useAdminProductos'
+import Image from 'next/image'
 
 interface AdminTopBarProps {
   filteredProducts: Producto[]
@@ -52,10 +52,13 @@ export default function AdminTopBar({ filteredProducts, onLogout }: AdminTopBarP
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
-              <img 
+              <Image 
                 src="/logo-confecciones.png" 
                 alt="Confecciones Angus" 
+                width={48}
+                height={48}
                 className="w-full h-full object-contain p-1"
+                priority
               />
             </div>
             <div className="text-center sm:text-left">

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Button } from '@/app/components/ui'
 import React from 'react'
+import Image from 'next/image'
 
 interface AdminHeaderProps {
   title: string
@@ -36,10 +37,13 @@ export default function AdminHeader({
             </Button>
             
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 flex-shrink-0 ml-1 sm:ml-2">
-              <img 
+              <Image 
                 src="/logo-confecciones.png" 
                 alt="Confecciones Angus" 
+                width={48}
+                height={48}
                 className="w-full h-full object-contain p-1"
+                priority
               />
             </div>
             

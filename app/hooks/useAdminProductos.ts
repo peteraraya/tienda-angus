@@ -17,11 +17,22 @@ export interface Producto extends DBProducto {
   variantes?: Variante[]
 }
 
+/**
+ * Custom hook to manage the state and actions of products in the admin panel.
+ * Handles fetching, deleting, duplicating, and updating products and their variants.
+ * Interacts directly with the Supabase client.
+ * 
+ * @returns {Object} Product state and action methods
+ */
 export function useAdminProductos() {
   const [productos, setProductos] = useState<Producto[]>([])
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
 
+  /**
+   * Fetches all products and their associated variants from the database.
+   * Also maps school badges (insignias) to the corresponding variants.
+   */
   async function loadProductos() {
     const { data: productosData } = await supabase
       .from('productos')
@@ -68,6 +79,11 @@ export function useAdminProductos() {
     }
   }
 
+  /**
+   * Deletes a product and all its variants after user confirmation.
+   * 
+   * @param {string} id - The ID of the product to delete
+   */
   async function deleteProducto(id: string) {
     const confirmed = await confirm({
       title: '¿Eliminar producto?',
@@ -83,6 +99,12 @@ export function useAdminProductos() {
     loadProductos()
   }
 
+  /**
+   * Toggles the "on sale" (en_oferta) status of a product after user confirmation.
+   * 
+   * @param {string} id - The ID of the product
+   * @param {boolean} currentState - The current sale status
+   */
   async function toggleOferta(id: string, currentState: boolean) {
     const producto = productos.find(p => p.id === id)
     const nuevoEstado = !currentState
@@ -107,6 +129,12 @@ export function useAdminProductos() {
     loadProductos()
   }
 
+  /**
+   * Updates the discount percentage of a product after user confirmation.
+   * 
+   * @param {string} id - The ID of the product
+   * @param {number} descuento - The new discount percentage (0-100)
+   */
   async function updateDescuento(id: string, descuento: number) {
     if (descuento < 0 || descuento > 100) {
       toast.error('El descuento debe estar entre 0 y 100')
@@ -156,6 +184,12 @@ export function useAdminProductos() {
     loadProductos()
   }
 
+  /**
+   * Duplicates an existing product and all its variants.
+   * Appends "(Copia)" to the name of the new product.
+   * 
+   * @param {Producto} producto - The product object to duplicate
+   */
   async function duplicateProduct(producto: Producto) {
     const confirmed = await confirm({
       title: '¿Duplicar producto?',

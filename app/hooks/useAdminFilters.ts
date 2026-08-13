@@ -3,6 +3,13 @@
 import { useState, useMemo, useRef } from 'react'
 import type { Producto } from './useAdminProductos'
 
+/**
+ * Custom hook to manage the filtering, searching, and pagination logic 
+ * for the product list in the admin dashboard.
+ * 
+ * @param {Producto[]} productos - The raw list of products fetched from the database
+ * @returns {Object} Filter state, derived collections, and references
+ */
 export function useAdminFilters(productos: Producto[]) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
