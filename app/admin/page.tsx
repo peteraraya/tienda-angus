@@ -1,39 +1,25 @@
 'use client'
 
-import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
-// use LazyImage for placeholders and lazy loading in admin previews
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
-import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input, LazyImage, Pagination, usePagination } from '../components/ui'
+import { Button, Pagination, usePagination } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
+import AdminSidebar from './components/AdminSidebar'
+import AdminLoginForm from './components/AdminLoginForm'
 
 import KeyboardShortcuts from './components/KeyboardShortcuts'
 import NotificationCenter from './components/NotificationCenter'
 import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
 import { DashboardMetrics } from './components/DashboardMetrics'
-import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-// Extendemos los tipos base con los campos computados que usamos en la UI
-interface Variante extends DBVariante {
-  insignia_url?: string
-}
-
-interface Producto extends DBProducto {
-  stock_total?: number
-  variantes_count?: number
-  variantes?: Variante[]
-}
+import { useAdminProductos } from '@/app/hooks/useAdminProductos'
 
 export default function AdminPage() {
-  const [productos, setProductos] = useState<Producto[]>([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedColegio, setSelectedColegio] = useState('')
@@ -46,9 +32,20 @@ export default function AdminPage() {
   const [editingProductPrice, setEditingProductPrice] = useState<string | null>(null)
   const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  
   const router = useRouter()
   const toast = useToast()
-  const { confirm, ConfirmDialog } = useConfirm()
+
+  const { 
+    productos, 
+    setProductos, 
+    loadProductos, 
+    deleteProducto, 
+    toggleOferta, 
+    updateDescuento, 
+    duplicateProduct,
+    ConfirmDialog
+  } = useAdminProductos()
 
   useEffect(() => {
     async function checkAuth() {
@@ -60,158 +57,12 @@ export default function AdminPage() {
       }
     }
     checkAuth()
-  }, []) // No dependencies needed
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (!error) {
-      setIsAuthenticated(true)
-      loadProductos()
-      toast.success('Sesión iniciada correctamente')
-    } else {
-      toast.error('Error al iniciar sesión')
-    }
-  }
+  }, [loadProductos]) 
 
   async function handleLogout() {
     await supabase.auth.signOut()
     setIsAuthenticated(false)
     setProductos([])
-  }
-
-  async function loadProductos() {
-    const { data: productosData } = await supabase
-      .from('productos')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    // Cargar colegios con sus insignias
-    const { data: colegiosData } = await supabase
-      .from('colegios')
-      .select('nombre, insignia_url')
-
-    // Crear mapa con normalización de nombres para evitar problemas de coincidencia
-    const colegiosMap = new Map(
-      colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
-    )
-
-    if (productosData) {
-      const productosConInfo = await Promise.all(
-        productosData.map(async (producto) => {
-          const { data: variantes } = await supabase
-            .from('variantes')
-            .select('*')
-            .eq('producto_id', producto.id)
-
-          // Agregar insignia_url a cada variante
-          const variantesConInsignia = variantes?.map(v => ({
-            ...v,
-            insignia_url: colegiosMap.get(v.colegio.trim())
-          })) || []
-
-          const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
-          const variantes_count = variantes?.length || 0
-
-          return {
-            ...producto,
-            stock_total,
-            variantes_count,
-            variantes: variantesConInsignia
-          }
-        })
-      )
-
-      setProductos(productosConInfo)
-    }
-  }
-
-  async function deleteProducto(id: string) {
-    const confirmed = await confirm({
-      title: '¿Eliminar producto?',
-      message: 'Se eliminará este producto y todas sus variantes. Esta acción no se puede deshacer.',
-      confirmText: 'Eliminar',
-      variant: 'danger'
-    })
-
-    if (!confirmed) return
-
-    await supabase.from('productos').delete().eq('id', id)
-    toast.success('Producto eliminado exitosamente')
-    loadProductos()
-  }
-
-  async function toggleOferta(id: string, currentState: boolean) {
-    const producto = productos.find(p => p.id === id)
-    const nuevoEstado = !currentState
-    
-    const confirmed = await confirm({
-      title: nuevoEstado ? '¿Activar oferta?' : '¿Desactivar oferta?',
-      message: nuevoEstado 
-        ? `Se marcará "${producto?.nombre}" como producto en oferta. Aparecerá con una insignia especial.`
-        : `Se quitará la marca de oferta de "${producto?.nombre}".`,
-      confirmText: nuevoEstado ? 'Activar Oferta' : 'Desactivar',
-      variant: nuevoEstado ? 'warning' : 'info'
-    })
-
-    if (!confirmed) return
-
-    await supabase
-      .from('productos')
-      .update({ en_oferta: nuevoEstado })
-      .eq('id', id)
-    
-    toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
-    loadProductos()
-  }
-
-  async function updateDescuento(id: string, descuento: number) {
-    if (descuento < 0 || descuento > 100) {
-      toast.error('El descuento debe estar entre 0 y 100')
-      return
-    }
-
-    const producto = productos.find(p => p.id === id)
-    const descuentoActual = producto?.descuento_porcentaje || 0
-    
-    // Si no hay cambio, no hacer nada
-    if (descuento === descuentoActual) return
-
-    // Si se está quitando el descuento (0%), no pedir confirmación
-    if (descuento === 0) {
-      await supabase
-        .from('productos')
-        .update({ descuento_porcentaje: descuento })
-        .eq('id', id)
-      toast.success('Descuento eliminado')
-      loadProductos()
-      return
-    }
-
-    // Calcular precios
-    const precioOriginal = producto?.precio || 0
-    const precioFinal = precioOriginal - (precioOriginal * descuento / 100)
-    
-    const confirmed = await confirm({
-      title: '¿Aplicar descuento?',
-      message: `Se aplicará un descuento del ${descuento}% a "${producto?.nombre}".\n\nPrecio original: ${formatPrice(precioOriginal)}\nPrecio con descuento: ${formatPrice(precioFinal)}\nAhorro: ${formatPrice(precioOriginal - precioFinal)}`,
-      confirmText: 'Aplicar Descuento',
-      variant: 'warning'
-    })
-
-    if (!confirmed) {
-      // Revertir el select al valor anterior
-      loadProductos()
-      return
-    }
-    
-    await supabase
-      .from('productos')
-      .update({ descuento_porcentaje: descuento })
-      .eq('id', id)
-    
-    toast.success(`Descuento del ${descuento}% aplicado exitosamente`)
-    loadProductos()
   }
 
   async function updateVarianteStock(varianteId: string, newStock: number) {
@@ -227,45 +78,6 @@ export default function AdminPage() {
     
     loadProductos()
     setEditingVariant(null)
-  }
-
-  async function duplicateProduct(producto: Producto) {
-    const confirmed = await confirm({
-      title: '¿Duplicar producto?',
-      message: 'Se creará una copia de este producto con todas sus variantes',
-      confirmText: 'Duplicar',
-      variant: 'info'
-    })
-
-    if (!confirmed) return
-
-    const { data: newProduct } = await supabase
-      .from('productos')
-      .insert({
-        nombre: `${producto.nombre} (Copia)`,
-        descripcion: producto.descripcion,
-        precio: producto.precio,
-        categoria: producto.categoria,
-        imagen_url: producto.imagen_url,
-        descuento_porcentaje: producto.descuento_porcentaje,
-        en_oferta: producto.en_oferta
-      })
-      .select()
-      .single()
-
-    if (newProduct && producto.variantes) {
-      const variantesToInsert = producto.variantes.map(v => ({
-        producto_id: newProduct.id,
-        talla: v.talla,
-        colegio: v.colegio,
-        stock: v.stock
-      }))
-      
-      await supabase.from('variantes').insert(variantesToInsert)
-    }
-    
-    toast.success('Producto duplicado exitosamente')
-    loadProductos()
   }
 
   function toggleExpandProduct(productId: string) {
@@ -429,72 +241,10 @@ export default function AdminPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE0YzMuMzEgMCA2IDIuNjkgNiA2cy0yLjY5IDYtNiA2LTYtMi42OS02LTYgMi42OS02IDYtNnpNNiAzNGMzLjMxIDAgNiAyLjY5IDYgNnMtMi42OSA2LTYgNi02LTIuNjktNi02IDIuNjktNiA2LTZ6TTM2IDM0YzMuMzEgMCA2IDIuNjkgNiA2cy0yLjY5IDYtNiA2LTYtMi42OS02LTYgMi42OS02IDYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
-        
-        <form onSubmit={handleLogin} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-10 rounded-xl shadow-xl w-full max-w-md relative z-10 border border-white/20 dark:border-gray-700">
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl mb-4 shadow-sm">
-              <svg className="w-12 h-12 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Panel Administrativo
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Acceso seguro al sistema</p>
-          </div>
-          
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Correo Electrónico</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                </div>
-                <input
-                  type="email"
-                  placeholder="admin@ejemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Contraseña</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-gray-900 dark:text-white px-5 py-2.5 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              Iniciar Sesión
-            </Button>
-          </div>
-        </form>
-      </div>
-    )
+    return <AdminLoginForm onLoginSuccess={() => {
+      setIsAuthenticated(true)
+      loadProductos()
+    }} />
   }
 
   return (
@@ -597,108 +347,7 @@ export default function AdminPage() {
         <div className="flex flex-col md:flex-row gap-6 items-start">
           
           {/* Menú Lateral de Módulos (Sidebar) */}
-          <div className="w-full md:w-56 flex-shrink-0 sticky top-24">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-4 px-2">Módulos</h2>
-              <div className="flex flex-col gap-2">
-                <button 
-                  onClick={() => router.push('/admin/ventas')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Punto de Venta</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/nuevo')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Nuevo Producto</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/colegios')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Colegios</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/categorias')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Categorías</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/clientes')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Clientes</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/proveedores')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Proveedores</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/insumos')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Insumos</span>
-                </button>
-
-                <button 
-                  onClick={() => router.push('/admin/pedidos')}
-                  className="flex items-center gap-3 p-3 rounded-lg border-l-4 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Pedidos</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <AdminSidebar />
 
           {/* Contenido Principal (Mas grande a la derecha) */}
           <div className="flex-1 min-w-0 w-full">      
