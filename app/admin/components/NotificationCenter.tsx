@@ -64,7 +64,7 @@ export default function NotificationCenter() {
   }
 
   useEffect(() => {
-    checkNotifications()
+    setTimeout(() => checkNotifications(), 0)
     const interval = setInterval(checkNotifications, 60000) // Cada minuto
     return () => clearInterval(interval)
   }, [])
