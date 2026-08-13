@@ -5,45 +5,16 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button } from '@/app/components/ui'
 import NotificationCenter from './NotificationCenter'
-import type { Producto } from '@/app/hooks/useAdminProductos'
 import Image from 'next/image'
+import { logout } from '@/app/actions/auth'
 
-interface AdminTopBarProps {
-  filteredProducts: Producto[]
-  onLogout: () => void
-}
-
-export default function AdminTopBar({ filteredProducts, onLogout }: AdminTopBarProps) {
+export default function AdminTopBar() {
   const router = useRouter()
   const toast = useToast()
 
-  function handleExportCsv() {
-    const headers = ['ID', 'Nombre', 'Categoria', 'Precio Original', 'Descuento %', 'Precio Final', 'Stock Total', 'En Oferta', 'Notas']
-    const csvRows = filteredProducts.map(p => {
-      const precioFinal = p.descuento_porcentaje ? p.precio - (p.precio * p.descuento_porcentaje / 100) : p.precio
-      return [
-        p.id,
-        `"${p.nombre.replace(/"/g, '""')}"`,
-        `"${p.categoria}"`,
-        p.precio,
-        p.descuento_porcentaje || 0,
-        precioFinal,
-        p.stock_total || 0,
-        p.en_oferta ? 'Si' : 'No',
-        `"${p.notas?.replace(/"/g, '""') || ''}"`
-      ].join(',')
-    })
-    
-    const csvContent = [headers.join(','), ...csvRows].join('\n')
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `inventario_angus_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success('Inventario exportado a CSV')
+  async function handleLogout() {
+    await logout()
+    router.push('/login')
   }
 
   return (
@@ -106,17 +77,6 @@ export default function AdminTopBar({ filteredProducts, onLogout }: AdminTopBarP
             </Button>
 
             <Button
-              onClick={handleExportCsv}
-              className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
-              title="Exportar a Excel/CSV"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden lg:inline">Exportar</span>
-            </Button>
-
-            <Button
               onClick={() => window.print()}
               className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm print:hidden"
               title="Imprimir Vista Actual"
@@ -127,7 +87,7 @@ export default function AdminTopBar({ filteredProducts, onLogout }: AdminTopBarP
               <span className="hidden lg:inline">Imprimir</span>
             </Button>
             <Button
-              onClick={onLogout}
+              onClick={handleLogout}
               className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
               title="Cerrar Sesión"
             >

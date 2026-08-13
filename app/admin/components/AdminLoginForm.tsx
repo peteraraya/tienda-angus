@@ -1,17 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/app/components/ui'
 import { login } from '@/app/actions/auth'
 import { useToast } from '@/app/components/ui/ToastContainer'
 
-interface AdminLoginFormProps {
-  onLoginSuccess: () => void
-}
-
-export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
+export default function AdminLoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const router = useRouter()
   const toast = useToast()
 
   async function handleLogin(e: React.FormEvent) {
@@ -19,7 +17,7 @@ export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) 
     const result = await login(email, password)
     if (result.success) {
       toast.success('Sesión iniciada correctamente')
-      onLoginSuccess()
+      router.push('/admin')
     } else {
       toast.error(result.error || 'Error al iniciar sesión')
     }
@@ -56,7 +54,7 @@ export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) 
                 placeholder="admin@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-white"
                 required
               />
             </div>
@@ -75,7 +73,7 @@ export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) 
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-white"
                 required
               />
             </div>
@@ -83,7 +81,7 @@ export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) 
           
           <Button 
             type="submit" 
-            className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-gray-900 dark:text-white px-5 py-2.5 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-xl transform hover:-translate-y-0.5"
+            className="w-full bg-linear-to-br from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-xl transform hover:-translate-y-0.5"
           >
             Iniciar Sesión
           </Button>

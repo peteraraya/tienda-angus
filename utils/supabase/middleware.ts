@@ -37,15 +37,11 @@ export async function updateSession(request: NextRequest) {
 
   if (
     !user &&
-    request.nextUrl.pathname.startsWith('/admin') &&
-    request.nextUrl.pathname !== '/admin/login' // Asumimos que podemos tener una ruta especifica de login
+    request.nextUrl.pathname.startsWith('/admin')
   ) {
-    // no user, potentially respond by redirecting the user to the login page
-    // For now we just let them be unauthenticated if they are in another page, but protect /admin routes
-    // But since admin/login is not clearly separated yet (AdminLoginForm is in admin/page), 
-    // let's adjust this later based on how the routing is set up.
-    // In the current setup, /admin has the login form in it when not authenticated.
-    // So redirecting to /admin/login might not be correct if it's rendered on /admin.
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse

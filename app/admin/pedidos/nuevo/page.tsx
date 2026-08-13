@@ -291,13 +291,13 @@ export default function NuevoPedidoPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar insumos..."
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white transition-colors"
                   />
                 </div>
                 <select
                   value={selectedCategoria}
                   onChange={(e) => setSelectedCategoria(e.target.value)}
-                  className="w-full sm:w-1/3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors"
+                  className="w-full sm:w-1/3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-semibold transition-colors"
                 >
                   <option value="">📁 Todas las categorías</option>
                   {categorias.map(cat => (
@@ -382,7 +382,7 @@ export default function NuevoPedidoPage() {
                             </div>
                             <button
                               onClick={() => agregarAlCarrito(insumo)}
-                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
+                              className="col-span-2 sm:col-span-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm hover:shadow"
                             >
                               + Añadir
                             </button>
@@ -459,7 +459,7 @@ export default function NuevoPedidoPage() {
                         onChange={(e) => setSearchProveedor(e.target.value)}
                         onFocus={() => setShowProveedorSuggestions(true)}
                         placeholder="Buscar proveedor..."
-                        className="w-full p-3 border border-orange-300 dark:border-orange-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full p-3 border border-orange-300 dark:border-orange-600 rounded-lg bg-white dark:bg-gray-700 text-white"
                       />
 
                       {showProveedorSuggestions && searchProveedor.length >= 1 && proveedoresFiltrados.length > 0 && (
@@ -498,7 +498,7 @@ export default function NuevoPedidoPage() {
                     type="date"
                     value={fechaEsperada}
                     onChange={(e) => setFechaEsperada(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-white"
                   />
                 </div>
               </div>
@@ -554,7 +554,7 @@ export default function NuevoPedidoPage() {
                               type="number"
                               value={item.precio_unitario}
                               onChange={(e) => actualizarPrecio(item.insumo_id, parseFloat(e.target.value) || 0)}
-                              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-white"
                               min="0"
                             />
                           </div>
@@ -585,7 +585,7 @@ export default function NuevoPedidoPage() {
                       value={notasPedido}
                       onChange={(e) => setNotasPedido(e.target.value)}
                       placeholder="Notas del pedido (opcional)..."
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-white resize-none"
                       rows={2}
                     />
 

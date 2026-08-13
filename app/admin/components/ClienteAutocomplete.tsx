@@ -179,7 +179,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.nombre}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
               placeholder="Ej: Juan Pérez"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
             />
           </div>
 
@@ -192,7 +192,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.contacto}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, contacto: e.target.value })}
               placeholder="Ej: juan@email.com"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
             />
           </div>
 
@@ -205,7 +205,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.telefono}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
               placeholder="Ej: +56912345678"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
             />
           </div>
 
@@ -218,7 +218,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.red_social}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, red_social: e.target.value })}
               placeholder="Ej: @usuario_instagram"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
             />
           </div>
 
@@ -231,7 +231,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.direccion}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, direccion: e.target.value })}
               placeholder="Ej: Av. Principal 123"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
             />
           </div>
 
@@ -262,7 +262,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => searchTerm.length >= 2 && setShowSuggestions(true)}
           placeholder="Buscar por nombre, teléfono o contacto..."
-          className="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 text-white"
         />
 
         {loading && (
@@ -293,7 +293,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
         <div className="mt-3 flex gap-2">
           <Button
             onClick={() => setShowNewClienteForm(true)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

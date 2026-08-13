@@ -54,7 +54,7 @@ export default function DashboardSummary({ productos }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       {/* Total Productos */}
-      <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl p-6 text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@ export default function DashboardSummary({ productos }: Props) {
       </div>
 
       {/* Stock Disponible */}
-      <div className="bg-white dark:bg-slate-800 border border-green-100 dark:border-slate-700 dark:from-green-600 dark:to-green-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-green-100 dark:border-slate-700 dark:from-green-600 dark:to-green-700 rounded-xl p-6 text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@ export default function DashboardSummary({ productos }: Props) {
       </div>
 
       {/* Stock Bajo */}
-      <div className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
+      <div className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-xl p-6 text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ export default function DashboardSummary({ productos }: Props) {
       </div>
 
       {/* Agotados */}
-      <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-slate-700 dark:from-red-600 dark:to-red-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
+      <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-slate-700 dark:from-red-600 dark:to-red-700 rounded-xl p-6 text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="p-3 bg-white/20 rounded-xl">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ export default function DashboardSummary({ productos }: Props) {
       </div>
 
       {/* Valor Inventario */}
-      <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl p-6 text-gray-900 dark:text-white shadow-sm hover:shadow-xl transition-all">
+      <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl p-6 text-white shadow-sm hover:shadow-xl transition-all">
         <div className="flex flex-col h-full justify-between">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-white/20 rounded-xl">

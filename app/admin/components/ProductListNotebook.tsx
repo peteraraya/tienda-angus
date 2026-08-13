@@ -553,7 +553,7 @@ export default function ProductListNotebook({
                   onClick={() => onToggleOferta(producto.id, producto.en_oferta || false)}
                   className={`w-full px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
                     producto.en_oferta
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-gray-900 dark:text-white shadow-md'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
@@ -799,7 +799,7 @@ export default function ProductListNotebook({
                       onUpdateProductNotas(editingProductNotas, textarea.value)
                     }
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 dark:text-white rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md hover:shadow-sm"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md hover:shadow-sm"
                 >
                   💾 Guardar Notas
                 </button>
@@ -881,7 +881,7 @@ export default function ProductListNotebook({
                       onUpdateProductPrice(editingProductPrice, parseInt(input.value) || 0)
                     }
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-gray-900 dark:text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-sm"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-sm"
                 >
                   💰 Actualizar Precio
                 </button>

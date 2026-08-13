@@ -1,375 +1,322 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-// Use LazyImage for insignia previews
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input, LazyImage } from '@/app/components/ui'
 import type { Colegio } from '@/types/database'
+import AdminHeader from '../components/AdminHeader'
+import { useAdminColegios } from '@/app/hooks/useAdminColegios'
 
 export default function ColegiosPage() {
-  const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
-  const [colegios, setColegios] = useState<Colegio[]>([])
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [nuevoColegio, setNuevoColegio] = useState({ nombre: '', insignia_url: '' })
-  const [editando, setEditando] = useState<string | null>(null)
-  const [colegioEditado, setColegioEditado] = useState({ nombre: '', insignia_url: '' })
 
-  async function loadColegios() {
-    const { data } = await supabase
-      .from('colegios')
-      .select('*')
-      .order('nombre', { ascending: true })
+  const { 
+    colegios, 
+    isLoadingColegios, 
+    createColegioMutation, 
+    updateColegioMutation, 
+    deleteColegioMutation, 
+    toggleActivoMutation 
+  } = useAdminColegios()
 
-    if (data) {
-      setColegios(data)
-    }
-  }
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showNewForm, setShowNewForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession()
-    setIsAuthenticated(!!session)
-    if (session) {
-      loadColegios()
-    }
-    setLoading(false)
-  }
+  const [formData, setFormData] = useState({
+    nombre: '',
+    insignia_url: ''
+  })
 
-  useEffect(() => {
-    async function run() {
-      await checkAuth()
-    }
-    run()
-  }, [])
-
-  async function agregarColegio() {
-    if (!nuevoColegio.nombre.trim()) {
-      toast.error('Ingresa el nombre del colegio')
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!formData.nombre.trim()) {
+      toast.error('El nombre del colegio es obligatorio')
       return
     }
 
-    const { error } = await supabase
-      .from('colegios')
-      .insert([{ 
-        nombre: nuevoColegio.nombre.trim(), 
-        insignia_url: nuevoColegio.insignia_url.trim() || null,
-        activo: true 
-      }])
+    const data = {
+      nombre: formData.nombre.trim(),
+      insignia_url: formData.insignia_url.trim() || undefined,
+      activo: true
+    }
 
-    if (error) {
-      if (error.code === '23505') {
-        toast.error('Este colegio ya existe')
+    try {
+      if (editingId) {
+        await updateColegioMutation.mutateAsync({ id: editingId, data: data as Partial<Colegio> })
+        toast.success('Colegio actualizado')
       } else {
-        toast.error('Error al agregar colegio')
+        await createColegioMutation.mutateAsync(data as Partial<Colegio>)
+        toast.success('Colegio creado')
       }
-      return
+      resetForm()
+    } catch (err) {
+      toast.error(editingId ? 'Error al actualizar colegio' : 'Error al crear colegio')
+      console.error(err)
     }
-
-    toast.success('Colegio agregado exitosamente')
-    setNuevoColegio({ nombre: '', insignia_url: '' })
-    loadColegios()
   }
 
-  async function toggleActivo(id: string, activo: boolean) {
-    const confirmed = await confirm({
-      title: activo ? '¿Desactivar colegio?' : '¿Activar colegio?',
-      message: activo 
-        ? 'Los productos con este colegio seguirán existiendo pero no aparecerá en los selectores'
-        : 'El colegio volverá a estar disponible en los selectores',
-      variant: 'warning'
+  function resetForm() {
+    setFormData({ nombre: '', insignia_url: '' })
+    setEditingId(null)
+    setShowNewForm(false)
+  }
+
+  function startEdit(colegio: Colegio) {
+    setFormData({
+      nombre: colegio.nombre,
+      insignia_url: colegio.insignia_url || ''
     })
-
-    if (!confirmed) return
-
-    const { error } = await supabase
-      .from('colegios')
-      .update({ activo: !activo })
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al actualizar colegio')
-      return
-    }
-
-    toast.success(activo ? 'Colegio desactivado' : 'Colegio activado')
-    loadColegios()
+    setEditingId(colegio.id)
+    setShowNewForm(true)
   }
 
-  async function actualizarColegio(id: string) {
-    if (!colegioEditado.nombre.trim()) {
-      toast.error('Ingresa un nombre válido')
-      return
+  async function toggleActivo(id: string, currentState: boolean) {
+    try {
+      await toggleActivoMutation.mutateAsync({ id, currentState })
+      toast.success(currentState ? 'Colegio desactivado' : 'Colegio activado')
+    } catch (err) {
+      toast.error('Error al actualizar estado')
+      console.error(err)
     }
-
-    const { error } = await supabase
-      .from('colegios')
-      .update({ 
-        nombre: colegioEditado.nombre.trim(),
-        insignia_url: colegioEditado.insignia_url.trim() || null
-      })
-      .eq('id', id)
-
-    if (error) {
-      if (error.code === '23505') {
-        toast.error('Este nombre ya existe')
-      } else {
-        toast.error('Error al actualizar colegio')
-      }
-      return
-    }
-
-    toast.success('Colegio actualizado exitosamente')
-    setEditando(null)
-    setColegioEditado({ nombre: '', insignia_url: '' })
-    loadColegios()
   }
 
-  async function eliminarColegio(id: string) {
+  async function deleteColegio(id: string, nombre: string) {
     const confirmed = await confirm({
       title: '¿Eliminar colegio?',
-      message: 'Los productos con este colegio podrían verse afectados. Esta acción no se puede deshacer.',
+      message: `Se eliminará "${nombre}". Los productos con este colegio podrían verse afectados.`,
       confirmText: 'Eliminar',
       variant: 'danger'
     })
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from('colegios')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
+    try {
+      await deleteColegioMutation.mutateAsync(id)
+      toast.success('Colegio eliminado')
+    } catch (err) {
       toast.error('Error al eliminar colegio. Puede que esté en uso.')
-      return
+      console.error(err)
     }
-
-    toast.success('Colegio eliminado exitosamente')
-    loadColegios()
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
-  }
+  const colegiosFiltrados = colegios.filter(c => {
+    if (!searchTerm) return true
+    const search = searchTerm.toLowerCase()
+    return c.nombre.toLowerCase().includes(search)
+  })
 
-  if (!isAuthenticated) {
-    router.push('/admin')
-    return null
+  if (isLoadingColegios) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando colegios...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-8">
-      <div className="w-full max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
+      <AdminHeader 
+        title="🏫 Gestión de Colegios" 
+        subtitle="Administra los colegios disponibles para los productos"
+      />
+
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
-              <Button
-                onClick={() => router.push('/admin')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-              </Button>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 ml-2">
-                <img 
-                  src="/logo-confecciones.png" 
-                  alt="Confecciones Angus" 
-                  className="w-full h-full object-contain p-1"
-                />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Colegios</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Administra los colegios disponibles para los productos</p>
+                <p className="text-blue-100 font-semibold text-sm">Total Colegios</p>
+                <p className="text-3xl font-bold">{colegios.length}</p>
               </div>
             </div>
           </div>
 
-          {/* Agregar Nuevo Colegio */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Nuevo Colegio
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
-              <div className="sm:col-span-5">
-                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Nombre del Colegio</label>
-                <Input
-                  type="text"
-                  value={nuevoColegio.nombre}
-                  onChange={(e) => setNuevoColegio({...nuevoColegio, nombre: e.target.value})}
-                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
-                  placeholder="Ej: Colegio San José"
-                />
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-              <div className="sm:col-span-5">
-                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">URL de Insignia (Opcional)</label>
-                <Input
-                  type="url"
-                  value={nuevoColegio.insignia_url}
-                  onChange={(e) => setNuevoColegio({...nuevoColegio, insignia_url: e.target.value})}
-                  className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
-                  placeholder="https://ejemplo.com/insignia.png"
-                />
-              </div>
-              
-              <div className="sm:col-span-2">
-                <Button
-                  onClick={agregarColegio}
-                  className="w-full bg-blue-600 text-gray-900 dark:text-white py-3.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
-                >
-                  + Agregar
-                </Button>
+              <div>
+                <p className="text-emerald-100 font-semibold text-sm">Activos</p>
+                <p className="text-3xl font-bold">
+                  {colegios.filter(c => c.activo).length}
+                </p>
               </div>
             </div>
+          </div>
 
-            {nuevoColegio.insignia_url && (
-              <div className="mt-4 flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm w-max">
-                <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center p-1">
-                  <LazyImage
-                    src={nuevoColegio.insignia_url}
-                    alt="Vista previa"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-contain"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                    unoptimized
-                  />
-                </div>
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-300">Vista previa</span>
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.293M3 3l3.29 3.29M3 3l3.29 3.29M21 21l-3.29-3.29" />
+                </svg>
               </div>
-            )}
+              <div>
+                <p className="text-purple-100 font-semibold text-sm">Inactivos</p>
+                <p className="text-3xl font-bold">
+                  {colegios.filter(c => !c.activo).length}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Lista de Colegios */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Colegios Registrados ({colegios.length})
-            </h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Buscar colegio..."
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white transition-colors"
+              />
+            </div>
+            <button
+              onClick={() => setShowNewForm(!showNewForm)}
+              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+            >
+              {showNewForm ? 'Cancelar' : '+ Nuevo Colegio'}
+            </button>
           </div>
+        </div>
 
-          {colegios.length === 0 ? (
+        {showNewForm && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-blue-300 dark:border-blue-700">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              {editingId ? 'Editar Colegio' : 'Nuevo Colegio'}
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  placeholder="Nombre del colegio *"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  required
+                />
+                <Input
+                  type="url"
+                  value={formData.insignia_url}
+                  onChange={(e) => setFormData({ ...formData, insignia_url: e.target.value })}
+                  placeholder="URL de insignia (opcional)"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                />
+              </div>
+
+              {formData.insignia_url && (
+                <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm w-max">
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center p-1">
+                    <LazyImage
+                      src={formData.insignia_url}
+                      alt="Vista previa"
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                      unoptimized
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-300">Vista previa</span>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold">
+                  {editingId ? 'Actualizar' : 'Crear'} Colegio
+                </Button>
+                <Button type="button" onClick={resetForm} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold">
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {colegiosFiltrados.length === 0 ? (
             <div className="p-16 text-center">
               <div className="inline-flex items-center justify-center w-24 h-24 bg-purple-50 dark:bg-gray-800 rounded-full mb-6">
                 <svg className="w-12 h-12 text-purple-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin colegios</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-base font-medium">Aún no has registrado ningún colegio en el sistema.</p>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Sin resultados</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-base font-medium">No se encontraron colegios con este filtro.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {colegios.map((colegio) => (
-                <div key={colegio.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                    {/* Insignia */}
-                    <div className="shrink-0 flex justify-center sm:justify-start">
-                      {colegio.insignia_url ? (
-                        <LazyImage
-                          src={colegio.insignia_url}
-                          alt={`Insignia ${colegio.nombre}`}
-                          width={80}
-                          height={80}
-                          className="w-20 h-20 object-contain rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-1 shadow-sm"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
-                          }}
-                          unoptimized
-                        />
-                      ) : null}
-                      <div className={`w-20 h-20 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 ${colegio.insignia_url ? 'hidden' : ''}`}>
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Información */}
-                    <div className="flex-1">
-                      {editando === colegio.id ? (
-                        <div className="space-y-3">
-                          <Input
-                            type="text"
-                            value={colegioEditado.nombre}
-                            onChange={(e) => setColegioEditado({...colegioEditado, nombre: e.target.value})}
-                            placeholder="Nombre del colegio"
-                            className="w-full p-2.5 border border-blue-500 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold"
-                            autoFocus
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Insignia</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Colegio</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Estado</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {colegiosFiltrados.map(colegio => (
+                    <tr key={colegio.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-6 py-4">
+                        {colegio.insignia_url ? (
+                          <LazyImage
+                            src={colegio.insignia_url}
+                            alt={`Insignia ${colegio.nombre}`}
+                            width={48}
+                            height={48}
+                            className="w-12 h-12 object-contain rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-0.5"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            unoptimized
                           />
-                          <Input
-                            type="url"
-                            value={colegioEditado.insignia_url}
-                            onChange={(e) => setColegioEditado({...colegioEditado, insignia_url: e.target.value})}
-                            placeholder="URL de insignia (opcional)"
-                            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-center sm:text-left">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{colegio.nombre}</h3>
-                            <span className={`inline-flex self-center text-xs font-bold px-3 py-1 rounded-full ${
-                              colegio.activo 
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                            }`}>
-                              {colegio.activo ? 'Activo' : 'Inactivo'}
-                            </span>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                           </div>
-                          {colegio.insignia_url ? (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-mono truncate max-w-sm mx-auto sm:mx-0">
-                              {colegio.insignia_url}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 italic">Sin URL de insignia</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="flex flex-wrap sm:flex-nowrap justify-center gap-2 mt-4 sm:mt-0">
-                      {editando === colegio.id ? (
-                        <>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-gray-900 dark:text-white">{colegio.nombre}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => toggleActivo(colegio.id, colegio.activo)}
+                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            colegio.activo
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                          }`}
+                        >
+                          {colegio.activo ? 'Activo' : 'Inactivo'}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => actualizarColegio(colegio.id)}
-                            className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
-                          >
-                            Guardar
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditando(null)
-                              setColegioEditado({ nombre: '', insignia_url: '' })
-                            }}
-                            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => {
-                              setEditando(colegio.id)
-                              setColegioEditado({ 
-                                nombre: colegio.nombre, 
-                                insignia_url: colegio.insignia_url || '' 
-                              })
-                            }}
-                            className="p-2.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl transition-all font-bold shadow-sm"
+                            onClick={() => startEdit(colegio)}
+                            className="p-2.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors shadow-sm font-bold"
                             title="Editar"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,45 +324,25 @@ export default function ColegiosPage() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => toggleActivo(colegio.id, colegio.activo)}
-                            className={`p-2.5 rounded-xl transition-all font-bold shadow-sm ${
-                              colegio.activo 
-                                ? 'bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400' 
-                                : 'bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400'
-                            }`}
-                            title={colegio.activo ? 'Desactivar' : 'Activar'}
-                          >
-                            {colegio.activo ? (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.293M3 3l3.29 3.29M3 3l3.29 3.29M21 21l-3.29-3.29" />
-                              </svg>
-                            ) : (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => eliminarColegio(colegio.id)}
-                            className="p-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-all font-bold shadow-sm"
+                            onClick={() => deleteColegio(colegio.id, colegio.nombre)}
+                            className="p-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors shadow-sm font-bold"
                             title="Eliminar"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       </div>
-      
+
       <ConfirmDialog />
     </div>
   )

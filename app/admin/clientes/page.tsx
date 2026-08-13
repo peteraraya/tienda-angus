@@ -132,15 +132,17 @@ export default function ClientesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
-      <AdminHeader 
-        title="👥 Clientes" 
-        subtitle="Administra tu base de clientes"
-      />
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">👥 Clientes</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Administra tu base de clientes</p>
+        </div>
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div className="w-full max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +156,7 @@ export default function ClientesPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +172,7 @@ export default function ClientesPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +202,7 @@ export default function ClientesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="🔍 Buscar por nombre, teléfono o contacto..."
-              className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white transition-colors"
             />
           </div>
         </div>
@@ -254,21 +256,21 @@ export default function ClientesPage() {
                                 value={editForm.nombre}
                                 onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })}
                                 placeholder="Nombre *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
                               />
                               <Input
                                 type="text"
                                 value={editForm.contacto}
                                 onChange={(e) => setEditForm({ ...editForm, contacto: e.target.value })}
                                 placeholder="Contacto *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
                               />
                               <Input
                                 type="tel"
                                 value={editForm.telefono}
                                 onChange={(e) => setEditForm({ ...editForm, telefono: e.target.value })}
                                 placeholder="Teléfono *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
                               />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -277,33 +279,33 @@ export default function ClientesPage() {
                                 value={editForm.red_social}
                                 onChange={(e) => setEditForm({ ...editForm, red_social: e.target.value })}
                                 placeholder="Red Social"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
                               />
                               <Input
                                 type="text"
                                 value={editForm.direccion}
                                 onChange={(e) => setEditForm({ ...editForm, direccion: e.target.value })}
                                 placeholder="Dirección"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
                               />
                             </div>
                             <textarea
                               value={editForm.notas}
                               onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
                               placeholder="Notas"
-                              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
                               rows={2}
                             />
                             <div className="flex gap-2">
                               <button
                                 onClick={() => saveEdit(cliente.id)}
-                                className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
+                                className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-sm"
                               >
                                 Guardar
                               </button>
                               <button
                                 onClick={cancelEdit}
-                                className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm"
+                                className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-xl font-bold transition-all shadow-sm"
                               >
                                 Cancelar
                               </button>
@@ -376,10 +378,11 @@ export default function ClientesPage() {
               </table>
             </div>
           )}
+          </div>
         </div>
-      </div>
+      
 
       <ConfirmDialog />
-    </div>
+    </>
   )
 }

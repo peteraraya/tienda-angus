@@ -167,7 +167,7 @@ export default function WhatsAppPage() {
                           {conv.customerName || conv.phoneNumber}
                         </span>
                         {conv.unreadCount > 0 && (
-                          <span className="bg-blue-600 text-gray-900 dark:text-white text-xs font-bold px-2 py-1 rounded-full">
+                          <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                             {conv.unreadCount}
                           </span>
                         )}
@@ -207,8 +207,8 @@ export default function WhatsAppPage() {
                         <div
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                             msg.direction === 'outgoing'
-                              ? 'bg-blue-600 text-gray-900 dark:text-white'
-                              : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-white'
                           }`}
                         >
                           <p className="text-sm">{msg.message_body}</p>
@@ -239,12 +239,12 @@ export default function WhatsAppPage() {
                         onChange={(e) => setMessageText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder="Escribe un mensaje..."
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-white"
                       />
                       <button
                         onClick={handleSendMessage}
                         disabled={!messageText.trim() || sendMessageMutation.isPending}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-gray-900 dark:text-white rounded-lg font-semibold transition-colors"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
                       >
                         {sendMessageMutation.isPending ? 'Enviando...' : 'Enviar'}
                       </button>

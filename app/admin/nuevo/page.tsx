@@ -514,7 +514,7 @@ export default function NuevoProducto() {
                   <select
                     value={nuevaVariante.talla}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, talla: e.target.value})}
-                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-bold"
                   >
                     <option value="">Única / Sin Talla</option>
                     <optgroup label="⚡ Generación Rápida">
@@ -535,7 +535,7 @@ export default function NuevoProducto() {
                   <select
                     value={nuevaVariante.colegio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, colegio: e.target.value})}
-                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-bold"
                   >
                     <option value="">General / Sin Colegio</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
@@ -548,7 +548,7 @@ export default function NuevoProducto() {
                     type="number"
                     value={nuevaVariante.precio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, precio: e.target.value})}
-                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-mono"
                     placeholder="Opcional"
                     min="0"
                   />
@@ -560,7 +560,7 @@ export default function NuevoProducto() {
                     type="number"
                     value={nuevaVariante.stock}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, stock: e.target.value})}
-                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono font-bold"
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-mono font-bold"
                     placeholder="0"
                     min="0"
                   />
@@ -571,7 +571,7 @@ export default function NuevoProducto() {
                     type="button"
                     variant="success"
                     onClick={agregarVariante}
-                    className="w-full bg-blue-600 text-gray-900 dark:text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
+                    className="w-full bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 font-bold transition-all shadow-sm hover:shadow"
                   >
                     + Añadir
                   </Button>
@@ -596,7 +596,7 @@ export default function NuevoProducto() {
                       {variantes.map((v, index) => (
                         <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 bg-gray-100 dark:bg-gray-700 rounded-md font-bold text-gray-900 dark:text-white text-sm">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 bg-gray-100 dark:bg-gray-700 rounded-md font-bold text-white text-sm">
                               {v.talla}
                             </span>
                           </td>
@@ -679,7 +679,7 @@ export default function NuevoProducto() {
             <Button
               variant="secondary"
               onClick={() => router.push('/admin')}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow"
+              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow"
             >
               Cancelar
             </Button>

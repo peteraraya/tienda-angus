@@ -157,7 +157,7 @@ export default function ProveedoresPage() {
         actions={
           <Button
             onClick={() => router.push('/admin/pedidos')}
-            className="bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-sm hover:-translate-y-0.5"
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-sm hover:-translate-y-0.5"
           >
             📦 Ver Pedidos
           </Button>
@@ -166,7 +166,7 @@ export default function ProveedoresPage() {
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@ export default function ProveedoresPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +196,7 @@ export default function ProveedoresPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-gray-900 dark:text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,12 +226,12 @@ export default function ProveedoresPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="🔍 Buscar proveedor..."
-                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white transition-colors"
               />
             </div>
             <button
               onClick={() => setShowNewForm(!showNewForm)}
-              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white rounded-xl font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
             >
               {showNewForm ? 'Cancelar' : '+ Nuevo Proveedor'}
             </button>
@@ -250,7 +250,7 @@ export default function ProveedoresPage() {
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Nombre del proveedor *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                   required
                 />
                 <Input
@@ -258,7 +258,7 @@ export default function ProveedoresPage() {
                   value={formData.contacto}
                   onChange={(e) => setFormData({ ...formData, contacto: e.target.value })}
                   placeholder="Nombre de contacto *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                   required
                 />
                 <Input
@@ -266,7 +266,7 @@ export default function ProveedoresPage() {
                   value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   placeholder="Teléfono *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                   required
                 />
                 <Input
@@ -274,32 +274,32 @@ export default function ProveedoresPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Email"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                 />
                 <Input
                   type="text"
                   value={formData.rut}
                   onChange={(e) => setFormData({ ...formData, rut: e.target.value })}
                   placeholder="RUT"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                 />
                 <Input
                   type="text"
                   value={formData.direccion}
                   onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                   placeholder="Dirección"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
                 />
               </div>
               <textarea
                 value={formData.notas}
                 onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                 placeholder="Notas adicionales"
-                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
                 rows={3}
               />
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 text-gray-900 dark:text-white py-3 rounded-lg font-semibold">
+                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold">
                   {editingId ? 'Actualizar' : 'Crear'} Proveedor
                 </Button>
                 <Button type="button" onClick={resetForm} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold">
