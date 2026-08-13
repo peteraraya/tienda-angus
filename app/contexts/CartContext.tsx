@@ -38,7 +38,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedCart = localStorage.getItem('shopping_cart')
       if (savedCart) {
-        setCart(JSON.parse(savedCart))
+        const parsedCart = JSON.parse(savedCart)
+        setTimeout(() => setCart(parsedCart), 0)
       }
     } catch (e) {
       console.error('Error loading cart:', e)

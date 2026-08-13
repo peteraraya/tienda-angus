@@ -22,10 +22,6 @@ export default function HistorialVentasPage() {
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
 
-  useEffect(() => {
-    loadVentas()
-  }, [])
-
   async function loadVentas() {
     setLoading(true)
     
@@ -51,6 +47,10 @@ export default function HistorialVentasPage() {
     
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadVentas()
+  }, [])
 
   async function loadVentaItems(ventaId: string) {
     const venta = ventas.find(v => v.id === ventaId)

@@ -28,10 +28,6 @@ export default function ClientesPage() {
     notas: ''
   })
 
-  useEffect(() => {
-    loadClientes()
-  }, [])
-
   async function loadClientes() {
     setLoading(true)
     const { data } = await supabase
@@ -44,6 +40,10 @@ export default function ClientesPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadClientes()
+  }, [])
 
   async function deleteCliente(id: string, nombre: string) {
     const confirmed = await confirm({

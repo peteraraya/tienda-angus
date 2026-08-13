@@ -17,12 +17,6 @@ export default function NotificationCenter() {
   const [showPanel, setShowPanel] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  useEffect(() => {
-    checkNotifications()
-    const interval = setInterval(checkNotifications, 60000) // Cada minuto
-    return () => clearInterval(interval)
-  }, [])
-
   async function checkNotifications() {
     const newNotifications: Notification[] = []
 
@@ -68,6 +62,12 @@ export default function NotificationCenter() {
     setNotifications(newNotifications)
     setUnreadCount(newNotifications.filter(n => !n.read).length)
   }
+
+  useEffect(() => {
+    checkNotifications()
+    const interval = setInterval(checkNotifications, 60000) // Cada minuto
+    return () => clearInterval(interval)
+  }, [])
 
   function markAsRead(id: string) {
     setNotifications(notifications.map(n => 
