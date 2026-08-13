@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
+import { logout } from '@/app/actions/auth'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Pagination, usePagination } from '../components/ui'
@@ -69,6 +70,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function checkAuth() {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       setIsAuthenticated(!!session)
       setLoading(false)
@@ -77,7 +79,7 @@ export default function AdminPage() {
   }, []) 
 
   async function handleLogout() {
-    await supabase.auth.signOut()
+    await logout()
     setIsAuthenticated(false)
   }
 

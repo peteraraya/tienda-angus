@@ -1,39 +1,27 @@
 'use client'
 
-import { supabase } from '@/lib/supabase'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Cliente } from '@/types/database'
+import { fetchClientesAction, updateClienteAction, deleteClienteAction } from '@/app/actions/clientes'
 
 export function useAdminClientes() {
   const queryClient = useQueryClient()
 
-  const fetchClientes = async (): Promise<Cliente[]> => {
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .order('cantidad_compras', { ascending: false })
-
-    if (error) throw error
-    return data || []
-  }
-
   const { data: clientes = [], isLoading: isLoadingClientes } = useQuery({
     queryKey: ['adminClientes'],
-    queryFn: fetchClientes,
+    queryFn: fetchClientesAction,
   })
 
   const updateClienteMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Cliente> }) => {
-      const { error } = await supabase.from('clientes').update(data).eq('id', id)
-      if (error) throw error
+      await updateClienteAction(id, data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminClientes'] })
   })
 
   const deleteClienteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('clientes').delete().eq('id', id)
-      if (error) throw error
+      await deleteClienteAction(id)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminClientes'] })
   })

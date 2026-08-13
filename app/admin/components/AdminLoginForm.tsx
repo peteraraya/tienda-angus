@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/app/components/ui'
-import { supabase } from '@/lib/supabase'
+import { login } from '@/app/actions/auth'
 import { useToast } from '@/app/components/ui/ToastContainer'
 
 interface AdminLoginFormProps {
@@ -16,12 +16,12 @@ export default function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) 
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (!error) {
+    const result = await login(email, password)
+    if (result.success) {
       toast.success('Sesión iniciada correctamente')
       onLoginSuccess()
     } else {
-      toast.error('Error al iniciar sesión')
+      toast.error(result.error || 'Error al iniciar sesión')
     }
   }
 
