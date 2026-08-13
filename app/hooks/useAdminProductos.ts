@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { formatPrice } from '@/lib/formatPrice'
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export interface Variante extends DBVariante {
   insignia_url?: string
@@ -20,24 +20,26 @@ export interface Producto extends DBProducto {
 /**
  * Custom hook to manage the state and actions of products in the admin panel.
  * Handles fetching, deleting, duplicating, and updating products and their variants.
- * Interacts directly with the Supabase client.
+ * Interacts directly with the Supabase client and uses TanStack React Query for caching.
  * 
- * @returns {Object} Product state and action methods
+ * @returns {Object} Product state, loading status, and action methods
  */
 export function useAdminProductos() {
-  const [productos, setProductos] = useState<Producto[]>([])
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
+  const queryClient = useQueryClient()
 
   /**
-   * Fetches all products and their associated variants from the database.
+   * Fetches all products and their associated variants from the database using React Query.
    * Also maps school badges (insignias) to the corresponding variants.
    */
-  async function loadProductos() {
-    const { data: productosData } = await supabase
+  const fetchProductos = async (): Promise<Producto[]> => {
+    const { data: productosData, error: productosError } = await supabase
       .from('productos')
       .select('*')
       .order('created_at', { ascending: false })
+
+    if (productosError) throw productosError
 
     // Cargar colegios con sus insignias
     const { data: colegiosData } = await supabase
@@ -49,35 +51,119 @@ export function useAdminProductos() {
       colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
     )
 
-    if (productosData) {
-      const productosConInfo = await Promise.all(
-        productosData.map(async (producto) => {
-          const { data: variantes } = await supabase
-            .from('variantes')
-            .select('*')
-            .eq('producto_id', producto.id)
+    if (!productosData) return []
 
-          // Agregar insignia_url a cada variante
-          const variantesConInsignia = variantes?.map(v => ({
-            ...v,
-            insignia_url: colegiosMap.get(v.colegio.trim())
-          })) || []
+    const productosConInfo = await Promise.all(
+      productosData.map(async (producto) => {
+        const { data: variantes } = await supabase
+          .from('variantes')
+          .select('*')
+          .eq('producto_id', producto.id)
 
-          const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
-          const variantes_count = variantes?.length || 0
+        // Agregar insignia_url a cada variante
+        const variantesConInsignia = variantes?.map(v => ({
+          ...v,
+          insignia_url: colegiosMap.get(v.colegio.trim())
+        })) || []
 
-          return {
-            ...producto,
-            stock_total,
-            variantes_count,
-            variantes: variantesConInsignia
-          }
-        })
-      )
+        const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
+        const variantes_count = variantes?.length || 0
 
-      setProductos(productosConInfo)
-    }
+        return {
+          ...producto,
+          stock_total,
+          variantes_count,
+          variantes: variantesConInsignia
+        }
+      })
+    )
+
+    return productosConInfo
   }
+
+  const { data: productos = [], isLoading: isLoadingProductos } = useQuery({
+    queryKey: ['adminProductos'],
+    queryFn: fetchProductos,
+  })
+
+  // Mutaciones para operaciones de escritura que invalidan el caché al terminar
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('productos').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Producto eliminado exitosamente')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al eliminar el producto')
+  })
+
+  const updateOfertaMutation = useMutation({
+    mutationFn: async ({ id, nuevoEstado }: { id: string, nuevoEstado: boolean }) => {
+      const { error } = await supabase.from('productos').update({ en_oferta: nuevoEstado }).eq('id', id)
+      if (error) throw error
+      return nuevoEstado
+    },
+    onSuccess: (nuevoEstado) => {
+      toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al cambiar el estado de la oferta')
+  })
+
+  const updateDescuentoMutation = useMutation({
+    mutationFn: async ({ id, descuento }: { id: string, descuento: number }) => {
+      const { error } = await supabase.from('productos').update({ descuento_porcentaje: descuento }).eq('id', id)
+      if (error) throw error
+      return descuento
+    },
+    onSuccess: (descuento) => {
+      toast.success(descuento === 0 ? 'Descuento eliminado' : `Descuento del ${descuento}% aplicado exitosamente`)
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al aplicar el descuento')
+  })
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (producto: Producto) => {
+      const { data: newProduct, error } = await supabase
+        .from('productos')
+        .insert({
+          nombre: `${producto.nombre} (Copia)`,
+          descripcion: producto.descripcion,
+          precio: producto.precio,
+          categoria: producto.categoria,
+          imagen_url: producto.imagen_url,
+          descuento_porcentaje: producto.descuento_porcentaje,
+          en_oferta: producto.en_oferta
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      if (newProduct && producto.variantes) {
+        const variantesToInsert = producto.variantes.map(v => ({
+          producto_id: newProduct.id,
+          talla: v.talla,
+          colegio: v.colegio,
+          stock: v.stock
+        }))
+        const { error: variantError } = await supabase.from('variantes').insert(variantesToInsert)
+        if (variantError) throw variantError
+      }
+    },
+    onSuccess: () => {
+      toast.success('Producto duplicado exitosamente')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al duplicar el producto')
+  })
+
+  /**
+   * Wrapper Functions for Confirmations
+   */
 
   /**
    * Deletes a product and all its variants after user confirmation.
@@ -93,10 +179,7 @@ export function useAdminProductos() {
     })
 
     if (!confirmed) return
-
-    await supabase.from('productos').delete().eq('id', id)
-    toast.success('Producto eliminado exitosamente')
-    loadProductos()
+    deleteMutation.mutate(id)
   }
 
   /**
@@ -119,14 +202,7 @@ export function useAdminProductos() {
     })
 
     if (!confirmed) return
-
-    await supabase
-      .from('productos')
-      .update({ en_oferta: nuevoEstado })
-      .eq('id', id)
-    
-    toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
-    loadProductos()
+    updateOfertaMutation.mutate({ id, nuevoEstado })
   }
 
   /**
@@ -149,12 +225,7 @@ export function useAdminProductos() {
 
     // Si se está quitando el descuento (0%), no pedir confirmación
     if (descuento === 0) {
-      await supabase
-        .from('productos')
-        .update({ descuento_porcentaje: descuento })
-        .eq('id', id)
-      toast.success('Descuento eliminado')
-      loadProductos()
+      updateDescuentoMutation.mutate({ id, descuento })
       return
     }
 
@@ -169,19 +240,9 @@ export function useAdminProductos() {
       variant: 'warning'
     })
 
-    if (!confirmed) {
-      // Revertir el select al valor anterior
-      loadProductos()
-      return
+    if (confirmed) {
+      updateDescuentoMutation.mutate({ id, descuento })
     }
-    
-    await supabase
-      .from('productos')
-      .update({ descuento_porcentaje: descuento })
-      .eq('id', id)
-    
-    toast.success(`Descuento del ${descuento}% aplicado exitosamente`)
-    loadProductos()
   }
 
   /**
@@ -199,44 +260,67 @@ export function useAdminProductos() {
     })
 
     if (!confirmed) return
-
-    const { data: newProduct } = await supabase
-      .from('productos')
-      .insert({
-        nombre: `${producto.nombre} (Copia)`,
-        descripcion: producto.descripcion,
-        precio: producto.precio,
-        categoria: producto.categoria,
-        imagen_url: producto.imagen_url,
-        descuento_porcentaje: producto.descuento_porcentaje,
-        en_oferta: producto.en_oferta
-      })
-      .select()
-      .single()
-
-    if (newProduct && producto.variantes) {
-      const variantesToInsert = producto.variantes.map(v => ({
-        producto_id: newProduct.id,
-        talla: v.talla,
-        colegio: v.colegio,
-        stock: v.stock
-      }))
-      
-      await supabase.from('variantes').insert(variantesToInsert)
-    }
-    
-    toast.success('Producto duplicado exitosamente')
-    loadProductos()
+    duplicateMutation.mutate(producto)
   }
+
+  const updateVarianteStockMutation = useMutation({
+    mutationFn: async ({ varianteId, newStock }: { varianteId: string, newStock: number }) => {
+      const { error } = await supabase.from('variantes').update({ stock: newStock }).eq('id', varianteId)
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminProductos'] }),
+    onError: () => toast.error('Error al actualizar el stock')
+  })
+
+  const updateProductNameMutation = useMutation({
+    mutationFn: async ({ id, nombre }: { id: string, nombre: string }) => {
+      const { error } = await supabase.from('productos').update({ nombre: nombre.trim() }).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Nombre actualizado')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al actualizar el nombre')
+  })
+
+  const updateProductPriceMutation = useMutation({
+    mutationFn: async ({ id, precio }: { id: string, precio: number }) => {
+      const { error } = await supabase.from('productos').update({ precio }).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Precio actualizado')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al actualizar el precio')
+  })
+
+  const updateProductNotasMutation = useMutation({
+    mutationFn: async ({ id, notas }: { id: string, notas: string }) => {
+      const { error } = await supabase.from('productos').update({ notas: notas.trim() || null }).eq('id', id)
+      if (error) throw error
+      return notas
+    },
+    onSuccess: (notas) => {
+      toast.success(notas.trim() ? 'Notas guardadas' : 'Notas eliminadas')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al actualizar las notas')
+  })
 
   return {
     productos,
-    setProductos,
-    loadProductos,
+    isLoadingProductos,
     deleteProducto,
     toggleOferta,
     updateDescuento,
     duplicateProduct,
-    ConfirmDialog
+    updateVarianteStockMutation,
+    updateProductNameMutation,
+    updateProductPriceMutation,
+    updateProductNotasMutation,
+    ConfirmDialog,
+    refetchProductos: () => queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
   }
 }

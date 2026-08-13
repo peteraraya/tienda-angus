@@ -35,13 +35,17 @@ export default function AdminPage() {
 
   const { 
     productos, 
-    setProductos, 
-    loadProductos, 
+    isLoadingProductos,
     deleteProducto, 
     toggleOferta, 
     updateDescuento, 
     duplicateProduct,
-    ConfirmDialog
+    updateVarianteStockMutation,
+    updateProductNameMutation,
+    updateProductPriceMutation,
+    updateProductNotasMutation,
+    ConfirmDialog,
+    refetchProductos
   } = useAdminProductos()
 
   const {
@@ -68,17 +72,13 @@ export default function AdminPage() {
       const { data: { session } } = await supabase.auth.getSession()
       setIsAuthenticated(!!session)
       setLoading(false)
-      if (session) {
-        loadProductos()
-      }
     }
     checkAuth()
-  }, [loadProductos]) 
+  }, []) 
 
   async function handleLogout() {
     await supabase.auth.signOut()
     setIsAuthenticated(false)
-    setProductos([])
   }
 
   async function updateVarianteStock(varianteId: string, newStock: number) {
@@ -86,13 +86,7 @@ export default function AdminPage() {
       toast.error('El stock no puede ser negativo')
       return
     }
-    
-    await supabase
-      .from('variantes')
-      .update({ stock: newStock })
-      .eq('id', varianteId)
-    
-    loadProductos()
+    await updateVarianteStockMutation.mutateAsync({ varianteId, newStock })
     setEditingVariant(null)
   }
 
@@ -106,14 +100,7 @@ export default function AdminPage() {
       setEditingProductName(null)
       return
     }
-
-    await supabase
-      .from('productos')
-      .update({ nombre: nombre.trim() })
-      .eq('id', id)
-    
-    toast.success('Nombre actualizado')
-    loadProductos()
+    await updateProductNameMutation.mutateAsync({ id, nombre })
     setEditingProductName(null)
   }
 
@@ -123,25 +110,12 @@ export default function AdminPage() {
       setEditingProductPrice(null)
       return
     }
-
-    await supabase
-      .from('productos')
-      .update({ precio })
-      .eq('id', id)
-    
-    toast.success('Precio actualizado')
-    loadProductos()
+    await updateProductPriceMutation.mutateAsync({ id, precio })
     setEditingProductPrice(null)
   }
 
   async function updateProductNotas(id: string, notas: string) {
-    await supabase
-      .from('productos')
-      .update({ notas: notas.trim() || null })
-      .eq('id', id)
-    
-    toast.success(notas.trim() ? 'Notas guardadas' : 'Notas eliminadas')
-    loadProductos()
+    await updateProductNotasMutation.mutateAsync({ id, notas })
     setEditingProductNotas(null)
   }
 
@@ -159,12 +133,14 @@ export default function AdminPage() {
     return filteredProducts.slice(startIndex, endIndex)
   }, [filteredProducts, startIndex, endIndex])
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
+  if (loading || isLoadingProductos) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
+  }
 
   if (!isAuthenticated) {
     return <AdminLoginForm onLoginSuccess={() => {
       setIsAuthenticated(true)
-      loadProductos()
+      refetchProductos()
     }} />
   }
 
