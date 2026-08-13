@@ -1,22 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input } from '@/app/components/ui'
+import { Input } from '@/app/components/ui'
 import type { Cliente } from '@/types/database'
 import AdminHeader from '../components/AdminHeader'
+import { useAdminClientes } from '@/app/hooks/useAdminClientes'
 
 export default function ClientesPage() {
-  const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [clientes, setClientes] = useState<Cliente[]>([])
-  const [loading, setLoading] = useState(true)
+  const { 
+    clientes, 
+    isLoadingClientes, 
+    updateClienteMutation, 
+    deleteClienteMutation 
+  } = useAdminClientes()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [editingCliente, setEditingCliente] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({
@@ -28,23 +31,6 @@ export default function ClientesPage() {
     notas: ''
   })
 
-  useEffect(() => {
-    loadClientes()
-  }, [])
-
-  async function loadClientes() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('clientes')
-      .select('*')
-      .order('cantidad_compras', { ascending: false })
-
-    if (data) {
-      setClientes(data)
-    }
-    setLoading(false)
-  }
-
   async function deleteCliente(id: string, nombre: string) {
     const confirmed = await confirm({
       title: '¿Eliminar cliente?',
@@ -55,16 +41,12 @@ export default function ClientesPage() {
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from('clientes')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al eliminar cliente')
-    } else {
+    try {
+      await deleteClienteMutation.mutateAsync(id)
       toast.success('Cliente eliminado')
-      loadClientes()
+    } catch (err) {
+      toast.error('Error al eliminar cliente')
+      console.error(err)
     }
   }
 
@@ -98,24 +80,23 @@ export default function ClientesPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('clientes')
-      .update({
-        nombre: editForm.nombre.trim(),
-        contacto: editForm.contacto.trim(),
-        telefono: editForm.telefono.trim(),
-        red_social: editForm.red_social.trim() || null,
-        direccion: editForm.direccion.trim() || null,
-        notas: editForm.notas.trim() || null
+    try {
+      await updateClienteMutation.mutateAsync({
+        id,
+        data: {
+          nombre: editForm.nombre.trim(),
+          contacto: editForm.contacto.trim(),
+          telefono: editForm.telefono.trim(),
+          red_social: editForm.red_social.trim() || null,
+          direccion: editForm.direccion.trim() || null,
+          notas: editForm.notas.trim() || null
+        } as Partial<Cliente>
       })
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al actualizar cliente')
-    } else {
       toast.success('Cliente actualizado')
       cancelEdit()
-      loadClientes()
+    } catch (err) {
+      toast.error('Error al actualizar cliente')
+      console.error(err)
     }
   }
 
@@ -139,7 +120,7 @@ export default function ClientesPage() {
     )
   })
 
-  if (loading) {
+  if (isLoadingClientes) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

@@ -1,64 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
-import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button } from '@/app/components/ui'
-import type { Venta as DBVenta, VentaItem } from '@/types/database'
-
-interface Venta extends DBVenta {
-  items?: VentaItem[]
-}
+import { useAdminVentas, type Venta } from '@/app/hooks/useAdminVentas'
+import Image from 'next/image'
 
 export default function HistorialVentasPage() {
   const router = useRouter()
-  const toast = useToast()
   
-  const [ventas, setVentas] = useState<Venta[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expandedVenta, setExpandedVenta] = useState<string | null>(null)
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
-
-  useEffect(() => {
-    loadVentas()
-  }, [])
-
-  async function loadVentas() {
-    setLoading(true)
-    
-    let query = supabase
-      .from('ventas')
-      .select('*')
-      .order('fecha', { ascending: false })
-
-    if (fechaInicio) {
-      query = query.gte('fecha', new Date(fechaInicio).toISOString())
-    }
-    if (fechaFin) {
-      const fechaFinDate = new Date(fechaFin)
-      fechaFinDate.setHours(23, 59, 59, 999)
-      query = query.lte('fecha', fechaFinDate.toISOString())
-    }
-
-    const { data: ventasData } = await query
-
-    if (ventasData) {
-      setVentas(ventasData)
-    }
-    
-    setLoading(false)
-  }
+  
+  const { ventas, isLoadingVentas, refetchVentas } = useAdminVentas(fechaInicio, fechaFin)
+  const [expandedVenta, setExpandedVenta] = useState<string | null>(null)
+  const [ventasConItems, setVentasConItems] = useState<Venta[]>([])
 
   async function loadVentaItems(ventaId: string) {
-    const venta = ventas.find(v => v.id === ventaId)
-    if (venta?.items) {
-      // Ya están cargados
+    const ventaBase = ventas.find(v => v.id === ventaId)
+    const ventaLocal = ventasConItems.find(v => v.id === ventaId)
+    
+    if (ventaLocal?.items) {
+      // Ya están cargados localmente
       setExpandedVenta(expandedVenta === ventaId ? null : ventaId)
       return
     }
+
+    if (!ventaBase) return
 
     const { data: items } = await supabase
       .from('venta_items')
@@ -67,9 +37,10 @@ export default function HistorialVentasPage() {
       .order('created_at', { ascending: true })
 
     if (items) {
-      setVentas(ventas.map(v => 
-        v.id === ventaId ? { ...v, items } : v
-      ))
+      setVentasConItems(prev => [
+        ...prev.filter(v => v.id !== ventaId),
+        { ...ventaBase, items }
+      ])
       setExpandedVenta(ventaId)
     }
   }
@@ -106,7 +77,7 @@ export default function HistorialVentasPage() {
 
   const stats = calcularEstadisticas()
 
-  if (loading) {
+  if (isLoadingVentas) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -133,9 +104,11 @@ export default function HistorialVentasPage() {
                 </svg>
               </Button>
               <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 ml-2">
-                <img 
+                <Image 
                   src="/logo-confecciones.png" 
                   alt="Confecciones Angus" 
+                  width={48}
+                  height={48}
                   className="w-full h-full object-contain p-1"
                 />
               </div>
@@ -239,7 +212,7 @@ export default function HistorialVentasPage() {
             </div>
             <div className="flex items-end gap-3">
               <Button
-                onClick={loadVentas}
+                onClick={() => refetchVentas()}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
                 Filtrar
@@ -248,7 +221,7 @@ export default function HistorialVentasPage() {
                 onClick={() => {
                   setFechaInicio('')
                   setFechaFin('')
-                  loadVentas()
+                  setTimeout(() => refetchVentas(), 0)
                 }}
                 className="px-6 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all shadow-sm"
               >
@@ -330,7 +303,7 @@ export default function HistorialVentasPage() {
                 </div>
 
                 {/* Detalle de items */}
-                {expandedVenta === venta.id && venta.items && (
+                {expandedVenta === venta.id && (
                   <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-6">
                     {/* Información del cliente */}
                     {venta.cliente_nombre && (
@@ -351,7 +324,7 @@ export default function HistorialVentasPage() {
 
                     <h3 className="font-bold text-gray-900 dark:text-white mb-4">Detalle de la venta:</h3>
                     <div className="space-y-3">
-                      {venta.items.map(item => (
+                      {ventasConItems.find(v => v.id === venta.id)?.items?.map(item => (
                         <div key={item.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">

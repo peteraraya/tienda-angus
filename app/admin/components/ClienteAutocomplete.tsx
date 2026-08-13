@@ -37,15 +37,6 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    if (searchTerm.length >= 2) {
-      buscarClientes(searchTerm)
-    } else {
-      setClientes([])
-      setShowSuggestions(false)
-    }
-  }, [searchTerm])
-
   async function buscarClientes(term: string) {
     setLoading(true)
     const { data } = await supabase
@@ -61,6 +52,15 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      buscarClientes(searchTerm)
+    } else {
+      setClientes([])
+      setShowSuggestions(false)
+    }
+  }, [searchTerm])
 
   function seleccionarCliente(cliente: Cliente) {
     onClienteSelect(cliente)

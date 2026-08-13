@@ -1,50 +1,42 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { Button, Input } from '@/app/components/ui'
-import type { Pedido as DBPedido, PedidoItem } from '@/types/database'
+import { Button } from '@/app/components/ui'
+import type { PedidoItem } from '@/types/database'
 import AdminHeader from '../components/AdminHeader'
-
-interface Pedido extends DBPedido {
-  items?: PedidoItem[]
-}
+import { useAdminPedidos, type PedidoConProveedor } from '@/app/hooks/useAdminPedidos'
 
 export default function PedidosPage() {
   const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [pedidos, setPedidos] = useState<Pedido[]>([])
-  const [loading, setLoading] = useState(true)
+  const {
+    pedidos,
+    isLoadingPedidos,
+    updatePedidoEstadoMutation,
+    deletePedidoMutation
+  } = useAdminPedidos()
+
   const [expandedPedido, setExpandedPedido] = useState<string | null>(null)
   const [estadoFiltro, setEstadoFiltro] = useState<string>('')
-
-  useEffect(() => {
-    loadPedidos()
-  }, [])
-
-  async function loadPedidos() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('pedidos')
-      .select('*')
-      .order('fecha_pedido', { ascending: false })
-
-    if (data) setPedidos(data)
-    setLoading(false)
-  }
+  const [pedidosConItems, setPedidosConItems] = useState<PedidoConProveedor[]>([])
 
   async function loadPedidoItems(pedidoId: string) {
-    const pedido = pedidos.find(p => p.id === pedidoId)
-    if (pedido?.items) {
+    const pedidoBase = pedidos.find(p => p.id === pedidoId)
+    const pedidoLocal = pedidosConItems.find(p => p.id === pedidoId)
+
+    if (pedidoLocal?.items) {
       setExpandedPedido(expandedPedido === pedidoId ? null : pedidoId)
       return
     }
+
+    if (!pedidoBase) return
 
     const { data: items } = await supabase
       .from('pedido_items')
@@ -52,17 +44,34 @@ export default function PedidosPage() {
       .eq('pedido_id', pedidoId)
 
     if (items) {
-      setPedidos(pedidos.map(p => 
-        p.id === pedidoId ? { ...p, items } : p
-      ))
+      setPedidosConItems(prev => [
+        ...prev.filter(p => p.id !== pedidoId),
+        { ...pedidoBase, items }
+      ])
       setExpandedPedido(pedidoId)
     }
   }
 
 
   async function marcarComoRecibido(pedidoId: string) {
-    const pedido = pedidos.find(p => p.id === pedidoId)
-    if (!pedido || !pedido.items) return
+    let pedido = pedidosConItems.find(p => p.id === pedidoId)
+    
+    // Si no tenemos los items localmente, los obtenemos para procesar la recepción
+    if (!pedido || !pedido.items) {
+      const pedidoBase = pedidos.find(p => p.id === pedidoId)
+      if (!pedidoBase) return
+
+      const { data: items } = await supabase
+        .from('pedido_items')
+        .select('*')
+        .eq('pedido_id', pedidoId)
+        
+      if (items) {
+        pedido = { ...pedidoBase, items }
+      } else {
+        return
+      }
+    }
 
     const confirmed = await confirm({
       title: '¿Marcar pedido como recibido?',
@@ -86,7 +95,7 @@ export default function PedidosPage() {
       if (errorPedido) throw new Error('Error al actualizar pedido')
 
       // 2. Actualizar inventario para cada item
-      for (const item of pedido.items) {
+      for (const item of pedido.items!) {
         if (item.variante_id) {
           // Obtener stock actual
           const { data: variante } = await supabase
@@ -135,7 +144,10 @@ export default function PedidosPage() {
       }
 
       toast.success('Pedido recibido e inventario actualizado')
-      loadPedidos()
+      updatePedidoEstadoMutation.mutate({ id: pedidoId, estado: 'recibido' })
+      // Invalidar cache de productos para que se refleje el nuevo stock
+      // Idealmente haríamos queryClient.invalidateQueries() aquí
+      window.location.reload()
     } catch (error) {
       console.error('Error al recibir pedido:', error)
       toast.error('Error al procesar la recepción')
@@ -152,16 +164,12 @@ export default function PedidosPage() {
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from('pedidos')
-      .update({ estado: 'cancelado' })
-      .eq('id', pedidoId)
-
-    if (error) {
-      toast.error('Error al cancelar pedido')
-    } else {
+    try {
+      await updatePedidoEstadoMutation.mutateAsync({ id: pedidoId, estado: 'cancelado' })
       toast.success('Pedido cancelado')
-      loadPedidos()
+    } catch (err) {
+      toast.error('Error al cancelar pedido')
+      console.error(err)
     }
   }
 
@@ -187,7 +195,7 @@ export default function PedidosPage() {
     cancelados: pedidos.filter(p => p.estado === 'cancelado').length
   }
 
-  if (loading) {
+  if (isLoadingPedidos) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -421,11 +429,11 @@ export default function PedidosPage() {
                 </div>
 
                 {/* Detalle de items */}
-                {expandedPedido === pedido.id && pedido.items && (
+                {expandedPedido === pedido.id && (
                   <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-6">
                     <h3 className="font-bold text-gray-900 dark:text-white mb-4">Detalle del pedido:</h3>
                     <div className="space-y-3">
-                      {pedido.items.map(item => (
+                      {pedidosConItems.find(p => p.id === pedido.id)?.items?.map(item => (
                         <div key={item.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
