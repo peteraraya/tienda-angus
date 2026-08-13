@@ -1,21 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import type { Proveedor } from '@/types/database'
 import AdminHeader from '../components/AdminHeader'
+import { useAdminProveedores } from '@/app/hooks/useAdminProveedores'
 
 export default function ProveedoresPage() {
   const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [proveedores, setProveedores] = useState<Proveedor[]>([])
-  const [loading, setLoading] = useState(true)
+  const { 
+    proveedores, 
+    isLoadingProveedores, 
+    createProveedorMutation, 
+    updateProveedorMutation, 
+    deleteProveedorMutation, 
+    toggleActivoMutation 
+  } = useAdminProveedores()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewForm, setShowNewForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -30,22 +37,6 @@ export default function ProveedoresPage() {
     notas: ''
   })
 
-  async function loadProveedores() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('proveedores')
-      .select('*')
-      .order('activo', { ascending: false })
-      .order('nombre', { ascending: true })
-
-    if (data) setProveedores(data)
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    loadProveedores()
-  }, [])
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!formData.nombre || !formData.contacto || !formData.telefono) {
@@ -57,37 +48,24 @@ export default function ProveedoresPage() {
       nombre: formData.nombre.trim(),
       contacto: formData.contacto.trim(),
       telefono: formData.telefono.trim(),
-      email: formData.email.trim() || null,
-      direccion: formData.direccion.trim() || null,
-      rut: formData.rut.trim() || null,
-      notas: formData.notas.trim() || null
+      email: formData.email.trim() || undefined,
+      direccion: formData.direccion.trim() || undefined,
+      rut: formData.rut.trim() || undefined,
+      notas: formData.notas.trim() || undefined
     }
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('proveedores')
-        .update(data)
-        .eq('id', editingId)
-
-      if (error) {
-        toast.error('Error al actualizar proveedor')
-      } else {
+    try {
+      if (editingId) {
+        await updateProveedorMutation.mutateAsync({ id: editingId, data: data as Partial<Proveedor> })
         toast.success('Proveedor actualizado')
-        resetForm()
-        loadProveedores()
-      }
-    } else {
-      const { error } = await supabase
-        .from('proveedores')
-        .insert([data])
-
-      if (error) {
-        toast.error('Error al crear proveedor')
       } else {
+        await createProveedorMutation.mutateAsync(data as Partial<Proveedor>)
         toast.success('Proveedor creado')
-        resetForm()
-        loadProveedores()
       }
+      resetForm()
+    } catch (err) {
+      toast.error(editingId ? 'Error al actualizar proveedor' : 'Error al crear proveedor')
+      console.error(err)
     }
   }
 
@@ -120,16 +98,12 @@ export default function ProveedoresPage() {
   }
 
   async function toggleActivo(id: string, currentState: boolean) {
-    const { error } = await supabase
-      .from('proveedores')
-      .update({ activo: !currentState })
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al actualizar estado')
-    } else {
+    try {
+      await toggleActivoMutation.mutateAsync({ id, currentState })
       toast.success(currentState ? 'Proveedor desactivado' : 'Proveedor activado')
-      loadProveedores()
+    } catch (err) {
+      toast.error('Error al actualizar estado')
+      console.error(err)
     }
   }
 
@@ -143,16 +117,12 @@ export default function ProveedoresPage() {
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from('proveedores')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al eliminar proveedor')
-    } else {
+    try {
+      await deleteProveedorMutation.mutateAsync(id)
       toast.success('Proveedor eliminado')
-      loadProveedores()
+    } catch (err) {
+      toast.error('Error al eliminar proveedor')
+      console.error(err)
     }
   }
 
@@ -167,7 +137,7 @@ export default function ProveedoresPage() {
     )
   })
 
-  if (loading) {
+  if (isLoadingProveedores) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
