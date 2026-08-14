@@ -56,10 +56,10 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, result }, { status: 200 })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error sending WhatsApp message:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to send message' },
+      { error: (error as { message?: string }).message || 'Failed to send message' },
       { status: 500 }
     )
   }

@@ -1,38 +1,96 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface KeyboardShortcutsProps {
   searchInputRef?: React.RefObject<HTMLInputElement | null>
 }
 
+interface ShortcutRow {
+  keys: string
+  label: string
+  description: string
+}
+
 export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsProps) {
+  const router = useRouter()
   const [showHelp, setShowHelp] = useState(false)
+
+  const shortcuts: ShortcutRow[] = [
+    { keys: 'Ctrl+F', label: 'Buscar productos', description: 'Enfoca el campo de búsqueda' },
+    { keys: 'Ctrl+N', label: 'Nuevo producto', description: 'Ir a crear producto' },
+    { keys: 'Ctrl+V', label: 'Ir a Ventas', description: 'Abrir el punto de venta' },
+    { keys: 'Ctrl+C', label: 'Ir a Clientes', description: 'Abrir clientes' },
+    { keys: 'Ctrl+I', label: 'Ir a Insumos', description: 'Abrir insumos' },
+    { keys: 'Ctrl+P', label: 'Ir a Pedidos', description: 'Abrir pedidos' },
+    { keys: 'Ctrl+H', label: 'Ir al inicio', description: 'Volver al dashboard' },
+    { keys: 'Alt+1 / Alt+2', label: 'Cambiar vista', description: 'Vista compacta o expandida' },
+    { keys: 'Enter', label: 'Guardar cambios', description: 'Al editar nombre, precio o stock' },
+    { keys: 'Esc', label: 'Cancelar / cerrar', description: 'Cierra modales y cancela cambios' },
+    { keys: '?', label: 'Mostrar esta ayuda', description: 'También disponible en el botón flotante' }
+  ]
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Ctrl+F para buscar
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      const target = e.target as HTMLElement
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+
+      // Ctrl+F siempre funciona, incluso escribiendo en un input
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault()
-        searchInputRef?.current?.focus()
-        searchInputRef?.current?.select()
+        if (searchInputRef?.current) {
+          searchInputRef.current.focus()
+          searchInputRef.current.select()
+        } else {
+          const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement
+          searchInput?.focus()
+        }
+        return
       }
 
-      // ? para mostrar ayuda (solo si no está en un input)
-      if (e.key === '?' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+      // Ignorar el resto de atajos mientras se escribe
+      if (isTyping) return
+
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault()
-        setShowHelp(true)
+        setShowHelp(prev => !prev)
+        return
       }
 
-      // Escape para cerrar ayuda
-      if (e.key === 'Escape' && showHelp) {
-        setShowHelp(false)
+      if (e.key === 'Escape') {
+        if (showHelp) setShowHelp(false)
+        return
+      }
+
+      const ctrl = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
+      const alt = e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey
+
+      if (ctrl) {
+        switch (e.key.toLowerCase()) {
+          case 'n': e.preventDefault(); router.push('/admin/nuevo'); return
+          case 'v': e.preventDefault(); router.push('/admin/ventas'); return
+          case 'c': e.preventDefault(); router.push('/admin/clientes'); return
+          case 'i': e.preventDefault(); router.push('/admin/insumos'); return
+          case 'p': e.preventDefault(); router.push('/admin/pedidos'); return
+          case 'h': e.preventDefault(); router.push('/admin'); return
+        }
+      }
+
+      if (alt) {
+        if (e.key === '1') {
+          e.preventDefault()
+          window.dispatchEvent(new CustomEvent('changeView', { detail: 'compact' }))
+        } else if (e.key === '2') {
+          e.preventDefault()
+          window.dispatchEvent(new CustomEvent('changeView', { detail: 'expanded' }))
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [searchInputRef, showHelp])
+  }, [searchInputRef, showHelp, router])
 
   return (
     <>
@@ -47,31 +105,29 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
 
       {/* Modal de ayuda */}
       {showHelp && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden"
           onClick={() => setShowHelp(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-lg w-full border border-slate-200 dark:border-slate-700"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Atajos de Teclado</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Trabaja más rápido</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Atajos de Teclado</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Trabaja más rápido</p>
                 </div>
                 <button
                   onClick={() => setShowHelp(false)}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 ml-auto hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 >
                   <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -81,58 +137,23 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
             </div>
 
             {/* Contenido */}
-            <div className="p-6 space-y-4">
-              {/* Búsqueda */}
-              <div className="flex items-center gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-white shadow-sm">
-                    Ctrl+F
-                  </kbd>
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {shortcuts.map((shortcut, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                >
+                  <div className="flex-shrink-0">
+                    <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-slate-700 dark:text-white shadow-sm">
+                      {shortcut.keys}
+                    </kbd>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 dark:text-white">{shortcut.label}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">{shortcut.description}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 dark:text-white">Buscar productos</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Enfoca el campo de búsqueda</p>
-                </div>
-              </div>
-
-              {/* Guardar */}
-              <div className="flex items-center gap-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-white shadow-sm">
-                    Enter
-                  </kbd>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 dark:text-white">Guardar cambios</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Al editar nombre, precio o stock</p>
-                </div>
-              </div>
-
-              {/* Cancelar */}
-              <div className="flex items-center gap-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-white shadow-sm">
-                    Esc
-                  </kbd>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 dark:text-white">Cancelar edición</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Cierra modales y cancela cambios</p>
-                </div>
-              </div>
-
-              {/* Ayuda */}
-              <div className="flex items-center gap-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <div className="flex-shrink-0">
-                  <kbd className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-mono text-sm font-bold text-white shadow-sm">
-                    ?
-                  </kbd>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 dark:text-white">Mostrar esta ayuda</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">También disponible en el botón flotante</p>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Footer */}

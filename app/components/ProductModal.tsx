@@ -16,7 +16,7 @@ import { useToast } from './ui/ToastContainer'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -58,13 +58,26 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
     }
   }, [onClose])
 
+  // Obtener tallas y colegios únicos disponibles
+  const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
+    .sort((a, b) => {
+      const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
+      return order.indexOf(a) - order.indexOf(b)
+    })
+  
+  const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
+
+  // Auto-selección derivada: usar la única opción disponible
+  const tallaEfectiva = selectedTalla || (tallasDisponibles.length === 1 ? tallasDisponibles[0] : '')
+  const colegioEfectivo = selectedColegio || (colegiosDisponibles.length === 1 ? colegiosDisponibles[0] : '')
+
   // Obtener precio basado en la selección
   const getPrecioActual = () => {
-    if (selectedTalla) {
+    if (tallaEfectiva) {
       // Buscar variante con esa talla
       const variante = producto.variantes.find(v => 
-        v.talla === selectedTalla && 
-        (!selectedColegio || v.colegio === selectedColegio)
+        v.talla === tallaEfectiva && 
+        (!colegioEfectivo || v.colegio === colegioEfectivo)
       );
       if (variante && variante.precio) {
         return variante.precio;
@@ -98,32 +111,13 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const { addToCart } = useCart()
   const toast = useToast()
 
-  // Obtener tallas y colegios únicos disponibles
-  const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
-    .sort((a, b) => {
-      const order = ['6', '8', '10', '12', '14', '16', 'S', 'M', 'L', 'XL']
-      return order.indexOf(a) - order.indexOf(b)
-    })
-  
-  const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))]
-
-  // Auto-seleccionar si solo hay una opción disponible
-  useEffect(() => {
-    if (tallasDisponibles.length === 1 && !selectedTalla) {
-      setSelectedTalla(tallasDisponibles[0])
-    }
-    if (colegiosDisponibles.length === 1 && !selectedColegio) {
-      setSelectedColegio(colegiosDisponibles[0])
-    }
-  }, [tallasDisponibles.length, colegiosDisponibles.length])
-
   // Verificar disponibilidad según selección
   const getStockDisponible = () => {
-    if (!selectedTalla && !selectedColegio) return producto.stock_total
+    if (!tallaEfectiva && !colegioEfectivo) return producto.stock_total
     
     const variantesFiltradas = producto.variantes.filter(v => {
-      const matchTalla = !selectedTalla || v.talla === selectedTalla
-      const matchColegio = !selectedColegio || v.colegio === selectedColegio
+      const matchTalla = !tallaEfectiva || v.talla === tallaEfectiva
+      const matchColegio = !colegioEfectivo || v.colegio === colegioEfectivo
       return matchTalla && matchColegio && v.stock > 0
     })
     
@@ -308,17 +302,17 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">
                       Colegio:
                     </h4>
-                    {selectedColegio && (
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{selectedColegio}</span>
+                    {colegioEfectivo && (
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{colegioEfectivo}</span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {colegiosDisponibles.map(colegio => (
                       <button type="button"
                         key={colegio}
-                        onClick={() => setSelectedColegio(selectedColegio === colegio ? '' : colegio)}
+                        onClick={() => setSelectedColegio(colegioEfectivo === colegio ? '' : colegio)}
                         className={`px-4 py-2 min-h-[44px] rounded-xl border-2 font-bold transition-all ${
-                          selectedColegio === colegio
+                          colegioEfectivo === colegio
                             ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                             : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                         } focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900`}
@@ -351,24 +345,24 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     </button>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    Talla: {selectedTalla || '-'}
+                    Talla: {tallaEfectiva || '-'}
                   </p>
                   <div className="grid grid-cols-5 gap-2">
                     {tallasDisponibles.map(talla => {
                       // Verificar si esta talla está disponible con el colegio seleccionado
                       const disponible = producto.variantes.some(v => 
                         v.talla === talla && 
-                        (!selectedColegio || v.colegio === selectedColegio) && 
+                        (!colegioEfectivo || v.colegio === colegioEfectivo) && 
                         v.stock > 0
                       )
                       
                       return (
                         <button type="button"
                           key={talla}
-                          onClick={() => disponible && setSelectedTalla(selectedTalla === talla ? '' : talla)}
+                          onClick={() => disponible && setSelectedTalla(tallaEfectiva === talla ? '' : talla)}
                           disabled={!disponible}
                           className={`aspect-square min-w-[48px] min-h-[48px] flex items-center justify-center rounded-xl border-2 font-black text-lg transition-all ${
-                            selectedTalla === talla
+                            tallaEfectiva === talla
                               ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                               : disponible
                               ? 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800'
@@ -455,7 +449,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                 <button
                   type="button"
                   onClick={() => {
-                    if (!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio)) {
+                    if (!tallaEfectiva || (colegiosDisponibles.length > 0 && !colegioEfectivo)) {
                       alert('Por favor selecciona talla y colegio primero.')
                       return
                     }
@@ -463,15 +457,15 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       producto_id: producto.id,
                       nombre: producto.nombre,
                       precio: precioFinal,
-                      talla: selectedTalla,
-                      colegio: selectedColegio || 'General',
+                      talla: tallaEfectiva,
+                      colegio: colegioEfectivo || 'General',
                       cantidad: 1,
                       imagen_url: imagenes[0] || undefined,
                       stock_disponible: stockDisponible
                     })
                     toast.success('¡Añadido a tu pedido!')
                   }}
-                  disabled={!selectedTalla || (colegiosDisponibles.length > 0 && !selectedColegio) || stockDisponible <= 0}
+                  disabled={!tallaEfectiva || (colegiosDisponibles.length > 0 && !colegioEfectivo) || stockDisponible <= 0}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,7 +476,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
 
                   <a
                     href={`https://wa.me/56983852967?text=${encodeURIComponent(
-                      `Hola, me interesa el producto "${producto.nombre}".${selectedTalla ? ` Talla: ${selectedTalla}.` : ''}${selectedColegio ? ` Colegio: ${selectedColegio}.` : ''} Valor: ${formatPrice(precioFinal)}`
+                      `Hola, me interesa el producto "${producto.nombre}".${tallaEfectiva ? ` Talla: ${tallaEfectiva}.` : ''}${colegioEfectivo ? ` Colegio: ${colegioEfectivo}.` : ''} Valor: ${formatPrice(precioFinal)}`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { fetchProductoConVariantesAction, updateProductoConVariantesAction } from '@/app/actions/productos'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
@@ -118,11 +118,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
   }
 
   async function loadProducto(id: string) {
-    const { data: producto } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { producto, variantes } = await fetchProductoConVariantesAction(id)
 
     if (producto) {
       setFormData({
@@ -143,13 +139,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
       }
     }
 
-    const { data: variantesData } = await supabase
-      .from('variantes')
-      .select('*')
-      .eq('producto_id', id)
-
-    if (variantesData) {
-      setVariantes(variantesData)
+    if (variantes) {
+      setVariantes(variantes)
     }
 
     setLoading(false)
@@ -222,49 +213,31 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     // Filtrar imágenes vacías
     const imagenesValidas = imagenes.filter(img => img.trim() !== '')
 
-    // Actualizar producto
-    const { error: errorProducto } = await supabase
-      .from('productos')
-      .update({
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        precio: parseFloat(formData.precio),
-        categoria: formData.categoria,
-        imagen_url: imagenesValidas[0] || null,
-        imagenes: imagenesValidas.length > 0 ? imagenesValidas : null,
-        descuento_porcentaje: parseInt(formData.descuento_porcentaje) || 0,
-        en_oferta: formData.en_oferta
-      })
-      .eq('id', productoId)
-
-    if (errorProducto) {
-      toast.error('Error al actualizar producto')
-      return
+    const dataProducto = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      precio: parseFloat(formData.precio),
+      categoria: formData.categoria,
+      imagen_url: imagenesValidas[0] || null,
+      imagenes: imagenesValidas.length > 0 ? imagenesValidas : null,
+      descuento_porcentaje: parseInt(formData.descuento_porcentaje) || 0,
+      en_oferta: formData.en_oferta
     }
 
-    // Eliminar variantes antiguas
-    await supabase.from('variantes').delete().eq('producto_id', productoId)
-
-    // Insertar nuevas variantes
     const variantesConProductoId = variantes.map(v => ({
-      producto_id: productoId,
       talla: v.talla,
       colegio: v.colegio,
       stock: v.stock,
       precio: v.precio
     }))
 
-    const { error: errorVariantes } = await supabase
-      .from('variantes')
-      .insert(variantesConProductoId)
-
-    if (errorVariantes) {
-      toast.error('Error al actualizar variantes')
-      return
+    try {
+      await updateProductoConVariantesAction(productoId, dataProducto, variantesConProductoId)
+      toast.success('Producto actualizado exitosamente')
+      router.push('/admin')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar producto')
     }
-
-    toast.success('Producto actualizado exitosamente')
-    router.push('/admin')
   }
 
   if (loading) {
@@ -534,7 +507,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                   </div>
                   <div>
                     <span className={`font-bold transition-colors ${formData.en_oferta ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                      Marcar como "OFERTA 🔥"
+                      Marcar como &quot;OFERTA 🔥&quot;
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">Se mostrará con un badge animado</p>
                   </div>

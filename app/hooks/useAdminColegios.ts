@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Colegio } from '@/types/database'
+import { clearAllCache } from '@/app/hooks/useStaticData'
 import { 
   fetchColegiosAction, 
   createColegioAction, 
@@ -13,6 +14,11 @@ import {
 export function useAdminColegios() {
   const queryClient = useQueryClient()
 
+  function invalidate() {
+    clearAllCache()
+    queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+  }
+
   const { data: colegios = [], isLoading: isLoadingColegios } = useQuery({
     queryKey: ['adminColegios'],
     queryFn: fetchColegiosAction,
@@ -22,28 +28,28 @@ export function useAdminColegios() {
     mutationFn: async (nuevoColegio: Partial<Colegio>) => {
       await createColegioAction(nuevoColegio)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+    onSuccess: invalidate
   })
 
   const updateColegioMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Colegio> }) => {
       await updateColegioAction(id, data)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+    onSuccess: invalidate
   })
 
   const deleteColegioMutation = useMutation({
     mutationFn: async (id: string) => {
       await deleteColegioAction(id)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+    onSuccess: invalidate
   })
 
   const toggleActivoMutation = useMutation({
     mutationFn: async ({ id, currentState }: { id: string; currentState: boolean }) => {
       return await toggleActivoColegioAction(id, currentState)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+    onSuccess: invalidate
   })
 
   return {

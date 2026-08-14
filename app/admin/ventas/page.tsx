@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ClienteAutocomplete from '../components/ClienteAutocomplete'
 import type { Producto as DBProducto, Variante as DBVariante, Cliente } from '@/types/database'
+import { fetchProductosAction, type Producto as ProductoAction } from '@/app/actions/productos'
+import { crearVentaAction } from '@/app/actions/ventas'
 
 interface Variante extends DBVariante {
   insignia_url?: string
@@ -32,73 +34,54 @@ interface CartItem {
   imagen_url?: string
 }
 
+interface VentaTicket {
+  id: string
+  fecha: string
+  cliente: Cliente
+  items: CartItem[]
+  totales: {
+    subtotal: number
+    descuento_total: number
+    total: number
+    cantidad_items: number
+  }
+  vendedor: string
+}
+
 export default function VentasPage() {
   const router = useRouter()
   const toast = useToast()
+  const queryClient = useQueryClient()
   const { confirm, ConfirmDialog } = useConfirm()
   
   const [productos, setProductos] = useState<Producto[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoria, setSelectedCategoria] = useState('')
-  const [loading, setLoading] = useState(true)
   const [processingVenta, setProcessingVenta] = useState(false)
   const [notasVenta, setNotasVenta] = useState('')
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
   
   // Estado para la boleta/ticket
   const [showTicket, setShowTicket] = useState(false)
-  const [ultimaVenta, setUltimaVenta] = useState<any>(null)
+  const [ultimaVenta, setUltimaVenta] = useState<VentaTicket | null>(null)
 
+  const { data: productosData = [], isLoading: loading } = useQuery({
+    queryKey: ['adminVentasProductos'],
+    queryFn: fetchProductosAction,
+    staleTime: 60 * 1000,
+  })
+
+  // Derivar solo productos con al menos una variante con stock
   useEffect(() => {
-    loadProductos()
-  }, [])
-
-  async function loadProductos() {
-    setLoading(true)
-    const { data: productosData } = await supabase
-      .from('productos')
-      .select('*')
-      .order('nombre', { ascending: true })
-
-    const { data: colegiosData } = await supabase
-      .from('colegios')
-      .select('nombre, insignia_url')
-
-    const colegiosMap = new Map(
-      colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
-    )
-
-    if (productosData) {
-      const productosConVariantes = await Promise.all(
-        productosData.map(async (producto) => {
-          const { data: variantes } = await supabase
-            .from('variantes')
-            .select('*')
-            .eq('producto_id', producto.id)
-            .gt('stock', 0) // Solo variantes con stock
-
-          const variantesConInsignia = variantes?.map(v => ({
-            ...v,
-            insignia_url: colegiosMap.get(v.colegio.trim())
-          })) || []
-
-          return {
-            ...producto,
-            variantes: variantesConInsignia
-          }
-        })
-      )
-
-      // Filtrar productos que tengan al menos una variante con stock
-      const productosDisponibles = productosConVariantes.filter(
-        p => p.variantes && p.variantes.length > 0
-      )
-
-      setProductos(productosDisponibles)
-    }
-    setLoading(false)
-  }
+    const productosDisponibles: Producto[] = (productosData as ProductoAction[])
+      .filter(p => p.variantes?.some(v => v.stock > 0))
+      .map(p => ({
+        ...p,
+        variantes: p.variantes!.filter(v => v.stock > 0)
+      }))
+    setProductos(productosDisponibles)
+  }, [productosData])
 
   function agregarAlCarrito(producto: Producto, variante: Variante) {
     const precioBase = variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio;
@@ -205,95 +188,45 @@ export default function VentasPage() {
     setProcessingVenta(true)
 
     try {
-      // Obtener email del usuario actual
-      const { data: { user } } = await supabase.auth.getUser()
-      const vendedor = user?.email || 'Administrador'
-
       const totales = calcularTotales()
 
-      // 1. Crear la venta
-      const { data: venta, error: errorVenta } = await supabase
-        .from('ventas')
-        .insert({
-          total: totales.total,
-          subtotal: totales.subtotal,
-          descuento_total: totales.descuento_total,
-          cantidad_items: totales.cantidad_items,
-          notas: notasVenta.trim() || null,
-          vendedor,
-          cliente_id: selectedCliente.id,
-          cliente_nombre: selectedCliente.nombre,
-          cliente_telefono: selectedCliente.telefono,
-          cliente_contacto: selectedCliente.contacto
-        })
-        .select()
-        .single()
-
-      if (errorVenta || !venta) {
-        throw new Error('Error al crear la venta')
-      }
-
-      // 2. Crear los items de venta
-      const items = cart.map(item => ({
-        venta_id: venta.id,
-        producto_id: item.producto_id,
-        variante_id: item.variante_id,
-        producto_nombre: item.producto_nombre,
-        talla: item.talla,
-        colegio: item.colegio,
-        precio_unitario: item.precio_unitario,
-        descuento_porcentaje: item.descuento_porcentaje,
-        precio_final: item.precio_final,
-        cantidad: item.cantidad,
-        subtotal: item.precio_final * item.cantidad
-      }))
-
-      const { error: errorItems } = await supabase
-        .from('venta_items')
-        .insert(items)
-
-      if (errorItems) {
-        throw new Error('Error al crear los items de venta')
-      }
-
-      // 3. Descontar del inventario
-      for (const item of cart) {
-        const { data: variante } = await supabase
-          .from('variantes')
-          .select('stock')
-          .eq('id', item.variante_id)
-          .single()
-
-        if (variante) {
-          const nuevoStock = variante.stock - item.cantidad
-          
-          await supabase
-            .from('variantes')
-            .update({ stock: Math.max(0, nuevoStock) })
-            .eq('id', item.variante_id)
+      const ventaId = await crearVentaAction({
+        ...totales,
+        notas: notasVenta.trim() || null,
+        vendedor: 'Administrador',
+        cliente_id: selectedCliente.id,
+        cliente_nombre: selectedCliente.nombre,
+        cliente_telefono: selectedCliente.telefono,
+        cliente_contacto: selectedCliente.contacto,
+        items: cart.map(item => ({
+          producto_id: item.producto_id,
+          variante_id: item.variante_id,
+          producto_nombre: item.producto_nombre,
+          talla: item.talla,
+          colegio: item.colegio,
+          precio_unitario: item.precio_unitario,
+          descuento_porcentaje: item.descuento_porcentaje,
+          precio_final: item.precio_final,
+          cantidad: item.cantidad,
+          subtotal: item.precio_final * item.cantidad
+        })),
+        cliente_stats: {
+          id: selectedCliente.id,
+          total_compras: selectedCliente.total_compras,
+          cantidad_compras: selectedCliente.cantidad_compras
         }
-      }
-
-      // 4. Actualizar estadísticas del cliente
-      await supabase
-        .from('clientes')
-        .update({
-          total_compras: selectedCliente.total_compras + totales.total,
-          cantidad_compras: selectedCliente.cantidad_compras + 1,
-          ultima_compra: new Date().toISOString()
-        })
-        .eq('id', selectedCliente.id)
+      })
 
       toast.success('¡Venta procesada exitosamente!')
       
       // Guardar datos para el ticket
       setUltimaVenta({
-        id: venta.id,
+        id: ventaId,
         fecha: new Date().toLocaleString('es-CL'),
         cliente: selectedCliente,
         items: [...cart],
         totales,
-        vendedor
+        vendedor: 'Administrador'
       })
       setShowTicket(true)
       
@@ -301,7 +234,7 @@ export default function VentasPage() {
       setCart([])
       setNotasVenta('')
       setSelectedCliente(null)
-      loadProductos()
+      queryClient.invalidateQueries({ queryKey: ['adminVentasProductos'] })
 
     } catch (error) {
       console.error('Error al procesar venta:', error)
@@ -400,7 +333,7 @@ export default function VentasPage() {
                     <div className="col-span-4 text-right">Total</div>
                   </div>
                   <div className="space-y-3">
-                    {ultimaVenta.items.map((item: any, index: number) => (
+                    {ultimaVenta.items.map((item: CartItem, index: number) => (
                       <div key={index} className="grid grid-cols-12 gap-2 text-sm text-gray-800 dark:text-gray-200 items-center">
                         <div className="col-span-6">
                           <p className="font-semibold line-clamp-1">{item.producto_nombre}</p>

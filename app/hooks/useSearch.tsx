@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { ProductoConVariantes } from '@/types/database'
 
 interface SearchOptions {
   query: string
@@ -59,30 +60,31 @@ export function useSearchProductos(options: SearchOptions) {
       if (error) throw error
 
       // Filtros adicionales en cliente (colegio, talla, stock)
-      let filteredProductos = productos || []
+      let filteredProductos = (productos as ProductoConVariantes[] | null) || []
 
       // Filtro por colegio
       if (colegio) {
         filteredProductos = filteredProductos.filter(p =>
-          p.variantes?.some((v: any) => v.colegio === colegio)
+          p.variantes?.some(v => v.colegio === colegio)
         )
       }
 
       // Filtro por talla
       if (talla) {
         filteredProductos = filteredProductos.filter(p =>
-          p.variantes?.some((v: any) => v.talla === talla)
+          p.variantes?.some(v => v.talla === talla)
         )
       }
 
       // Calcular stock total y aplicar filtro de stock
-      filteredProductos = filteredProductos.map(p => {
-        const stock_total = p.variantes?.reduce((sum: number, v: any) => sum + v.stock, 0) || 0
+      type ProductoConStock = ProductoConVariantes & { stock_total: number }
+      let productosConStock: ProductoConStock[] = filteredProductos.map(p => {
+        const stock_total = p.variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
         return { ...p, stock_total }
       })
 
       if (stockFilter) {
-        filteredProductos = filteredProductos.filter(p => {
+        productosConStock = productosConStock.filter(p => {
           const stock = p.stock_total || 0
           switch (stockFilter) {
             case 'disponible':
@@ -97,7 +99,7 @@ export function useSearchProductos(options: SearchOptions) {
         })
       }
 
-      return filteredProductos
+      return productosConStock
     },
     enabled: true,
     staleTime: 1 * 60 * 1000, // 1 minuto

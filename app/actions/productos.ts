@@ -14,6 +14,11 @@ export interface Producto extends DBProducto {
   variantes?: Variante[]
 }
 
+export type ProductoData = Partial<Omit<DBProducto, 'imagen_url' | 'imagenes'>> & {
+  imagen_url?: string | null
+  imagenes?: string[] | null
+}
+
 export async function fetchProductosAction(): Promise<Producto[]> {
   const supabase = await createClient()
 
@@ -142,4 +147,55 @@ export async function updateProductNotasAction(id: string, notas: string) {
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
   return notas
+}
+
+export async function fetchProductoConVariantesAction(id: string): Promise<{ producto: DBProducto | null; variantes: DBVariante[] }> {
+  const supabase = await createClient()
+  const { data: producto, error } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw new Error(error.message)
+  const { data: variantes } = await supabase
+    .from('variantes')
+    .select('*')
+    .eq('producto_id', id)
+  return { producto, variantes: variantes || [] }
+}
+
+export async function crearProductoConVariantesAction(data: ProductoData, variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[]) {
+  const supabase = await createClient()
+  const { data: producto, error } = await supabase
+    .from('productos')
+    .insert([data])
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  if (!producto) throw new Error('No se pudo crear el producto')
+  if (variantes.length > 0) {
+    const { error: errorVariantes } = await supabase
+      .from('variantes')
+      .insert(variantes.map(v => ({ ...v, producto_id: producto.id })))
+    if (errorVariantes) throw new Error(errorVariantes.message)
+  }
+  revalidatePath('/admin')
+  revalidatePath('/admin/nuevo')
+  return producto
+}
+
+export async function updateProductoConVariantesAction(id: string, data: ProductoData, variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[]) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('productos').update(data).eq('id', id)
+  if (error) throw new Error(error.message)
+  const { error: errorDelete } = await supabase.from('variantes').delete().eq('producto_id', id)
+  if (errorDelete) throw new Error(errorDelete.message)
+  if (variantes.length > 0) {
+    const { error: errorVariantes } = await supabase
+      .from('variantes')
+      .insert(variantes.map(v => ({ ...v, producto_id: id })))
+    if (errorVariantes) throw new Error(errorVariantes.message)
+  }
+  revalidatePath('/admin')
+  revalidatePath('/admin/editar')
 }

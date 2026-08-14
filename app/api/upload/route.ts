@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary';
 import { NextResponse } from 'next/server';
 
 cloudinary.config({
@@ -18,13 +18,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Falta archivo o URL' }, { status: 400 });
     }
 
-    let uploadResult;
+    let uploadResult: UploadApiResponse | undefined;
 
     if (file) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       
-      uploadResult = await new Promise((resolve, reject) => {
+      uploadResult = await new Promise<UploadApiResponse | undefined>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: 'tienda-angus', format: 'webp', quality: 'auto' },
           (error, result) => {
@@ -43,11 +43,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ 
-      secure_url: (uploadResult as any).secure_url,
-      public_id: (uploadResult as any).public_id
+      secure_url: uploadResult!.secure_url,
+      public_id: uploadResult!.public_id
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error uploading to Cloudinary:', error);
-    return NextResponse.json({ error: error.message || 'Error al subir imagen' }, { status: 500 });
+    return NextResponse.json({ error: (error as { message?: string }).message || 'Error al subir imagen' }, { status: 500 });
   }
 }

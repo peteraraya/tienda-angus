@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 // LazyImage for admin previews
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { crearProductoConVariantesAction } from '@/app/actions/productos'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Input, LazyImage } from '@/app/components/ui'
@@ -174,47 +174,31 @@ export default function NuevoProducto() {
     // Filtrar imágenes vacías
     const imagenesValidas = imagenes.filter(img => img.trim() !== '')
 
-    // Insertar producto
-    const { data: producto, error: errorProducto } = await supabase
-      .from('productos')
-      .insert([{
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        precio: parseFloat(formData.precio),
-        categoria: formData.categoria,
-        imagen_url: imagenesValidas[0] || null, // Mantener compatibilidad
-        imagenes: imagenesValidas.length > 0 ? imagenesValidas : null,
-        descuento_porcentaje: parseInt(formData.descuento_porcentaje) || 0,
-        en_oferta: formData.en_oferta
-      }])
-      .select()
-      .single()
-
-    if (errorProducto || !producto) {
-      toast.error('Error al crear producto')
-      return
+    const dataProducto = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      precio: parseFloat(formData.precio),
+      categoria: formData.categoria,
+      imagen_url: imagenesValidas[0] || null,
+      imagenes: imagenesValidas.length > 0 ? imagenesValidas : null,
+      descuento_porcentaje: parseInt(formData.descuento_porcentaje) || 0,
+      en_oferta: formData.en_oferta
     }
 
-    // Insertar variantes
     const variantesConProductoId = variantes.map(v => ({
-      producto_id: producto.id,
       talla: v.talla,
       colegio: v.colegio,
       stock: v.stock,
       precio: v.precio
     }))
 
-    const { error: errorVariantes } = await supabase
-      .from('variantes')
-      .insert(variantesConProductoId)
-
-    if (errorVariantes) {
-      toast.error('Error al crear variantes')
-      return
+    try {
+      await crearProductoConVariantesAction(dataProducto, variantesConProductoId)
+      toast.success('Producto creado exitosamente')
+      router.push('/admin')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al crear producto')
     }
-
-    toast.success('Producto creado exitosamente')
-    router.push('/admin')
   }
 
   return (
@@ -473,7 +457,7 @@ export default function NuevoProducto() {
                   </div>
                   <div>
                     <span className={`font-bold transition-colors ${formData.en_oferta ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                      Marcar como "OFERTA 🔥"
+                      Marcar como &quot;OFERTA 🔥&quot;
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">Se mostrará con un badge animado</p>
                   </div>

@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
@@ -10,14 +8,20 @@ import { Button, Input } from '@/app/components/ui'
 import ViewToggle from '../components/ViewToggle'
 import type { Insumo } from '@/types/database'
 import AdminHeader from '../components/AdminHeader'
+import { useAdminInsumos } from '@/app/hooks/useAdminInsumos'
 
 export default function InsumosPage() {
-  const router = useRouter()
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [insumos, setInsumos] = useState<Insumo[]>([])
-  const [loading, setLoading] = useState(true)
+  const { 
+    insumos, 
+    isLoadingInsumos, 
+    createInsumoMutation, 
+    updateInsumoMutation, 
+    deleteInsumoMutation 
+  } = useAdminInsumos()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoria, setSelectedCategoria] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -38,8 +42,6 @@ export default function InsumosPage() {
   })
 
   useEffect(() => {
-    loadInsumos()
-
     // Listener para cambios de vista desde atajos de teclado
     const handleViewChange = (e: CustomEvent) => {
       setViewMode(e.detail)
@@ -47,17 +49,6 @@ export default function InsumosPage() {
     window.addEventListener('changeView', handleViewChange as EventListener)
     return () => window.removeEventListener('changeView', handleViewChange as EventListener)
   }, [])
-
-  async function loadInsumos() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('insumos')
-      .select('*')
-      .order('nombre', { ascending: true })
-
-    if (data) setInsumos(data)
-    setLoading(false)
-  }
 
   function resetForm() {
     setFormData({
@@ -101,24 +92,14 @@ export default function InsumosPage() {
 
     try {
       if (editingInsumo) {
-        const { error } = await supabase
-          .from('insumos')
-          .update(formData)
-          .eq('id', editingInsumo.id)
-
-        if (error) throw error
+        await updateInsumoMutation.mutateAsync({ id: editingInsumo.id, data: formData as Partial<Insumo> })
         toast.success('Insumo actualizado')
       } else {
-        const { error } = await supabase
-          .from('insumos')
-          .insert([formData])
-
-        if (error) throw error
+        await createInsumoMutation.mutateAsync(formData as Partial<Insumo>)
         toast.success('Insumo creado')
       }
 
       resetForm()
-      loadInsumos()
     } catch (error) {
       console.error('Error al guardar insumo:', error)
       toast.error('Error al guardar insumo')
@@ -135,16 +116,12 @@ export default function InsumosPage() {
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from('insumos')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Error al eliminar insumo')
-    } else {
+    try {
+      await deleteInsumoMutation.mutateAsync(id)
       toast.success('Insumo eliminado')
-      loadInsumos()
+    } catch (error) {
+      console.error('Error al eliminar insumo:', error)
+      toast.error('Error al eliminar insumo')
     }
   }
 
@@ -160,7 +137,7 @@ export default function InsumosPage() {
     return matchSearch && matchCategoria
   })
 
-  if (loading) {
+  if (isLoadingInsumos) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

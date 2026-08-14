@@ -1,26 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { fetchPedidoItemsAction, recibirPedidoAction } from '@/app/actions/pedidos'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button } from '@/app/components/ui'
-import type { PedidoItem } from '@/types/database'
 import AdminHeader from '../components/AdminHeader'
 import { useAdminPedidos, type PedidoConProveedor } from '@/app/hooks/useAdminPedidos'
 
 export default function PedidosPage() {
   const router = useRouter()
   const toast = useToast()
+  const queryClient = useQueryClient()
   const { confirm, ConfirmDialog } = useConfirm()
   
   const {
     pedidos,
     isLoadingPedidos,
     updatePedidoEstadoMutation,
-    deletePedidoMutation
   } = useAdminPedidos()
 
   const [expandedPedido, setExpandedPedido] = useState<string | null>(null)
@@ -38,10 +38,7 @@ export default function PedidosPage() {
 
     if (!pedidoBase) return
 
-    const { data: items } = await supabase
-      .from('pedido_items')
-      .select('*')
-      .eq('pedido_id', pedidoId)
+    const items = await fetchPedidoItemsAction(pedidoId)
 
     if (items) {
       setPedidosConItems(prev => [
@@ -61,11 +58,8 @@ export default function PedidosPage() {
       const pedidoBase = pedidos.find(p => p.id === pedidoId)
       if (!pedidoBase) return
 
-      const { data: items } = await supabase
-        .from('pedido_items')
-        .select('*')
-        .eq('pedido_id', pedidoId)
-        
+      const items = await fetchPedidoItemsAction(pedidoId)
+
       if (items) {
         pedido = { ...pedidoBase, items }
       } else {
@@ -83,71 +77,11 @@ export default function PedidosPage() {
     if (!confirmed) return
 
     try {
-      // 1. Actualizar estado del pedido
-      const { error: errorPedido } = await supabase
-        .from('pedidos')
-        .update({
-          estado: 'recibido',
-          fecha_recepcion: new Date().toISOString()
-        })
-        .eq('id', pedidoId)
-
-      if (errorPedido) throw new Error('Error al actualizar pedido')
-
-      // 2. Actualizar inventario para cada item
-      for (const item of pedido.items!) {
-        if (item.variante_id) {
-          // Obtener stock actual
-          const { data: variante } = await supabase
-            .from('variantes')
-            .select('stock')
-            .eq('id', item.variante_id)
-            .single()
-
-          if (variante) {
-            // Sumar la cantidad recibida al stock
-            const nuevoStock = variante.stock + (item.cantidad_recibida || item.cantidad)
-            
-            await supabase
-              .from('variantes')
-              .update({ stock: nuevoStock })
-              .eq('id', item.variante_id)
-          }
-        }
-
-        // Marcar item como recibido
-        await supabase
-          .from('pedido_items')
-          .update({
-            recibido: true,
-            cantidad_recibida: item.cantidad_recibida || item.cantidad
-          })
-          .eq('id', item.id)
-      }
-
-      // 3. Actualizar estadísticas del proveedor
-      const { data: proveedor } = await supabase
-        .from('proveedores')
-        .select('total_pedidos, cantidad_pedidos')
-        .eq('id', pedido.proveedor_id)
-        .single()
-
-      if (proveedor) {
-        await supabase
-          .from('proveedores')
-          .update({
-            total_pedidos: proveedor.total_pedidos + pedido.total,
-            cantidad_pedidos: proveedor.cantidad_pedidos + 1,
-            ultimo_pedido: new Date().toISOString()
-          })
-          .eq('id', pedido.proveedor_id)
-      }
-
+      await recibirPedidoAction(pedidoId)
       toast.success('Pedido recibido e inventario actualizado')
-      updatePedidoEstadoMutation.mutate({ id: pedidoId, estado: 'recibido' })
-      // Invalidar cache de productos para que se refleje el nuevo stock
-      // Idealmente haríamos queryClient.invalidateQueries() aquí
-      window.location.reload()
+      setExpandedPedido(null)
+      queryClient.invalidateQueries({ queryKey: ['adminPedidos'] })
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     } catch (error) {
       console.error('Error al recibir pedido:', error)
       toast.error('Error al procesar la recepción')

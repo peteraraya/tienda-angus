@@ -7,8 +7,7 @@ type Props = Omit<ImageProps, 'onLoad'> & {
   className?: string
 }
 
-export default function LazyImage(props: Props) {
-  const { className = '', src, alt, priority, ...rest } = props
+export default function LazyImage({ className = '', src, alt, priority, ...rest }: Props) {
   const [loaded, setLoaded] = useState<boolean>(!!priority)
 
   return (
@@ -18,9 +17,9 @@ export default function LazyImage(props: Props) {
       )}
 
       <Image
-        {...(rest as any)}
-        src={src as any}
-        alt={alt as string}
+        {...rest}
+        src={src}
+        alt={alt}
         className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         priority={priority}
         onLoad={() => setLoaded(true)}

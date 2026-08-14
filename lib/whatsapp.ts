@@ -19,7 +19,7 @@ export interface WhatsAppMessage {
     language: {
       code: string
     }
-    components?: any[]
+    components?: Array<Record<string, unknown>>
   }
   image?: {
     link: string
@@ -45,6 +45,29 @@ export interface WhatsAppWebhookMessage {
     mime_type: string
     sha256: string
   }
+}
+
+export interface WhatsAppWebhookValue {
+  messaging_product?: string
+  metadata?: Record<string, unknown>
+  contacts?: Array<Record<string, unknown>>
+  messages?: WhatsAppWebhookMessage[]
+  statuses?: Array<Record<string, unknown>>
+}
+
+export interface WhatsAppWebhookChange {
+  field?: string
+  value?: WhatsAppWebhookValue
+}
+
+export interface WhatsAppWebhookEntry {
+  id?: string
+  changes?: WhatsAppWebhookChange[]
+}
+
+export interface WhatsAppWebhookPayload {
+  object?: string
+  entry?: WhatsAppWebhookEntry[]
 }
 
 /**
@@ -101,7 +124,7 @@ export async function sendTemplate(
   to: string,
   templateName: string,
   languageCode = 'es',
-  components?: any[]
+  components?: Array<Record<string, unknown>>
 ) {
   return sendWhatsAppMessage({
     to,
@@ -237,7 +260,7 @@ export function validateWebhook(
 /**
  * Procesar webhook de WhatsApp
  */
-export function processWebhookMessage(body: any): WhatsAppWebhookMessage | null {
+export function processWebhookMessage(body: WhatsAppWebhookPayload): WhatsAppWebhookMessage | null {
   try {
     const entry = body.entry?.[0]
     const changes = entry?.changes?.[0]

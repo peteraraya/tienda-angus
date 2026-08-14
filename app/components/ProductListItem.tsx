@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/formatPrice'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]

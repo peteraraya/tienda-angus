@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateWebhook, processWebhookMessage, markMessageAsRead } from '@/lib/whatsapp'
 import { supabase } from '@/lib/supabase'
+import type { WhatsAppWebhookMessage } from '@/lib/whatsapp'
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'your-verify-token'
 
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
 /**
  * Guardar mensaje en la base de datos
  */
-async function saveMessageToDatabase(message: any) {
+async function saveMessageToDatabase(message: WhatsAppWebhookMessage) {
   try {
     const { error } = await supabase.from('whatsapp_messages').insert({
       message_id: message.id,
@@ -86,7 +87,7 @@ async function saveMessageToDatabase(message: any) {
 /**
  * Procesar mensaje entrante y responder automáticamente
  */
-async function processIncomingMessage(message: any) {
+async function processIncomingMessage(message: WhatsAppWebhookMessage) {
   // Aquí puedes implementar lógica de respuesta automática
   // Por ejemplo, responder con un menú de opciones
   

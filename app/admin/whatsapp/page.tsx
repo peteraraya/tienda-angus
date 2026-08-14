@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchWhatsappMessagesAction, fetchConversacionAction } from '@/app/actions/whatsapp'
 
 interface WhatsAppMessage {
   id: string
@@ -35,17 +35,12 @@ export default function WhatsAppPage() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['whatsapp-conversations'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('whatsapp_messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const data = await fetchWhatsappMessagesAction()
 
       // Agrupar mensajes por número de teléfono
       const conversationsMap = new Map<string, Conversation>()
 
-      data?.forEach((msg: WhatsAppMessage) => {
+      data.forEach((msg: WhatsAppMessage) => {
         const phoneNumber = msg.from_number || msg.to_number || ''
         if (!phoneNumber) return
 
@@ -74,14 +69,7 @@ export default function WhatsAppPage() {
     queryKey: ['whatsapp-messages', selectedConversation],
     queryFn: async () => {
       if (!selectedConversation) return []
-
-      const { data, error } = await supabase
-        .from('whatsapp_messages')
-        .select('*')
-        .or(`from_number.eq.${selectedConversation},to_number.eq.${selectedConversation}`)
-        .order('created_at', { ascending: true })
-
-      if (error) throw error
+      const data = await fetchConversacionAction(selectedConversation)
       return data as WhatsAppMessage[]
     },
     enabled: !!selectedConversation,

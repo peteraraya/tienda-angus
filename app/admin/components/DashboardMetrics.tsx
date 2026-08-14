@@ -26,6 +26,12 @@ interface Metrics {
   }>
 }
 
+interface VentaItemProducto {
+  cantidad: number
+  variante_id?: string
+  productos?: unknown
+}
+
 export function DashboardMetrics() {
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -92,8 +98,8 @@ export function DashboardMetrics() {
 
       // Procesar productos más vendidos
       const productosMap = new Map<string, number>()
-      ventasRecientes?.forEach((item: any) => {
-        const nombre = item.productos?.productos?.nombre
+      ventasRecientes?.forEach((item: VentaItemProducto) => {
+        const nombre = (item.productos as { productos?: { nombre?: string } } | undefined)?.productos?.nombre
         if (nombre) {
           productosMap.set(nombre, (productosMap.get(nombre) || 0) + item.cantidad)
         }

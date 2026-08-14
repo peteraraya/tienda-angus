@@ -53,25 +53,26 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
     setLoading(false)
   }
 
-  useEffect(() => {
-    if (searchTerm.length >= 2) {
-      buscarClientes(searchTerm)
+  function ejecutarBusqueda(term: string) {
+    if (term.length >= 2) {
+      buscarClientes(term)
     } else {
       setClientes([])
       setShowSuggestions(false)
     }
-  }, [searchTerm])
+  }
 
   function seleccionarCliente(cliente: Cliente) {
     onClienteSelect(cliente)
     setSearchTerm(cliente.nombre)
+    ejecutarBusqueda(cliente.nombre)
     setShowSuggestions(false)
   }
 
   function limpiarSeleccion() {
     onClienteSelect(null)
     setSearchTerm('')
-    setClientes([])
+    ejecutarBusqueda('')
   }
 
   async function crearNuevoCliente() {
@@ -259,7 +260,10 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
         <Input
           type="text"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value)
+            ejecutarBusqueda(e.target.value)
+          }}
           onFocus={() => searchTerm.length >= 2 && setShowSuggestions(true)}
           placeholder="Buscar por nombre, teléfono o contacto..."
           className="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 text-white"

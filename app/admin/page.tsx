@@ -9,7 +9,6 @@ import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
 
 import KeyboardShortcuts from './components/KeyboardShortcuts'
-import GlobalKeyboardShortcuts from './components/GlobalKeyboardShortcuts'
 import { DashboardMetrics } from './components/DashboardMetrics'
 
 import { useAdminProductos } from '@/app/hooks/useAdminProductos'
@@ -249,7 +248,6 @@ export default function AdminPage() {
       )}
     
       <KeyboardShortcuts searchInputRef={searchInputRef} />
-      <GlobalKeyboardShortcuts />
       <ConfirmDialog />
     </>
   )

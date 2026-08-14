@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useMounted } from '@/app/hooks/useMounted'
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { LazyImage } from './ui'
@@ -9,7 +10,7 @@ import { formatPrice } from '@/lib/formatPrice'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-interface Variante extends Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'> {}
+type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -24,20 +25,17 @@ interface ProductCardProps {
 export default function ProductCard({ producto, relatedProducts = [] }: ProductCardProps) {
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-
-  // Montar el componente y cargar favoritos solo en el cliente
-  useEffect(() => {
-    setIsMounted(true)
+  const isMounted = useMounted()
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (typeof window === 'undefined') return false
     try {
       const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
-      setIsFavorite(favs.includes(producto.id))
+      return favs.includes(producto.id)
     } catch {
-      setIsFavorite(false)
+      return false
     }
-  }, [producto.id])
+  })
+  const [isHovered, setIsHovered] = useState(false)
 
   // Sincronizar favoritos con localStorage (escuchar cambios de la app)
   useEffect(() => {
