@@ -38,7 +38,7 @@ export default function AdminHeader({
             
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 flex-shrink-0 ml-1 sm:ml-2">
               <Image 
-                src="/logo-confecciones.png" 
+                src="/logo_ig.png" 
                 alt="Confecciones Angus" 
                 width={48}
                 height={48}

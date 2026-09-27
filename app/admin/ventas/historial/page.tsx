@@ -105,7 +105,7 @@ export default function HistorialVentasPage() {
               </Button>
               <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 ml-2">
                 <Image 
-                  src="/logo-confecciones.png" 
+                  src="/logo_ig.png" 
                   alt="Confecciones Angus" 
                   width={48}
                   height={48}

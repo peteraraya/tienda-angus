@@ -4,7 +4,7 @@ import ThemeToggle from './components/ThemeToggle'
 import ClientCartIcon from './components/ClientCartIcon'
 import MapModalTrigger from './components/MapModalTrigger'
 import type { Colegio, Producto, Variante } from '@/types/database'
-
+import Image from 'next/image';
 export const revalidate = 0
 
 interface ProductoConVariantes extends Producto {
@@ -58,7 +58,7 @@ export default async function Home() {
     '@type': 'Product',
     name: p.nombre,
     description: p.descripcion,
-    image: p.imagen_url || 'https://www.confeccionesangus.cl/logo-confecciones.png',
+    image: p.imagen_url || 'https://www.confeccionesangus.cl/logo_ig.png',
     offers: {
       '@type': 'Offer',
       priceCurrency: 'CLP',
@@ -97,7 +97,9 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
           <div className="flex items-center justify-between gap-4">
             <a href="#" className="brand-logo-lockup group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] rounded-2xl p-1">
-              <div className="brand-badge">A</div>
+
+              <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
+              
               <div className="brand-logo-text">
                 <h1>ANGUS</h1>
                 <span>CONFECCIONES</span>
@@ -135,11 +137,11 @@ export default async function Home() {
 
             <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">+500</p>
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">+100</p>
                 <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">prendas</p>
               </div>
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">12+</p>
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">6+</p>
                 <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">años</p>
               </div>
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
@@ -273,7 +275,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="grid gap-8 md:grid-cols-3">
             <div className="flex items-center gap-4">
-              <div className="brand-badge h-[62px] w-[62px] text-[1.5rem]">A</div>
+              <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
               <div>
                 <p className="text-xl font-black leading-none">ANGUS</p>
                 <p className="text-[0.72rem] tracking-[0.25em] text-[#d7b972]">CONFECCIONES</p>
@@ -299,7 +301,7 @@ export default async function Home() {
           </div>
 
           <div className="mt-8 border-t border-white/10 pt-6 text-center text-sm text-[#edf3ee]/80">
-            © 2026 Angus Confecciones. Todos los derechos reservados.
+            © {new Date().getFullYear()} Angus Confecciones. Todos los derechos reservados.
           </div>
         </div>
       </footer>

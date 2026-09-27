@@ -282,7 +282,7 @@ export function loadConfig(): AppConfig {
   return {
     company: {
       name: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Confecciones Angus',
-      logo: process.env.NEXT_PUBLIC_LOGO_URL || '/logo-confecciones.png',
+      logo: process.env.NEXT_PUBLIC_LOGO_URL || '/logo_ig.png',
       // ...
     },
     // ...
@@ -341,7 +341,7 @@ export function loadConfig(): AppConfig {
 ### Antes (hardcoded):
 ```typescript
 <h1>Confecciones Angus</h1>
-<img src="/logo-confecciones.png" />
+<img src="/logo_ig.png" />
 <p>Stock bajo: {stock < 6 ? 'Sí' : 'No'}</p>
 ```
 

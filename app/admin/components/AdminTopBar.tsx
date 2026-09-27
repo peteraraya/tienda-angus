@@ -24,7 +24,7 @@ export default function AdminTopBar() {
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
               <Image 
-                src="/logo-confecciones.png" 
+                src="/logo_ig.png" 
                 alt="Confecciones Angus" 
                 width={48}
                 height={48}

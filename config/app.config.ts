@@ -89,7 +89,7 @@ export const defaultConfig: AppConfig = {
     shortName: 'Angus',
     tagline: 'Uniformes escolares de calidad',
     description: 'Especialistas en confección de uniformes escolares',
-    logo: '/logo-confecciones.png',
+    logo: '/logo_ig.png',
     favicon: '/icon.png'
   },
   

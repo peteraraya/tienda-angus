@@ -71,6 +71,7 @@ export async function deleteProductoAction(id: string) {
   const { error } = await supabase.from('productos').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
 }
 
 export async function updateOfertaAction(id: string, nuevoEstado: boolean) {
@@ -78,6 +79,7 @@ export async function updateOfertaAction(id: string, nuevoEstado: boolean) {
   const { error } = await supabase.from('productos').update({ en_oferta: nuevoEstado }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
   return nuevoEstado
 }
 
@@ -95,6 +97,7 @@ export async function updateDescuentoAction(id: string, descuento: number) {
   const { error } = await supabase.from('productos').update({ descuento_porcentaje: descuento }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
   return descuento
 }
 
@@ -135,6 +138,7 @@ export async function updateVarianteStockAction(varianteId: string, newStock: nu
   const { error } = await supabase.from('variantes').update({ stock: newStock }).eq('id', varianteId)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
 }
 
 export async function updateProductNameAction(id: string, nombre: string) {
@@ -142,6 +146,7 @@ export async function updateProductNameAction(id: string, nombre: string) {
   const { error } = await supabase.from('productos').update({ nombre: nombre.trim() }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
 }
 
 export async function updateProductPriceAction(id: string, precio: number) {
@@ -149,6 +154,7 @@ export async function updateProductPriceAction(id: string, precio: number) {
   const { error } = await supabase.from('productos').update({ precio }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
 }
 
 export async function updateProductNotasAction(id: string, notas: string) {
@@ -156,6 +162,7 @@ export async function updateProductNotasAction(id: string, notas: string) {
   const { error } = await supabase.from('productos').update({ notas: notas.trim() || null }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/')
   return notas
 }
 
@@ -191,6 +198,7 @@ export async function crearProductoConVariantesAction(data: ProductoData, varian
   }
   revalidatePath('/admin')
   revalidatePath('/admin/nuevo')
+  revalidatePath('/')
   return producto
 }
 
@@ -208,4 +216,5 @@ export async function updateProductoConVariantesAction(id: string, data: Product
   }
   revalidatePath('/admin')
   revalidatePath('/admin/editar')
+  revalidatePath('/')
 }

@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description: "Especialistas en venta de buzos escolares, poleras, calzas y reparación de prendas en Quillota.",
     siteName: appConfig.company.name,
     images: [{
-      url: "/logo-confecciones.png",
+      url: "/logo_ig.png",
       width: 800,
       height: 600,
       alt: "Logo Confecciones Angus"
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${appConfig.company.name} | Uniformes Escolares`,
     description: "Venta de buzos escolares, poleras, calzas y reparación de prendas.",
-    images: ["/logo-confecciones.png"],
+    images: ["/logo_ig.png"],
   },
   icons: {
     icon: appConfig.company.favicon,
@@ -102,7 +102,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "ClothingStore",
               "name": "Angus Confecciones",
-              "image": "https://www.confeccionesangus.cl/logo-confecciones.png",
+              "image": "https://www.confeccionesangus.cl/logo_ig.png",
               "description": "Venta de buzos escolares, poleras polo, short, calzas y reparación de prendas en general.",
               "address": {
                 "@type": "PostalAddress",
