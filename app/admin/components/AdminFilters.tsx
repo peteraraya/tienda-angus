@@ -13,6 +13,8 @@ interface AdminFiltersProps {
   setSelectedTalla: (val: string) => void
   selectedStockFilter: string
   setSelectedStockFilter: (val: string) => void
+  selectedStatusFilter: string
+  setSelectedStatusFilter: (val: string) => void
   searchInputRef: RefObject<HTMLInputElement | null>
   categories: string[]
   colegios: string[]
@@ -32,6 +34,8 @@ export default function AdminFilters({
   setSelectedTalla,
   selectedStockFilter,
   setSelectedStockFilter,
+  selectedStatusFilter,
+  setSelectedStatusFilter,
   searchInputRef,
   categories,
   colegios,
@@ -151,8 +155,26 @@ export default function AdminFilters({
             </div>
           </div>
 
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-slate-400 text-sm">🔘</span>
+            </div>
+            <select
+              value={selectedStatusFilter}
+              onChange={(e) => setSelectedStatusFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+            >
+              <option value="">Todos los estados</option>
+              <option value="activo">✅ Activos</option>
+              <option value="inactivo">⛔ Inactivos</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </div>
+          </div>
+
           {/* Botón limpiar filtros (solo aparece si hay filtros activos) */}
-          {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter) && (
+          {(searchTerm || selectedCategory || selectedColegio || selectedTalla || selectedStockFilter || selectedStatusFilter) && (
             <button
               onClick={() => {
                 setSearchTerm('')
@@ -160,6 +182,7 @@ export default function AdminFilters({
                 setSelectedColegio('')
                 setSelectedTalla('')
                 setSelectedStockFilter('')
+                setSelectedStatusFilter('')
               }}
               className="px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-slate-500"
               title="Restablecer todos los filtros"
@@ -202,6 +225,12 @@ export default function AdminFilters({
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
             📦 {selectedStockFilter === 'disponible' ? '🟢 Disponible' : selectedStockFilter === 'bajo' ? '🟡 Stock Bajo' : '🔴 Agotado'}
             <button onClick={() => setSelectedStockFilter('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
+          </span>
+        )}
+        {selectedStatusFilter && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
+            🔘 {selectedStatusFilter === 'activo' ? '✅ Activos' : '⛔ Inactivos'}
+            <button onClick={() => setSelectedStatusFilter('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}
       </div>

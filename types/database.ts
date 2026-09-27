@@ -6,6 +6,7 @@ export interface Producto {
   categoria: string
   imagen_url?: string // Mantener por compatibilidad
   imagenes?: string[] // Nueva: array de URLs de imágenes
+  activo: boolean
   created_at: string
   descuento_porcentaje?: number
   en_oferta?: boolean

@@ -425,16 +425,16 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
           </button>
         </div>
       ) : (
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <p suppressHydrationWarning className="text-gray-600 dark:text-gray-400">
+        <div className="space-y-6 lg:space-y-8">
+          <div className="flex justify-between items-center pt-1">
+            <p suppressHydrationWarning className="text-sm font-medium text-gray-600 dark:text-gray-400">
               <CountDisplayClient displayed={displayedProducts.length} total={filteredAndSortedProducts.length} />
             </p>
           </div>
 
           {currentView === 'grid' ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6 lg:gap-8">
                 {displayedProducts.map((producto) => {
                   const relacionados = productos
                     .filter(p => p.id !== producto.id && p.categoria === producto.categoria)

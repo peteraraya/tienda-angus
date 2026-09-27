@@ -16,6 +16,7 @@ export function useAdminFilters(productos: Producto[]) {
   const [selectedColegio, setSelectedColegio] = useState('')
   const [selectedTalla, setSelectedTalla] = useState('')
   const [selectedStockFilter, setSelectedStockFilter] = useState('')
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const categories = useMemo(() => {
@@ -82,9 +83,13 @@ export function useAdminFilters(productos: Producto[]) {
         matchesStock = (producto.stock_total || 0) === 0
       }
 
-      return matchesCategory && matchesColegio && matchesTalla && matchesStock
+      // Filtro por estado
+      const matchesStatus = selectedStatusFilter === '' ||
+        (selectedStatusFilter === 'activo' ? producto.activo !== false : producto.activo === false)
+
+      return matchesCategory && matchesColegio && matchesTalla && matchesStock && matchesStatus
     })
-  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter])
+  }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter, selectedStatusFilter])
 
   // Calcular stock específico según filtros de colegio y talla
   const stockEspecifico = useMemo(() => {
@@ -119,6 +124,8 @@ export function useAdminFilters(productos: Producto[]) {
     setSelectedTalla,
     selectedStockFilter,
     setSelectedStockFilter,
+    selectedStatusFilter,
+    setSelectedStatusFilter,
     searchInputRef,
     categories,
     colegios,

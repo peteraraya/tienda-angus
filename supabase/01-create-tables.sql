@@ -6,5 +6,6 @@ CREATE TABLE productos (
   precio DECIMAL(10,2) NOT NULL,
   categoria TEXT NOT NULL,
   imagen_url TEXT,
+  activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

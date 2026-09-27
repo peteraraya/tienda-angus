@@ -8,6 +8,7 @@ import {
   fetchProductosAction, 
   deleteProductoAction,
   updateOfertaAction,
+  toggleActivoProductoAction,
   updateDescuentoAction,
   duplicateProductAction,
   updateVarianteStockAction,
@@ -60,6 +61,17 @@ export function useAdminProductos() {
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
     onError: () => toast.error('Error al cambiar el estado de la oferta')
+  })
+
+  const toggleActivoMutation = useMutation({
+    mutationFn: async ({ id, currentState }: { id: string, currentState: boolean }) => {
+      return await toggleActivoProductoAction(id, currentState)
+    },
+    onSuccess: (nuevoEstado) => {
+      toast.success(nuevoEstado ? 'Producto activado' : 'Producto desactivado')
+      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    },
+    onError: () => toast.error('Error al cambiar el estado del producto')
   })
 
   const updateDescuentoMutation = useMutation({
@@ -124,6 +136,23 @@ export function useAdminProductos() {
 
     if (!confirmed) return
     updateOfertaMutation.mutate({ id, nuevoEstado })
+  }
+
+  async function toggleActivoProducto(id: string, currentState: boolean) {
+    const producto = productos.find(p => p.id === id)
+    const nuevoEstado = !currentState
+
+    const confirmed = await confirm({
+      title: nuevoEstado ? '¿Activar producto?' : '¿Desactivar producto?',
+      message: nuevoEstado
+        ? `Se activará "${producto?.nombre}" y volverá a mostrarse en el catálogo.`
+        : `Se desactivará "${producto?.nombre}" y dejará de aparecer en el catálogo público.`,
+      confirmText: nuevoEstado ? 'Activar' : 'Desactivar',
+      variant: nuevoEstado ? 'success' : 'warning'
+    })
+
+    if (!confirmed) return
+    toggleActivoMutation.mutate({ id, currentState })
   }
 
   /**
@@ -230,6 +259,7 @@ export function useAdminProductos() {
     isLoadingProductos,
     deleteProducto,
     toggleOferta,
+    toggleActivoProducto,
     updateDescuento,
     duplicateProduct,
     updateVarianteStockMutation,

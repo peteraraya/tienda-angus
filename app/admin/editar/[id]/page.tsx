@@ -34,7 +34,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     categoria: '',
     imagen_url: '',
     descuento_porcentaje: '0',
-    en_oferta: false
+    en_oferta: false,
+    activo: true
   })
   const [imagenes, setImagenes] = useState<string[]>([''])
   const [uploadingIndexes, setUploadingIndexes] = useState<number[]>([])
@@ -128,7 +129,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
         categoria: producto.categoria,
         imagen_url: producto.imagen_url || '',
         descuento_porcentaje: (producto.descuento_porcentaje || 0).toString(),
-        en_oferta: producto.en_oferta || false
+        en_oferta: producto.en_oferta || false,
+        activo: producto.activo ?? true
       })
 
       // Cargar imágenes
@@ -221,7 +223,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
       imagen_url: imagenesValidas[0] || null,
       imagenes: imagenesValidas.length > 0 ? imagenesValidas : null,
       descuento_porcentaje: parseInt(formData.descuento_porcentaje) || 0,
-      en_oferta: formData.en_oferta
+      en_oferta: formData.en_oferta,
+      activo: formData.activo
     }
 
     const variantesConProductoId = variantes.map(v => ({
@@ -510,6 +513,28 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                       Marcar como &quot;OFERTA 🔥&quot;
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">Se mostrará con un badge animado</p>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">Estado del Producto</label>
+                <label className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.activo}
+                      onChange={(e) => setFormData({...formData, activo: e.target.checked})}
+                      className="sr-only"
+                    />
+                    <div className={`w-12 h-6 rounded-full transition-colors ${formData.activo ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                    <div className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform ${formData.activo ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  </div>
+                  <div>
+                    <span className={`font-bold transition-colors ${formData.activo ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {formData.activo ? 'Producto activo' : 'Producto inactivo'}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">Los inactivos desaparecen del catálogo público</p>
                   </div>
                 </label>
               </div>

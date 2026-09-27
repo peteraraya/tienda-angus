@@ -3,6 +3,7 @@
 
 -- Índices para productos
 CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);
+CREATE INDEX IF NOT EXISTS idx_productos_activo ON productos(activo) WHERE activo = true;
 CREATE INDEX IF NOT EXISTS idx_productos_en_oferta ON productos(en_oferta) WHERE en_oferta = true;
 CREATE INDEX IF NOT EXISTS idx_productos_created_at ON productos(created_at DESC);
 

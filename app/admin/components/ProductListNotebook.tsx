@@ -27,6 +27,7 @@ interface Props {
   onToggleExpand: (id: string) => void
   onUpdateDescuento: (id: string, descuento: number) => void
   onToggleOferta: (id: string, currentState: boolean) => void
+  onToggleActivo: (id: string, currentState: boolean) => void
   onUpdateVarianteStock: (varianteId: string, newStock: number) => void
   onSetEditingVariant: (id: string | null) => void
   onSetEditingProductName: (id: string | null) => void
@@ -53,6 +54,7 @@ export default function ProductListNotebook({
   onToggleExpand,
   onUpdateDescuento,
   onToggleOferta,
+  onToggleActivo,
   onUpdateVarianteStock,
   onSetEditingVariant,
   onSetEditingProductName,
@@ -319,6 +321,20 @@ export default function ProductListNotebook({
                 </button>
               </div>
 
+              {/* Estado */}
+              <div className="col-span-1">
+                <button
+                  onClick={() => onToggleActivo(producto.id, producto.activo ?? true)}
+                  className={`w-full px-3 py-2 rounded-xl font-bold text-[10px] transition-all border shadow-sm ${
+                    producto.activo !== false
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-300'
+                  }`}
+                >
+                  {producto.activo !== false ? 'ACTIVO' : 'INACTIVO'}
+                </button>
+              </div>
+
               {/* Stock */}
               <div className="col-span-1">
                 <button
@@ -524,16 +540,16 @@ export default function ProductListNotebook({
               </button>
             </div>
 
-            {/* Descuento y Oferta */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Descuento, Oferta y Estado */}
+            <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">Descuento</label>
+                <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Descuento</label>
                 <select
                   value={producto.descuento_porcentaje || 0}
                   onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
-                  className="w-full px-2 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-2 py-2 text-xs border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="0">Sin descuento</option>
+                  <option value="0">Sin desc.</option>
                   <option value="5">5%</option>
                   <option value="10">10%</option>
                   <option value="15">15%</option>
@@ -548,16 +564,29 @@ export default function ProductListNotebook({
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 font-semibold">En Oferta</label>
+                <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Oferta</label>
                 <button
                   onClick={() => onToggleOferta(producto.id, producto.en_oferta || false)}
-                  className={`w-full px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  className={`w-full px-2 py-2 rounded-lg font-semibold text-xs transition-all ${
                     producto.en_oferta
                       ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {producto.en_oferta ? '🔥 Sí' : 'No'}
+                </button>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Estado</label>
+                <button
+                  onClick={() => onToggleActivo(producto.id, producto.activo ?? true)}
+                  className={`w-full px-2 py-2 rounded-lg font-semibold text-[10px] transition-all ${
+                    producto.activo !== false
+                      ? 'bg-emerald-500 text-white shadow-md'
+                      : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {producto.activo !== false ? 'Activo' : 'Inactivo'}
                 </button>
               </div>
             </div>

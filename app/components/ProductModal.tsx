@@ -1,6 +1,7 @@
  'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import CloseIcon from '@mui/icons-material/Close'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -35,10 +36,17 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const [selectedColegio, setSelectedColegio] = useState<string>('')
   const modalRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const handleClose = () => {
+    setOpen(false)
+    window.setTimeout(() => onClose(), 180)
+  }
   
   useEffect(() => {
+    setMounted(true)
     document.body.style.overflow = 'hidden'
     return () => {
+      setMounted(false)
       document.body.style.overflow = 'unset'
     }
   }, [])
@@ -49,7 +57,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
     // focus en el contenedor para accesibilidad
     setTimeout(() => modalRef.current?.focus(), 0)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') handleClose()
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -126,25 +134,28 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
 
   const stockDisponible = getStockDisponible()
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden={false}>
+  if (!mounted) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-[2147483647] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-[14px] cursor-pointer" onClick={handleClose} aria-hidden={false}>
       <div 
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-modal-title"
         tabIndex={-1}
         ref={modalRef}
-        className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-[2147483647] bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_30px_80px_rgba(15,24,26,0.28)] max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 cursor-default ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center z-10">
           <h2 id="product-modal-title" className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-white">Detalles del Producto</h2>
           <button type="button"
-            onClick={onClose}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            onClick={handleClose}
+            className="p-2.5 min-w-[46px] min-h-[46px] flex items-center justify-center bg-[#123f3d] text-white hover:bg-[#0d2f2d] rounded-full transition-all shadow-lg hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-[#123f3d]/25"
             aria-label="Cerrar diálogo"
+            title="Cerrar"
           >
-            <CloseIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            <CloseIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -493,6 +504,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

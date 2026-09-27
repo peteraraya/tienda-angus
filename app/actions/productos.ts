@@ -81,6 +81,15 @@ export async function updateOfertaAction(id: string, nuevoEstado: boolean) {
   return nuevoEstado
 }
 
+export async function toggleActivoProductoAction(id: string, currentState: boolean) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('productos').update({ activo: !currentState }).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin')
+  revalidatePath('/')
+  return !currentState
+}
+
 export async function updateDescuentoAction(id: string, descuento: number) {
   const supabase = await createClient()
   const { error } = await supabase.from('productos').update({ descuento_porcentaje: descuento }).eq('id', id)
@@ -100,7 +109,8 @@ export async function duplicateProductAction(producto: Producto) {
       categoria: producto.categoria,
       imagen_url: producto.imagen_url,
       descuento_porcentaje: producto.descuento_porcentaje,
-      en_oferta: producto.en_oferta
+      en_oferta: producto.en_oferta,
+      activo: producto.activo
     })
     .select()
     .single()
@@ -168,7 +178,7 @@ export async function crearProductoConVariantesAction(data: ProductoData, varian
   const supabase = await createClient()
   const { data: producto, error } = await supabase
     .from('productos')
-    .insert([data])
+    .insert([{ ...data, activo: data.activo ?? true }])
     .select()
     .single()
   if (error) throw new Error(error.message)
@@ -186,7 +196,7 @@ export async function crearProductoConVariantesAction(data: ProductoData, varian
 
 export async function updateProductoConVariantesAction(id: string, data: ProductoData, variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[]) {
   const supabase = await createClient()
-  const { error } = await supabase.from('productos').update(data).eq('id', id)
+  const { error } = await supabase.from('productos').update({ ...data, activo: data.activo ?? true }).eq('id', id)
   if (error) throw new Error(error.message)
   const { error: errorDelete } = await supabase.from('variantes').delete().eq('producto_id', id)
   if (errorDelete) throw new Error(errorDelete.message)

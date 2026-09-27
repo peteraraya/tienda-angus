@@ -77,6 +77,15 @@ BEGIN
         ALTER TABLE productos ADD COLUMN imagenes TEXT[] DEFAULT '{}';
         RAISE NOTICE 'Columna imagenes agregada';
     END IF;
+
+    -- Agregar activo si no existe
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'productos' AND column_name = 'activo'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN activo BOOLEAN DEFAULT true;
+        RAISE NOTICE 'Columna activo agregada';
+    END IF;
 END $$;
 
 -- Mostrar estructura final de la tabla productos

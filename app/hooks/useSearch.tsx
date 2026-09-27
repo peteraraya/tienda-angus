@@ -27,6 +27,7 @@ export function useSearchProductos(options: SearchOptions) {
           *,
           variantes(*)
         `)
+        .or('activo.is.null,activo.eq.true')
         .order('created_at', { ascending: false })
 
       // Búsqueda full-text si hay query
@@ -183,6 +184,7 @@ export function useSearchSuggestions(query: string, type: 'productos' | 'cliente
           const { data: productos } = await supabase
             .from('productos')
             .select('nombre')
+            .eq('activo', true)
             .ilike('nombre', `%${query}%`)
             .limit(5)
           suggestions = productos?.map(p => p.nombre) || []

@@ -119,7 +119,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             setShowModal(true);
           }
         }}
-        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-blue-900/20 transition-all duration-300 transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 cursor-pointer relative focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 flex flex-col h-full"
+        className="group bg-[linear-gradient(180deg,#ffffff_0%,#f9f6f1_100%)] dark:bg-gray-800 rounded-[1.75rem] overflow-hidden shadow-[0_18px_38px_rgba(17,31,30,0.08)] hover:shadow-[0_26px_52px_rgba(17,31,30,0.14)] dark:hover:shadow-[0_22px_48px_rgba(3,8,18,0.35)] transition-all duration-300 transform hover:-translate-y-1.5 border border-[#123f3d]/10 dark:border-gray-700 cursor-pointer relative focus:outline-none focus-visible:ring-4 focus-visible:ring-[#123f3d]/30 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 flex flex-col h-full"
         onClick={() => setShowModal(true)}
       >
                 {/* Botón de favorito - solo mostrar cuando está montado */}
@@ -136,7 +136,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                     )}
                   </button>
                 )}
-        <div className="relative aspect-square bg-white dark:bg-gray-800 overflow-hidden border-b border-gray-100 dark:border-gray-700/50">
+        <div className="relative aspect-[4/4.2] bg-[radial-gradient(circle_at_top,#f9f2e7_0%,#f2ece0_45%,#ece3d4_100%)] dark:bg-[#1b2f2d] overflow-hidden border-b border-[#123f3d]/8 dark:border-gray-700/50">
           {imagenes.length > 0 ? (
             <>
               <LazyImage
@@ -199,14 +199,14 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           {/* Consolidador de Badges Superiores */}
           <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
             {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
-              <div className="bg-linear-to-br from-red-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg">
-                <span className="font-black text-sm">-{producto.descuento_porcentaje}%</span>
+              <div className="bg-[linear-gradient(135deg,#d9485f_0%,#b12f45_100%)] text-white px-3 py-1.5 rounded-full shadow-lg border border-white/20">
+                <span className="font-black text-[11px] tracking-[0.08em]">-{producto.descuento_porcentaje}%</span>
               </div>
             ) : null}
 
             {producto.en_oferta && (
-              <div className="bg-linear-to-br from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-lg animate-pulse">
-                <span className="font-black text-xs">🔥 OFERTA</span>
+              <div className="bg-[linear-gradient(135deg,#f3b650_0%,#d3881d_100%)] text-[#123f3d] px-3 py-1.5 rounded-full shadow-lg border border-[#123f3d]/10">
+                <span className="font-black text-[10px] tracking-[0.08em]">OFERTA</span>
               </div>
             )}
           </div>
@@ -239,7 +239,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
               </div>
             )}
             
-            <span className="bg-white text-gray-900 w-full py-2.5 rounded-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl pointer-events-auto flex items-center justify-center gap-2 hover:bg-gray-100">
+            <span className="bg-[linear-gradient(135deg,#ffffff_0%,#f4efe7_100%)] text-[#123f3d] w-full py-2.5 rounded-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl pointer-events-auto flex items-center justify-center gap-2 hover:bg-[#f2eadb]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -249,33 +249,33 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           </div>
         </div>
         
-        <div className="p-4 sm:p-5 flex flex-col flex-1 relative bg-white dark:bg-gray-800 z-20">
-          <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1.5">
+        <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 relative bg-white dark:bg-gray-800 z-20">
+          <p className="text-[10px] font-black text-[#123f3d]/75 dark:text-blue-300 uppercase tracking-[0.14em] mb-2">
             {producto.categoria}
           </p>
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-auto line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors tracking-tight">
+          <h2 className="text-base sm:text-lg lg:text-[1.1rem] font-black text-[#173b39] dark:text-white mb-auto line-clamp-2 group-hover:text-[#123f3d] dark:group-hover:text-blue-300 transition-colors leading-snug tracking-[-0.02em]">
             {producto.nombre}
           </h2>
           
-          <div className="mt-4 flex justify-between items-end">
+          <div className="mt-5 flex justify-between items-end gap-3">
             <div className="flex flex-col">
               {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                 <>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 line-through">
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500 line-through">
                     {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                   </span>
-                  <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-none mt-0.5">
-                    {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioFinal)}
+                  <span className="text-xl sm:text-2xl font-black text-[#123f3d] dark:text-white leading-none mt-1 tracking-[-0.04em]">
+                    {tienePreciosDiferentes ? <span className="text-[11px] font-bold text-gray-500 mr-1.5 align-middle">Desde</span> : ''}{formatPrice(precioFinal)}
                   </span>
                 </>
               ) : (
-                <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-none">
-                  {tienePreciosDiferentes ? <span className="text-xs font-normal text-gray-500 mr-1">Desde</span> : ''}{formatPrice(precioMinimo)}
+                <span className="text-xl sm:text-2xl font-black text-[#123f3d] dark:text-white leading-none tracking-[-0.04em]">
+                  {tienePreciosDiferentes ? <span className="text-[11px] font-bold text-gray-500 mr-1.5 align-middle">Desde</span> : ''}{formatPrice(precioMinimo)}
                 </span>
               )}
             </div>
 
-            <div className="flex flex-col items-end gap-1.5">
+            <div className="flex flex-col items-end gap-1.5 text-xs p-0">
               {producto.stock_total > 0 && producto.stock_total <= 5 && (
                 <div className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded text-red-600 dark:text-red-400">
                   <span className="relative flex h-2 w-2">
@@ -286,7 +286,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                 </div>
               )}
               {producto.stock_total > 5 ? (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 dark:bg-green-900/20 rounded">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 dark:bg-green-900/20 rounded  ">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                   <span className="text-[10px] font-bold text-green-700 dark:text-green-400">En stock</span>
                 </div>

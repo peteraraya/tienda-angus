@@ -32,7 +32,8 @@ export default function AdminPage() {
     productos, 
     isLoadingProductos,
     deleteProducto, 
-    toggleOferta, 
+    toggleOferta,
+    toggleActivoProducto,
     updateDescuento, 
     duplicateProduct,
     updateVarianteStockMutation,
@@ -54,6 +55,8 @@ export default function AdminPage() {
     setSelectedTalla,
     selectedStockFilter,
     setSelectedStockFilter,
+    selectedStatusFilter,
+    setSelectedStatusFilter,
     searchInputRef,
     categories,
     colegios,
@@ -200,6 +203,8 @@ export default function AdminPage() {
         setSelectedTalla={setSelectedTalla}
         selectedStockFilter={selectedStockFilter}
         setSelectedStockFilter={setSelectedStockFilter}
+        selectedStatusFilter={selectedStatusFilter}
+        setSelectedStatusFilter={setSelectedStatusFilter}
         searchInputRef={searchInputRef}
         categories={categories}
         colegios={colegios}
@@ -221,6 +226,7 @@ export default function AdminPage() {
         onToggleExpand={toggleExpandProduct}
         onUpdateDescuento={updateDescuento}
         onToggleOferta={toggleOferta}
+        onToggleActivo={toggleActivoProducto}
         onUpdateVarianteStock={updateVarianteStock}
         onSetEditingVariant={setEditingVariant}
         onSetEditingProductName={setEditingProductName}
