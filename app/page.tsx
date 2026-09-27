@@ -69,7 +69,7 @@ export default async function Home() {
   }))
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(211,169,84,0.15),_transparent_28%),linear-gradient(180deg,#f7f2ea_0%,#f3eee4_42%,#efe6d8_100%)] text-[#173b39]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(211,169,84,0.15),_transparent_28%),linear-gradient(180deg,#f7f2ea_0%,#f3eee4_42%,#efe6d8_100%)] text-[#173b39] dark:bg-[radial-gradient(circle_at_top,_rgba(231,199,124,0.08),_transparent_24%),linear-gradient(180deg,#0d1a1a_0%,#122827_35%,#142b2a_100%)] dark:text-[#edf5f2]">
       {productos.length > 0 && (
         <script
           type="application/ld+json"
@@ -87,13 +87,13 @@ export default async function Home() {
         />
       )}
 
-      <div className="bg-[#123f3d] text-[#f8f3e9] text-xs sm:text-sm font-semibold py-2.5 px-4 text-center shadow-[0_10px_25px_rgba(18,63,61,0.18)] relative z-50 flex items-center justify-center gap-2">
+      <div className="bg-[#123f3d] text-[#f8f3e9] text-xs sm:text-sm font-semibold py-2.5 px-4 text-center shadow-[0_10px_25px_rgba(18,63,61,0.18)] relative z-50 flex items-center justify-center gap-2 dark:bg-[#0d1a1a] dark:text-[#edf5f2]">
         <span aria-hidden="true">🎉</span>
         <span>Preparando la nueva temporada escolar con entregas y atención directa por WhatsApp</span>
         <span aria-hidden="true">🚚</span>
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-[#123f3d]/10 bg-[#f4efe7]/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(18,63,61,0.04)]">
+      <header className="sticky top-0 z-40 border-b border-[#123f3d]/10 bg-[#f4efe7]/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(18,63,61,0.04)] dark:border-[#d7b972]/10 dark:bg-[#122827]/90 dark:shadow-[0_8px_24px_rgba(3,7,7,0.24)]">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
           <div className="flex items-center justify-between gap-4">
             <a href="#" className="brand-logo-lockup group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] rounded-2xl p-1">
@@ -106,9 +106,9 @@ export default async function Home() {
 
             <nav aria-label="Navegación principal" className="flex items-center gap-2 sm:gap-4">
               <div className="hidden md:flex items-center gap-6 text-sm mr-2">
-                <a href="#catalogo" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold">Catálogo</a>
-                <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold">Reparaciones</a>
-                <a href="#contacto" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold">Contacto</a>
+                <a href="#catalogo" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
+                <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
+                <a href="#contacto" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
               </div>
               <ClientCartIcon />
               <ThemeToggle />
@@ -118,33 +118,33 @@ export default async function Home() {
       </header>
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20" id="catalogo">
-        <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr] rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-4 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-6 lg:p-8">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr] rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-4 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-6 lg:p-8 dark:border-[#d7b972]/10 dark:bg-[#112827]/85 dark:shadow-[0_18px_45px_rgba(3,7,7,0.25)]">
           <div>
             <span className="accent-chip mb-5">Uniformes escolares • calidad artesanal</span>
-            <h1 className="section-title leading-[0.95] tracking-[-0.06em] max-w-xl">
+            <h1 className="section-title leading-[0.95] tracking-[-0.06em] max-w-xl dark:text-[#edf5f2]">
               Uniformes <span className="gradient-text">escolares</span> con identidad y estilo.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-[#355c58] leading-relaxed">
+            <p className="mt-5 max-w-xl text-lg text-[#355c58] leading-relaxed dark:text-[#dfeae7]">
               Confección de buzos, poleras, calzas y prendas de colegio con terminación cuidada, reforzadas para la exigencia diaria del año escolar.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <a href="#catalogo" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Ver catálogo</a>
+              <a href="#catalogo" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Ver catálogo</a>
               <a href="https://wa.me/56983852967?text=Hola%2C%20quiero%20consultar%20por%20uniformes%20escolares" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Consultar por WhatsApp</a>
             </div>
 
             <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
-              <div className="brand-card p-3 text-center">
-                <p className="text-xl font-black text-[#123f3d]">+500</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f]">prendas</p>
+              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">+500</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">prendas</p>
               </div>
-              <div className="brand-card p-3 text-center">
-                <p className="text-xl font-black text-[#123f3d]">12+</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f]">años</p>
+              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">12+</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">años</p>
               </div>
-              <div className="brand-card p-3 text-center">
-                <p className="text-xl font-black text-[#123f3d]">100%</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f]">personal</p>
+              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">100%</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">personal</p>
               </div>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default async function Home() {
                   <div className="rounded-[1.35rem] bg-[#f4efe7] p-4 border border-[#123f3d]/06 shadow-[0_8px_18px_rgba(18,63,61,0.04)]">
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-[0.68rem] uppercase tracking-[0.18em] text-[#123f3d]">Reparaciones</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#d7b972]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#d7b972] ring-2 ring-[#d7b972]/30" />
                     </div>
                     <div className="rounded-xl bg-[#f9f6f0] p-3 text-[#123f3d] font-bold text-sm leading-relaxed">Ajustes, cierres, parches, retoques y mantenimiento de uniformes.</div>
                   </div>
@@ -216,7 +216,7 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-5 md:grid-cols-3">
-          <article className="group relative overflow-hidden rounded-[1.6rem] bg-[#123f3d] p-6 text-[#f7f1e7] shadow-[0_18px_35px_rgba(18,63,61,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.18)]">
+          <article className="group relative overflow-hidden rounded-[1.6rem] bg-[#123f3d] p-6 text-[#f7f1e7] shadow-[0_18px_35px_rgba(18,63,61,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.18)] dark:bg-[#0f2d2d] dark:text-[#edf5f2]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(211,169,84,0.18),_transparent_52%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d7b972] text-xl text-[#123f3d] shadow-inner">✦</div>
