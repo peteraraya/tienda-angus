@@ -144,10 +144,10 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
         aria-labelledby="product-modal-title"
         tabIndex={-1}
         ref={modalRef}
-        className={`relative z-[2147483647] bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_30px_80px_rgba(15,24,26,0.28)] max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 cursor-default ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-[2147483647] flex max-h-[100vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_rgba(15,24,26,0.28)] transition-all duration-300 dark:bg-gray-800 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} cursor-default`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center z-10">
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-gray-200 bg-white/90 px-4 py-4 backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/90 sm:px-6">
           <h2 id="product-modal-title" className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-white">Detalles del Producto</h2>
           <button type="button"
             onClick={handleClose}
@@ -159,7 +159,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
           </button>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
           <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {/* Galería de Imágenes */}
             <div className="space-y-4">
@@ -358,7 +358,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     Talla: {tallaEfectiva || '-'}
                   </p>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-8 gap-2">
                     {tallasDisponibles.map(talla => {
                       // Verificar si esta talla está disponible con el colegio seleccionado
                       const disponible = producto.variantes.some(v => 
@@ -372,7 +372,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                           key={talla}
                           onClick={() => disponible && setSelectedTalla(tallaEfectiva === talla ? '' : talla)}
                           disabled={!disponible}
-                          className={`aspect-square min-w-[48px] min-h-[48px] flex items-center justify-center rounded-xl border-2 font-black text-lg transition-all ${
+                          className={`aspect-square h-12 w-12 flex items-center justify-center rounded-xl border-2 font-black text-lg transition-all ${
                             tallaEfectiva === talla
                               ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                               : disponible
@@ -389,7 +389,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
               ) : null}
 
               {/* Disponibilidad */}
-              <div className="mb-6">
+              <div className="mb-2">
                 {stockDisponible > 0 ? (
                     <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                     <CheckCircleIcon className="w-5 h-5" />
@@ -405,7 +405,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
               </div>
 
               {/* Instrucciones de compra breves */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-2">
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">¿Cómo comprar?</h4>
                 <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal pl-4">
                   <li>Selecciona tu colegio y talla.</li>
