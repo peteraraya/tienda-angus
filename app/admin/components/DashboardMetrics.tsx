@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/formatPrice'
 import { fetchAdminDashboardMetricsAction } from '@/app/actions/dashboard'
+import Link from 'next/link'
 
 export function DashboardMetrics() {
   const {
@@ -64,19 +65,22 @@ export function DashboardMetrics() {
                   {formatPrice(metrics.ventasHoy.total)}
                 </span>
               </div>
-              {metrics.stockBajo > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[#9a681a] dark:text-[#e7c77c]">
-                    {metrics.stockBajo} con stock bajo
-                  </span>
-                </div>
-              )}
               {metrics.pedidosPendientes > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-[#9a681a] dark:text-[#e7c77c]">
-                    {metrics.pedidosPendientes} pedidos
+                    {metrics.pedidosPendientes} compras
                   </span>
                 </div>
+              )}
+              {metrics.solicitudesPendientes > 0 && (
+                <Link href="/admin/solicitudes" className="font-semibold text-[#9a681a] hover:underline dark:text-[#e7c77c]">
+                  {metrics.solicitudesPendientes} solicitudes web
+                </Link>
+              )}
+              {metrics.reparacionesPendientes > 0 && (
+                <Link href="/admin/reparaciones" className="font-semibold text-[#9a681a] hover:underline dark:text-[#e7c77c]">
+                  {metrics.reparacionesPendientes} arreglos
+                </Link>
               )}
             </div>
           )}
@@ -127,16 +131,22 @@ export function DashboardMetrics() {
               </h3>
               <div className="space-y-3">
                 <AlertItem
-                  label="Stock Bajo"
-                  value={metrics.stockBajo}
-                  color="orange"
-                  link="/admin"
-                />
-                <AlertItem
-                  label="Pedidos Pendientes"
+                  label="Compras Pendientes"
                   value={metrics.pedidosPendientes}
                   color="yellow"
                   link="/admin/pedidos"
+                />
+                <AlertItem
+                  label="Solicitudes Web"
+                  value={metrics.solicitudesPendientes}
+                  color="orange"
+                  link="/admin/solicitudes"
+                />
+                <AlertItem
+                  label="Arreglos por revisar"
+                  value={metrics.reparacionesPendientes}
+                  color="yellow"
+                  link="/admin/reparaciones"
                 />
               </div>
             </div>

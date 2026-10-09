@@ -131,6 +131,50 @@ export interface PedidoConItems extends Pedido {
   items: PedidoItem[]
 }
 
+export type SolicitudPedidoEstado = 'pendiente' | 'confirmado' | 'cancelado'
+
+export interface SolicitudPedido {
+  id: string
+  cliente_nombre: string
+  cliente_telefono: string
+  consent_at: string
+  estado: SolicitudPedidoEstado
+  total: number
+  cantidad_items: number
+  created_at: string
+  updated_at: string
+  items?: SolicitudPedidoItem[]
+}
+
+export interface SolicitudPedidoItem {
+  id: string
+  solicitud_id: string
+  producto_id: string | null
+  variante_id: string | null
+  producto_nombre: string
+  talla: string
+  colegio: string
+  cantidad: number
+  precio_unitario: number
+  subtotal: number
+  created_at: string
+}
+
+export type SolicitudReparacionEstado = 'pendiente' | 'cotizada' | 'aceptada' | 'completada' | 'cancelada'
+
+export interface SolicitudReparacion {
+  id: string
+  cliente_nombre: string
+  cliente_telefono: string
+  prenda: string
+  descripcion: string
+  fecha_deseada: string | null
+  estado: SolicitudReparacionEstado
+  consent_at: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Categoria {
   id: string
   nombre: string

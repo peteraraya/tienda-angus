@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Archivo consolidado a partir de supabase/*.sql y supabase/migrations/*.sql.
 -- Para instalar desde cero, ejecutar este archivo y luego las migraciones
--- 34-idempotent-admin-operations.sql y 35-single-admin-access-and-dashboard.sql.
+-- 34 a 39 en orden.
 --
 -- Se ejecuta de forma idempotente sobre una base vacía (CREATE TABLE IF NOT
 -- EXISTS). Para bases existentes, usa los archivos numerados en orden.
@@ -185,6 +185,52 @@ CREATE TABLE IF NOT EXISTS pedido_items (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Solicitudes públicas de clientes, separadas de las compras a proveedores.
+CREATE TABLE IF NOT EXISTS solicitudes_pedido (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  idempotency_key UUID NOT NULL UNIQUE,
+  idempotency_payload TEXT NOT NULL,
+  cliente_nombre TEXT NOT NULL,
+  cliente_telefono TEXT NOT NULL,
+  consent_at TIMESTAMPTZ NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'pendiente'
+    CHECK (estado IN ('pendiente', 'confirmado', 'cancelado')),
+  total NUMERIC(12, 2) NOT NULL CHECK (total >= 0),
+  cantidad_items INTEGER NOT NULL CHECK (cantidad_items > 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS solicitud_pedido_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  solicitud_id UUID NOT NULL REFERENCES solicitudes_pedido(id) ON DELETE CASCADE,
+  producto_id UUID REFERENCES productos(id) ON DELETE SET NULL,
+  variante_id UUID REFERENCES variantes(id) ON DELETE SET NULL,
+  producto_nombre TEXT NOT NULL,
+  talla TEXT NOT NULL,
+  colegio TEXT NOT NULL,
+  cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+  precio_unitario NUMERIC(12, 2) NOT NULL CHECK (precio_unitario >= 0),
+  subtotal NUMERIC(12, 2) NOT NULL CHECK (subtotal >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS solicitudes_reparacion (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  idempotency_key UUID NOT NULL UNIQUE,
+  idempotency_payload TEXT NOT NULL,
+  cliente_nombre TEXT NOT NULL,
+  cliente_telefono TEXT NOT NULL,
+  prenda TEXT NOT NULL,
+  descripcion TEXT NOT NULL,
+  fecha_deseada DATE,
+  estado TEXT NOT NULL DEFAULT 'pendiente'
+    CHECK (estado IN ('pendiente', 'cotizada', 'aceptada', 'completada', 'cancelada')),
+  consent_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Tabla de insumos
 CREATE TABLE IF NOT EXISTS insumos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -293,6 +339,9 @@ ALTER TABLE venta_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE proveedores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pedido_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE solicitudes_pedido ENABLE ROW LEVEL SECURITY;
+ALTER TABLE solicitud_pedido_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE solicitudes_reparacion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE insumos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whatsapp_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whatsapp_templates ENABLE ROW LEVEL SECURITY;
@@ -325,7 +374,9 @@ BEGIN
       AND tablename = ANY (ARRAY[
         'productos', 'variantes', 'colegios', 'categorias', 'insumos',
         'clientes', 'ventas', 'venta_items', 'proveedores', 'pedidos',
-        'pedido_items', 'whatsapp_messages', 'whatsapp_templates', 'whatsapp_config'
+        'pedido_items', 'solicitudes_pedido', 'solicitud_pedido_items',
+        'solicitudes_reparacion',
+        'whatsapp_messages', 'whatsapp_templates', 'whatsapp_config'
       ])
   LOOP
     EXECUTE format(
@@ -384,6 +435,21 @@ CREATE POLICY "Administrador único de pedidos"
 CREATE POLICY "Administrador único de items de pedido"
   ON pedido_items FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Administrador único de solicitudes de pedido"
+  ON solicitudes_pedido FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Administrador único de items de solicitud"
+  ON solicitud_pedido_items FOR SELECT TO authenticated
+  USING (public.is_admin());
+CREATE POLICY "Administrador único de solicitudes de reparación"
+  ON solicitudes_reparacion FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+REVOKE ALL ON solicitudes_pedido FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON solicitud_pedido_items FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON solicitudes_reparacion FROM PUBLIC, anon, authenticated;
+GRANT SELECT, UPDATE ON solicitudes_pedido TO authenticated;
+GRANT SELECT ON solicitud_pedido_items TO authenticated;
+GRANT SELECT, UPDATE ON solicitudes_reparacion TO authenticated;
 CREATE POLICY "Administrador único de mensajes WhatsApp"
   ON whatsapp_messages FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
@@ -425,12 +491,14 @@ BEGIN
       SELECT jsonb_build_object('total', COALESCE(SUM(total), 0), 'cantidad', COUNT(*))
       FROM public.ventas WHERE fecha >= month_start
     ),
-    'stockBajo', (
-      SELECT COALESCE(SUM(stock), 0)
-      FROM public.variantes WHERE stock BETWEEN 1 AND 6
-    ),
     'pedidosPendientes', (
       SELECT COUNT(*) FROM public.pedidos WHERE estado = 'pendiente'
+    ),
+    'solicitudesPendientes', (
+      SELECT COUNT(*) FROM public.solicitudes_pedido WHERE estado = 'pendiente'
+    ),
+    'reparacionesPendientes', (
+      SELECT COUNT(*) FROM public.solicitudes_reparacion WHERE estado = 'pendiente'
     ),
     'clientesNuevos', (
       SELECT COUNT(*) FROM public.clientes WHERE created_at >= month_start
@@ -486,6 +554,16 @@ CREATE INDEX IF NOT EXISTS idx_pedido_items_pedido_id ON pedido_items(pedido_id)
 CREATE INDEX IF NOT EXISTS idx_pedido_items_producto_id ON pedido_items(producto_id);
 CREATE INDEX IF NOT EXISTS idx_pedido_items_variante_id ON pedido_items(variante_id);
 CREATE INDEX IF NOT EXISTS idx_pedido_items_insumo_id ON pedido_items(insumo_id);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_pedido_estado_created
+  ON solicitudes_pedido(estado, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_pedido_telefono_created
+  ON solicitudes_pedido(cliente_telefono, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_solicitud_pedido_items_solicitud
+  ON solicitud_pedido_items(solicitud_id);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_reparacion_estado_created
+  ON solicitudes_reparacion(estado, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_reparacion_telefono_created
+  ON solicitudes_reparacion(cliente_telefono, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_insumos_nombre ON insumos(nombre);
 CREATE INDEX IF NOT EXISTS idx_insumos_categoria ON insumos(categoria);
 CREATE INDEX IF NOT EXISTS idx_insumos_activo ON insumos(activo) WHERE activo = true;

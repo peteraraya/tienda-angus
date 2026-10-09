@@ -7,6 +7,8 @@ import { usePathname } from 'next/navigation'
 const modules = [
   { href: '/admin', label: 'Inventario' },
   { href: '/admin/ventas', label: 'Punto de venta' },
+  { href: '/admin/solicitudes', label: 'Solicitudes web' },
+  { href: '/admin/reparaciones', label: 'Arreglos' },
   { href: '/admin/nuevo', label: 'Nuevo producto' },
   { href: '/admin/colegios', label: 'Colegios' },
   { href: '/admin/categorias', label: 'Categorías' },

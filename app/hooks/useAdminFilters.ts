@@ -65,13 +65,12 @@ export function useAdminFilters(productos: Producto[]) {
       // Filtro por categoría
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
 
-      // Filtro por colegio
-      const matchesColegio = selectedColegio === '' || 
-        producto.variantes?.some(v => v.colegio === selectedColegio)
-
-      // Filtro por talla
-      const matchesTalla = selectedTalla === '' || 
-        producto.variantes?.some(v => v.talla === selectedTalla)
+      // Colegio y talla deben coincidir en una misma variante disponible.
+      const hasVariantFilters = selectedColegio !== '' || selectedTalla !== ''
+      const matchesVariant = !hasVariantFilters || (producto.variantes?.some(v =>
+        (!selectedColegio || v.colegio === selectedColegio) &&
+        (!selectedTalla || v.talla === selectedTalla)
+      ) ?? false)
 
       // Filtro por stock
       let matchesStock = true
@@ -87,7 +86,7 @@ export function useAdminFilters(productos: Producto[]) {
       const matchesStatus = selectedStatusFilter === '' ||
         (selectedStatusFilter === 'activo' ? producto.activo !== false : producto.activo === false)
 
-      return matchesCategory && matchesColegio && matchesTalla && matchesStock && matchesStatus
+      return matchesCategory && matchesVariant && matchesStock && matchesStatus
     })
   }, [productos, searchTerm, selectedCategory, selectedColegio, selectedTalla, selectedStockFilter, selectedStatusFilter])
 

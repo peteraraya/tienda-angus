@@ -1,6 +1,6 @@
  'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import CloseIcon from '@mui/icons-material/Close'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -14,10 +14,11 @@ import { formatPrice } from '@/lib/formatPrice'
 import SizeGuideModal from './SizeGuideModal'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from './ui/ToastContainer'
+import { useMounted } from '../hooks/useMounted'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
+type Variante = Pick<DBVariante, 'id' | 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -36,17 +37,15 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const [selectedColegio, setSelectedColegio] = useState<string>('')
   const modalRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(true)
-  const [mounted, setMounted] = useState(false)
-  const handleClose = () => {
+  const mounted = useMounted()
+  const handleClose = useCallback(() => {
     setOpen(false)
     window.setTimeout(() => onClose(), 180)
-  }
+  }, [onClose])
   
   useEffect(() => {
-    setMounted(true)
     document.body.style.overflow = 'hidden'
     return () => {
-      setMounted(false)
       document.body.style.overflow = 'unset'
     }
   }, [])
@@ -64,7 +63,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
       window.removeEventListener('keydown', onKey)
       prevActive?.focus()
     }
-  }, [onClose])
+  }, [handleClose])
 
   // Obtener tallas y colegios únicos disponibles
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))]
@@ -79,18 +78,14 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const tallaEfectiva = selectedTalla || (tallasDisponibles.length === 1 ? tallasDisponibles[0] : '')
   const colegioEfectivo = selectedColegio || (colegiosDisponibles.length === 1 ? colegiosDisponibles[0] : '')
 
+  const varianteSeleccionada = producto.variantes.find(variante =>
+    variante.talla === tallaEfectiva &&
+    variante.colegio === colegioEfectivo
+  )
+
   // Obtener precio basado en la selección
   const getPrecioActual = () => {
-    if (tallaEfectiva) {
-      // Buscar variante con esa talla
-      const variante = producto.variantes.find(v => 
-        v.talla === tallaEfectiva && 
-        (!colegioEfectivo || v.colegio === colegioEfectivo)
-      );
-      if (variante && variante.precio) {
-        return variante.precio;
-      }
-    }
+    if (varianteSeleccionada?.precio) return varianteSeleccionada.precio
     return producto.precio;
   }
 
@@ -464,10 +459,15 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       alert('Por favor selecciona talla y colegio primero.')
                       return
                     }
+                    if (!varianteSeleccionada) {
+                      alert('La variante seleccionada ya no está disponible.')
+                      return
+                    }
                     addToCart({
                       producto_id: producto.id,
+                      variante_id: varianteSeleccionada.id,
                       nombre: producto.nombre,
-                      precio: precioFinal,
+                      precio: Math.round(precioFinal),
                       talla: tallaEfectiva,
                       colegio: colegioEfectivo || 'General',
                       cantidad: 1,
@@ -476,7 +476,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     })
                     toast.success('¡Añadido a tu pedido!')
                   }}
-                  disabled={!tallaEfectiva || (colegiosDisponibles.length > 0 && !colegioEfectivo) || stockDisponible <= 0}
+                  disabled={!tallaEfectiva || (colegiosDisponibles.length > 0 && !colegioEfectivo) || !varianteSeleccionada || stockDisponible <= 0}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

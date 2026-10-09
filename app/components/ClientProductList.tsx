@@ -1,31 +1,37 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
 import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
 // Hook para favoritos
+function readFavorites() {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem('favoritos') || '[]')
+    return Array.isArray(parsed) && parsed.every(value => typeof value === 'string') ? parsed : []
+  } catch (error) {
+    console.error('No se pudieron leer los favoritos guardados:', error)
+    return []
+  }
+}
+
 function useFavorites() {
   const [favorites, setFavorites] = useState<string[]>(() => {
-      if (typeof window === 'undefined') return [];
-      return JSON.parse(window.localStorage.getItem('favoritos') || '[]');
+    if (typeof window === 'undefined') return []
+    return readFavorites()
   });
   useEffect(() => {
     const onStorage = () => {
-        const favs = JSON.parse(window.localStorage.getItem('favoritos') || '[]');
-      setFavorites(favs);
+      setFavorites(readFavorites())
     };
     const onCustom = (e: Event) => {
-      try {
-        // intentar leer detail si viene en CustomEvent
-        const detail = (e as CustomEvent).detail;
-        if (Array.isArray(detail)) {
-          setFavorites(detail)
-          return
-        }
-      } catch (err) {}
-      // fallback a leer desde localStorage
+      const detail: unknown = (e as CustomEvent<unknown>).detail
+      if (Array.isArray(detail) && detail.every(value => typeof value === 'string')) {
+        setFavorites(detail)
+        return
+      }
       onStorage();
     }
     window.addEventListener('storage', onStorage);
@@ -38,9 +44,9 @@ function useFavorites() {
   return favorites;
 }
 
-import type { Colegio as DBColegio, Producto as DBProducto, Variante as DBVariante } from '@/types/database'
+import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock'>
+type Variante = Pick<DBVariante, 'id' | 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -104,9 +110,12 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-      const matchesTalla = selectedTalla === '' || producto.variantes.some(v => v.talla === selectedTalla)
-      const matchesColegio = selectedColegio === '' || producto.variantes.some(v => v.colegio === selectedColegio)
-      return matchesSearch && matchesCategory && matchesTalla && matchesColegio
+      const matchesVariant = (selectedTalla === '' && selectedColegio === '') ||
+        producto.variantes.some(v =>
+          (selectedTalla === '' || v.talla === selectedTalla) &&
+          (selectedColegio === '' || v.colegio === selectedColegio)
+        )
+      return matchesSearch && matchesCategory && matchesVariant
     })
     if (showOnlyFavorites) {
       filtered = filtered.filter(producto => favorites.includes(producto.id));
@@ -115,12 +124,24 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       filtered = filtered.filter(producto => producto.en_oferta || (producto.descuento_porcentaje && producto.descuento_porcentaje > 0));
     }
     // Ordenar
+    const getEffectivePrice = (producto: Producto) => {
+      const variantPrices = producto.variantes
+        .map(variante => variante.precio)
+        .filter((price): price is number => price !== null && price !== undefined && price > 0)
+      const basePrice = variantPrices.length > 0
+        ? Math.min(producto.precio, ...variantPrices)
+        : producto.precio
+      return producto.descuento_porcentaje
+        ? basePrice * (1 - producto.descuento_porcentaje / 100)
+        : basePrice
+    }
+
     switch (selectedSort) {
       case 'price-asc':
-        filtered.sort((a, b) => a.precio - b.precio)
+        filtered.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b))
         break
       case 'price-desc':
-        filtered.sort((a, b) => b.precio - a.precio)
+        filtered.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a))
         break
       case 'name-asc':
         filtered.sort((a, b) => a.nombre.localeCompare(b.nombre))
@@ -199,7 +220,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                   }`}
                 >
                   {colegioInfo?.insignia_url && (
-                    <img src={colegioInfo.insignia_url} alt={colegio} className="w-6 h-6 object-contain" />
+                    <Image src={colegioInfo.insignia_url} alt={colegio} width={24} height={24} unoptimized className="h-6 w-6 object-contain" />
                   )}
                   {colegio}
                 </button>

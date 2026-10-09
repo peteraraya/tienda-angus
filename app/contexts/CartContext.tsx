@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 export interface CartItem {
   id: string
   producto_id: string
+  variante_id: string
   nombre: string
   precio: number
   talla: string
@@ -49,6 +50,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           typeof item === 'object' &&
           typeof item.id === 'string' &&
           typeof item.producto_id === 'string' &&
+          typeof item.variante_id === 'string' &&
           typeof item.nombre === 'string' &&
           Number.isFinite(item.precio) &&
           typeof item.talla === 'string' &&
@@ -87,11 +89,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (newItem: Omit<CartItem, 'id'>) => {
     setCart(prev => {
-      // Check if exact same product + talla + colegio already exists
+      // Check if the exact same inventory variant already exists.
       const existingItemIndex = prev.findIndex(
-        item => item.producto_id === newItem.producto_id && 
-                item.talla === newItem.talla && 
-                item.colegio === newItem.colegio
+        item => item.variante_id === newItem.variante_id
       )
 
       if (existingItemIndex >= 0) {

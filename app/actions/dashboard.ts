@@ -6,8 +6,9 @@ export interface AdminDashboardMetrics {
   ventasHoy: { total: number; cantidad: number }
   ventasSemana: { total: number; cantidad: number }
   ventasMes: { total: number; cantidad: number }
-  stockBajo: number
   pedidosPendientes: number
+  solicitudesPendientes: number
+  reparacionesPendientes: number
   clientesNuevos: number
   productosMasVendidos: Array<{ nombre: string; cantidad: number }>
 }
@@ -50,8 +51,9 @@ export async function fetchAdminDashboardMetricsAction(): Promise<AdminDashboard
     ventasHoy: parsePeriod(data.ventasHoy, 'ventasHoy'),
     ventasSemana: parsePeriod(data.ventasSemana, 'ventasSemana'),
     ventasMes: parsePeriod(data.ventasMes, 'ventasMes'),
-    stockBajo: parseCount(data.stockBajo, 'stockBajo'),
     pedidosPendientes: parseCount(data.pedidosPendientes, 'pedidosPendientes'),
+    solicitudesPendientes: parseCount(data.solicitudesPendientes, 'solicitudesPendientes'),
+    reparacionesPendientes: parseCount(data.reparacionesPendientes, 'reparacionesPendientes'),
     clientesNuevos: parseCount(data.clientesNuevos, 'clientesNuevos'),
     productosMasVendidos
   }

@@ -12,41 +12,74 @@ interface ProductoConVariantes extends Producto {
   stock_total: number
 }
 
-async function getColegios() {
-  const { data } = await supabase
+type ColegioCatalogo = Pick<Colegio, 'nombre' | 'insignia_url'>
+
+async function getColegios(): Promise<ColegioCatalogo[]> {
+  const { data, error } = await supabase
     .from('colegios')
     .select('nombre, insignia_url')
     .eq('activo', true)
     .order('nombre', { ascending: true })
 
-  return data as Colegio[]
+  if (error) throw new Error(`No se pudieron cargar los colegios: ${error.message}`)
+  return data ?? []
 }
 
 async function getProductos() {
-  const { data: productosData } = await supabase
-    .from('productos')
-    .select('*')
-    .or('activo.is.null,activo.eq.true')
-    .order('created_at', { ascending: false })
+  const pageSize = 500
+  const productosData: Producto[] = []
+  let productOffset = 0
 
-  if (!productosData) return []
+  while (true) {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .or('activo.is.null,activo.eq.true')
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
+      .range(productOffset, productOffset + pageSize - 1)
 
-  const productosConVariantes = await Promise.all(
-    productosData.map(async (producto) => {
-      const { data: variantes } = await supabase
+    if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`)
+    productosData.push(...(data ?? []))
+    if (!data || data.length < pageSize) break
+    productOffset += pageSize
+  }
+
+  const variantesPorProducto = new Map<string, Variante[]>()
+  const productIdBatchSize = 100
+  for (let index = 0; index < productosData.length; index += productIdBatchSize) {
+    const productIds = productosData.slice(index, index + productIdBatchSize).map(producto => producto.id)
+    let variantOffset = 0
+
+    while (true) {
+      const { data: variantes, error } = await supabase
         .from('variantes')
-        .select('talla, colegio, stock, precio')
-        .eq('producto_id', producto.id)
+        .select('id, producto_id, talla, colegio, stock, precio, created_at')
+        .in('producto_id', productIds)
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .range(variantOffset, variantOffset + 999)
 
-      const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
-
-      return {
-        ...producto,
-        variantes: variantes || [],
-        stock_total
+      if (error) throw new Error(`No se pudieron cargar las variantes: ${error.message}`)
+      for (const variante of variantes ?? []) {
+        const actuales = variantesPorProducto.get(variante.producto_id) ?? []
+        actuales.push(variante)
+        variantesPorProducto.set(variante.producto_id, actuales)
       }
-    })
-  )
+
+      if (!variantes || variantes.length < 1000) break
+      variantOffset += 1000
+    }
+  }
+
+  const productosConVariantes = productosData.map(producto => {
+    const variantes = variantesPorProducto.get(producto.id) ?? []
+    return {
+      ...producto,
+      variantes,
+      stock_total: variantes.reduce((sum, variante) => sum + variante.stock, 0)
+    }
+  })
 
   return productosConVariantes as ProductoConVariantes[]
 }
@@ -64,7 +97,7 @@ export default async function Home() {
       priceCurrency: 'CLP',
       price: p.precio,
       availability: p.stock_total > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: 'https://www.confeccionesangus.cl#catalogo'
+      url: 'https://www.confeccionesangus.cl#productos'
     }
   }))
 
@@ -108,7 +141,7 @@ export default async function Home() {
 
             <nav aria-label="Navegación principal" className="flex items-center gap-2 sm:gap-4">
               <div className="hidden md:flex items-center gap-6 text-sm mr-2">
-                <a href="#catalogo" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
+                <a href="#productos" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
                 <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
                 <a href="#contacto" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
               </div>
@@ -119,7 +152,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20" id="catalogo">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20" id="inicio">
         <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr] rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-4 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-6 lg:p-8 dark:border-[#d7b972]/10 dark:bg-[#112827]/85 dark:shadow-[0_18px_45px_rgba(3,7,7,0.25)]">
           <div>
             <span className="accent-chip mb-5">Uniformes escolares • calidad artesanal</span>
@@ -131,7 +164,7 @@ export default async function Home() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <a href="#catalogo" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Ver catálogo</a>
+              <a href="#productos" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Ver catálogo</a>
               <a href="https://wa.me/56983852967?text=Hola%2C%20quiero%20consultar%20por%20uniformes%20escolares" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Consultar por WhatsApp</a>
             </div>
 
@@ -202,8 +235,13 @@ export default async function Home() {
           </div>
         </section>
       ) : (
-        <section className="max-w-6xl mx-auto px-4 pb-14 sm:pb-18">
+        <section id="productos" aria-labelledby="catalog-title" className="max-w-6xl mx-auto px-4 pb-14 sm:pb-18 scroll-mt-28">
           <div className="rounded-[2rem] border border-[#123f3d]/10 bg-white/35 p-3 shadow-[0_18px_40px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-5 lg:p-6">
+            <div className="mb-4 px-1 sm:px-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6f3d]">Catálogo</p>
+              <h2 id="catalog-title" className="mt-1 text-2xl font-bold tracking-tight text-[#123f3d] dark:text-[#edf5f2]">Uniformes escolares</h2>
+              <p className="mt-1 text-sm text-[#4f6967] dark:text-[#bfd4d0]">Elige colegio, prenda y talla para revisar disponibilidad.</p>
+            </div>
             <ClientProductList productos={productos} colegiosData={colegios} />
           </div>
         </section>
@@ -262,8 +300,8 @@ export default async function Home() {
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <a href="https://wa.me/56983852967?text=Hola%2C%20me%20gustar%C3%ADa%20cotizar%20una%20reparaci%C3%B3n%20de%20prenda" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-2xl bg-[#d3a954] px-6 py-3 font-black text-[#123f3d] shadow-lg">
-                Consultar reparación
+              <a href="/arreglos" className="inline-flex items-center justify-center rounded-2xl bg-[#d3a954] px-6 py-3 font-black text-[#123f3d] shadow-lg">
+                Solicitar evaluación
               </a>
             </div>
           </div>

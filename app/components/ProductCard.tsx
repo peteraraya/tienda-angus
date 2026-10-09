@@ -10,7 +10,7 @@ import { formatPrice } from '@/lib/formatPrice'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
+type Variante = Pick<DBVariante, 'id' | 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -73,7 +73,6 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
     }
   }
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))].filter(t => t !== 'Única')
-  const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))].filter(c => c !== 'General')
   
   // Determinar si hay diferentes precios entre las variantes
   const preciosVariantes = producto.variantes.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[];

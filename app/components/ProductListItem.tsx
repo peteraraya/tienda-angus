@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/formatPrice'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
-type Variante = Pick<DBVariante, 'talla' | 'colegio' | 'stock' | 'precio'>
+type Variante = Pick<DBVariante, 'id' | 'talla' | 'colegio' | 'stock' | 'precio'>
 
 interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
@@ -40,7 +40,6 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
     ? producto.imagenes 
     : producto.imagen_url ? [producto.imagen_url] : []
   
-  const primeraImagen = imagenes.length > 0 ? imagenes[0] : null
   const displayImageIndex = isHovered && imagenes.length > 1 ? 1 : 0
   const totalImagenes = imagenes.length
 
