@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import type { Cliente } from '@/types/database'
 import { revalidatePath } from 'next/cache'
+import { createAdminRecordIdempotently } from './idempotency'
 
 export async function fetchClientesAction(): Promise<Cliente[]> {
   const supabase = await createClient()
@@ -13,6 +14,12 @@ export async function fetchClientesAction(): Promise<Cliente[]> {
 
   if (error) throw new Error(error.message)
   return data || []
+}
+
+export async function createClienteAction(nuevoCliente: Partial<Cliente>, requestKey: string) {
+  const id = await createAdminRecordIdempotently('clientes', nuevoCliente, requestKey)
+  revalidatePath('/admin/clientes')
+  return id
 }
 
 export async function updateClienteAction(id: string, data: Partial<Cliente>) {

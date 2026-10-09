@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import type { Colegio } from '@/types/database'
 import { revalidatePath } from 'next/cache'
+import { createAdminRecordIdempotently } from './idempotency'
 
 export async function fetchColegiosAction(): Promise<Colegio[]> {
   const supabase = await createClient()
@@ -16,10 +17,8 @@ export async function fetchColegiosAction(): Promise<Colegio[]> {
   return data || []
 }
 
-export async function createColegioAction(nuevoColegio: Partial<Colegio>) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('colegios').insert([nuevoColegio])
-  if (error) throw new Error(error.message)
+export async function createColegioAction(nuevoColegio: Partial<Colegio>, requestKey: string) {
+  await createAdminRecordIdempotently('colegios', nuevoColegio, requestKey)
   revalidatePath('/admin/colegios')
 }
 

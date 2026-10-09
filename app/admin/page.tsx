@@ -75,13 +75,15 @@ export default function AdminPage() {
     checkAuth()
   }, []) 
 
-  async function updateVarianteStock(varianteId: string, newStock: number) {
+  function updateVarianteStock(varianteId: string, expectedStock: number, newStock: number) {
     if (newStock < 0) {
       toast.error('El stock no puede ser negativo')
       return
     }
-    await updateVarianteStockMutation.mutateAsync({ varianteId, newStock })
-    setEditingVariant(null)
+    updateVarianteStockMutation.mutate(
+      { varianteId, expectedStock, newStock },
+      { onSuccess: () => setEditingVariant(null) }
+    )
   }
 
   function toggleExpandProduct(productId: string) {

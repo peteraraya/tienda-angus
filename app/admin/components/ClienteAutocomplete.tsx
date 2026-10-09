@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Input, Button } from '@/app/components/ui'
 import type { Cliente } from '@/types/database'
+import { createClienteAction } from '@/app/actions/clientes'
 
 interface ClienteAutocompleteProps {
   onClienteSelect: (cliente: Cliente | null) => void
@@ -17,6 +18,8 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
   const [showNewClienteForm, setShowNewClienteForm] = useState(false)
   const [loading, setLoading] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const createRequest = useRef<{ fingerprint: string; key: string } | null>(null)
+  const creatingClient = useRef(false)
 
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre: '',
@@ -76,29 +79,37 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
   }
 
   async function crearNuevoCliente() {
+    if (creatingClient.current) return
     if (!nuevoCliente.nombre || !nuevoCliente.contacto || !nuevoCliente.telefono) {
       alert('Nombre, contacto y teléfono son obligatorios')
       return
     }
 
-    const { data, error } = await supabase
-      .from('clientes')
-      .insert([{
-        nombre: nuevoCliente.nombre.trim(),
-        contacto: nuevoCliente.contacto.trim(),
-        telefono: nuevoCliente.telefono.trim(),
-        red_social: nuevoCliente.red_social.trim() || null,
-        direccion: nuevoCliente.direccion.trim() || null
-      }])
-      .select()
-      .single()
-
-    if (error) {
-      alert('Error al crear cliente')
-      return
+    creatingClient.current = true
+    const cliente = {
+      nombre: nuevoCliente.nombre.trim(),
+      contacto: nuevoCliente.contacto.trim(),
+      telefono: nuevoCliente.telefono.trim(),
+      red_social: nuevoCliente.red_social.trim() || undefined,
+      direccion: nuevoCliente.direccion.trim() || undefined
+    }
+    const fingerprint = JSON.stringify(cliente)
+    if (createRequest.current?.fingerprint !== fingerprint) {
+      createRequest.current = { fingerprint, key: crypto.randomUUID() }
     }
 
-    if (data) {
+    try {
+      const request = createRequest.current
+      if (!request) throw new Error('No se pudo preparar la clave de solicitud')
+      const clienteId = await createClienteAction(cliente, request.key)
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id', clienteId)
+        .single()
+      if (error) throw new Error(error.message)
+
+      createRequest.current = null
       seleccionarCliente(data)
       setShowNewClienteForm(false)
       setNuevoCliente({
@@ -108,6 +119,11 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
         red_social: '',
         direccion: ''
       })
+    } catch (error) {
+      console.error('Error creating client:', error)
+      alert(error instanceof Error ? error.message : 'Error al crear cliente')
+    } finally {
+      creatingClient.current = false
     }
   }
 

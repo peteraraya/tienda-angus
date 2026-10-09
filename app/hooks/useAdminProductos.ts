@@ -4,6 +4,7 @@ import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
 import { formatPrice } from '@/lib/formatPrice'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRef } from 'react'
 import { 
   fetchProductosAction, 
   deleteProductoAction,
@@ -32,6 +33,7 @@ export function useAdminProductos() {
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   const queryClient = useQueryClient()
+  const duplicateRequestKeys = useRef(new Map<string, string>())
 
   /**
    * Fetches all products and their associated variants from the database using React Query.
@@ -86,10 +88,18 @@ export function useAdminProductos() {
   })
 
   const duplicateMutation = useMutation({
-    mutationFn: duplicateProductAction,
-    onSuccess: () => {
+    mutationFn: async (producto: Producto) => {
+      let requestKey = duplicateRequestKeys.current.get(producto.id)
+      if (!requestKey) {
+        requestKey = crypto.randomUUID()
+        duplicateRequestKeys.current.set(producto.id, requestKey)
+      }
+      await duplicateProductAction(producto, requestKey)
+    },
+    onSuccess: async (_, producto) => {
+      await queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+      duplicateRequestKeys.current.delete(producto.id)
       toast.success('Producto duplicado exitosamente')
-      queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
     onError: () => toast.error('Error al duplicar el producto')
   })
@@ -214,11 +224,11 @@ export function useAdminProductos() {
   }
 
   const updateVarianteStockMutation = useMutation({
-    mutationFn: async ({ varianteId, newStock }: { varianteId: string, newStock: number }) => {
-      await updateVarianteStockAction(varianteId, newStock)
+    mutationFn: async ({ varianteId, expectedStock, newStock }: { varianteId: string, expectedStock: number, newStock: number }) => {
+      await updateVarianteStockAction(varianteId, expectedStock, newStock)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminProductos'] }),
-    onError: () => toast.error('Error al actualizar el stock')
+    onError: (error) => toast.error(error.message || 'Error al actualizar el stock')
   })
 
   const updateProductNameMutation = useMutation({

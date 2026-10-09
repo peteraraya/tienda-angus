@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 
 export interface CartItem {
   id: string
@@ -31,33 +31,59 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const cartLoaded = useRef(false)
+  const [cartLoaded, setCartLoaded] = useState(false)
 
   // Cargar carrito desde localStorage al montar
   useEffect(() => {
+    let restoredCart: CartItem[] = []
     try {
       const savedCart = localStorage.getItem('shopping_cart')
       if (savedCart) {
-        const parsedCart = JSON.parse(savedCart)
-        setTimeout(() => {
-          setCart(parsedCart)
-          cartLoaded.current = true
-        }, 0)
-      } else {
-        cartLoaded.current = true
+        const parsedCart: unknown = JSON.parse(savedCart)
+        if (!Array.isArray(parsedCart)) {
+          throw new Error('El contenido guardado del carrito no es una lista')
+        }
+
+        restoredCart = parsedCart.filter((item): item is CartItem =>
+          item !== null &&
+          typeof item === 'object' &&
+          typeof item.id === 'string' &&
+          typeof item.producto_id === 'string' &&
+          typeof item.nombre === 'string' &&
+          Number.isFinite(item.precio) &&
+          typeof item.talla === 'string' &&
+          typeof item.colegio === 'string' &&
+          Number.isInteger(item.cantidad) &&
+          item.cantidad > 0 &&
+          Number.isInteger(item.stock_disponible) &&
+          item.stock_disponible >= item.cantidad
+        )
       }
     } catch (e) {
       console.error('Error loading cart:', e)
-      cartLoaded.current = true
+    }
+
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      setCart(restoredCart)
+      setCartLoaded(true)
+    })
+    return () => {
+      active = false
     }
   }, [])
 
   // Guardar en localStorage cuando cambia el carrito
   useEffect(() => {
-    if (cartLoaded.current) {
-      localStorage.setItem('shopping_cart', JSON.stringify(cart))
+    if (cartLoaded) {
+      try {
+        localStorage.setItem('shopping_cart', JSON.stringify(cart))
+      } catch (e) {
+        console.error('Error saving cart:', e)
+      }
     }
-  }, [cart])
+  }, [cart, cartLoaded])
 
   const addToCart = (newItem: Omit<CartItem, 'id'>) => {
     setCart(prev => {

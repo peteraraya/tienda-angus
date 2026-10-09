@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Insumo } from '@/types/database'
+import { useIdempotencyKeys } from '@/app/hooks/useIdempotencyKeys'
 import { 
   fetchInsumosAction, 
   createInsumoAction, 
@@ -11,6 +12,7 @@ import {
 
 export function useAdminInsumos() {
   const queryClient = useQueryClient()
+  const { getKey, clearKey } = useIdempotencyKeys()
 
   const { data: insumos = [], isLoading: isLoadingInsumos } = useQuery({
     queryKey: ['adminInsumos'],
@@ -19,9 +21,12 @@ export function useAdminInsumos() {
 
   const createInsumoMutation = useMutation({
     mutationFn: async (nuevoInsumo: Partial<Insumo>) => {
-      await createInsumoAction(nuevoInsumo)
+      await createInsumoAction(nuevoInsumo, getKey('insumo', nuevoInsumo))
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminInsumos'] })
+    onSuccess: async (_, nuevoInsumo) => {
+      await queryClient.invalidateQueries({ queryKey: ['adminInsumos'] })
+      clearKey('insumo', nuevoInsumo)
+    }
   })
 
   const updateInsumoMutation = useMutation({

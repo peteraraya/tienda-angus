@@ -1,16 +1,14 @@
 -- ============================================================================
 -- SCHEMA CANÓNICO — confecciones-angus
 -- ============================================================================
--- Archivo consolidado a partir de supabase/*.sql (01–33) y
--- supabase/migrations/*.sql. Representa el ESTADO FINAL del esquema.
+-- Archivo consolidado a partir de supabase/*.sql y supabase/migrations/*.sql.
+-- Para instalar desde cero, ejecutar este archivo y luego
+-- supabase/34-idempotent-admin-operations.sql para índices y funciones RPC.
 --
 -- Se ejecuta de forma idempotente sobre una base vacía (CREATE TABLE IF NOT
 -- EXISTS). Para bases existentes, usa los archivos numerados en orden.
 --
--- NOTA DE SEGURIDAD: las políticas RLS de clientes, ventas, venta_items,
--- proveedores, pedidos y pedido_items permiten escritura pública (USING true
--- / WITH CHECK true). Están documentadas tal cual existen hoy en la base y
--- deben endurecerse (pasar a auth.role() = 'authenticated') antes de producción.
+-- Las tablas de administración usan políticas RLS para usuarios autenticados.
 -- ============================================================================
 
 -- ============================================================================
@@ -31,9 +29,12 @@ CREATE TABLE IF NOT EXISTS productos (
   categoria TEXT NOT NULL,
   imagen_url TEXT,
   imagenes TEXT[] DEFAULT '{}',
+  activo BOOLEAN DEFAULT true,
   descuento_porcentaje INTEGER DEFAULT 0 CHECK (descuento_porcentaje >= 0 AND descuento_porcentaje <= 100),
   en_oferta BOOLEAN DEFAULT FALSE,
   notas TEXT,
+  idempotency_key UUID UNIQUE,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -54,6 +55,8 @@ CREATE TABLE IF NOT EXISTS colegios (
   nombre TEXT NOT NULL UNIQUE,
   insignia_url TEXT,
   activo BOOLEAN DEFAULT true,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -63,6 +66,8 @@ CREATE TABLE IF NOT EXISTS categorias (
   nombre TEXT NOT NULL UNIQUE,
   descripcion TEXT,
   activo BOOLEAN DEFAULT true,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -78,6 +83,8 @@ CREATE TABLE IF NOT EXISTS clientes (
   total_compras INTEGER DEFAULT 0,
   cantidad_compras INTEGER DEFAULT 0,
   ultima_compra TIMESTAMP WITH TIME ZONE,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -96,6 +103,8 @@ CREATE TABLE IF NOT EXISTS ventas (
   cliente_nombre TEXT,
   cliente_telefono TEXT,
   cliente_contacto TEXT,
+  idempotency_key UUID UNIQUE,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -130,6 +139,8 @@ CREATE TABLE IF NOT EXISTS proveedores (
   total_pedidos INTEGER DEFAULT 0,
   cantidad_pedidos INTEGER DEFAULT 0,
   ultimo_pedido TIMESTAMP WITH TIME ZONE,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -147,6 +158,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
   cantidad_items INTEGER NOT NULL,
   notas TEXT,
   usuario TEXT,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT pedidos_estado_check CHECK (estado IN ('pendiente', 'recibido', 'cancelado'))
@@ -166,7 +179,7 @@ CREATE TABLE IF NOT EXISTS pedido_items (
   subtotal INTEGER NOT NULL,
   recibido BOOLEAN DEFAULT false,
   cantidad_recibida INTEGER DEFAULT 0,
-  insumo_id UUID REFERENCES insumos(id),
+  insumo_id UUID,
   insumo_nombre TEXT,
   unidad_medida TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -185,9 +198,26 @@ CREATE TABLE IF NOT EXISTS insumos (
   categoria TEXT,
   notas TEXT,
   activo BOOLEAN DEFAULT true,
+  idempotency_key UUID,
+  idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'pedido_items_insumo_id_fkey'
+      AND conrelid = 'pedido_items'::regclass
+  ) THEN
+    ALTER TABLE pedido_items
+      ADD CONSTRAINT pedido_items_insumo_id_fkey
+      FOREIGN KEY (insumo_id) REFERENCES insumos(id);
+  END IF;
+END;
+$$;
 
 -- Tabla de mensajes de WhatsApp
 CREATE TABLE IF NOT EXISTS whatsapp_messages (
@@ -272,6 +302,40 @@ ALTER TABLE whatsapp_config ENABLE ROW LEVEL SECURITY;
 -- POLÍTICAS RLS
 -- ============================================================================
 
+-- PostgreSQL no admite CREATE POLICY IF NOT EXISTS. Eliminar las políticas
+-- canónicas antes de recrearlas permite volver a ejecutar este bloque.
+DROP POLICY IF EXISTS "Productos son visibles públicamente" ON productos;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden insertar productos" ON productos;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden actualizar productos" ON productos;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden eliminar productos" ON productos;
+DROP POLICY IF EXISTS "Variantes son visibles públicamente" ON variantes;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden insertar variantes" ON variantes;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden actualizar variantes" ON variantes;
+DROP POLICY IF EXISTS "Solo usuarios autenticados pueden eliminar variantes" ON variantes;
+DROP POLICY IF EXISTS "Permitir lectura de colegios a todos" ON colegios;
+DROP POLICY IF EXISTS "Permitir inserción de colegios a usuarios autenticados" ON colegios;
+DROP POLICY IF EXISTS "Permitir actualización de colegios a usuarios autenticados" ON colegios;
+DROP POLICY IF EXISTS "Permitir eliminación de colegios a usuarios autenticados" ON colegios;
+DROP POLICY IF EXISTS "Permitir lectura de categorias a todos" ON categorias;
+DROP POLICY IF EXISTS "Permitir inserción de categorias a usuarios autenticados" ON categorias;
+DROP POLICY IF EXISTS "Permitir actualización de categorias a usuarios autenticados" ON categorias;
+DROP POLICY IF EXISTS "Permitir eliminación de categorias a usuarios autenticados" ON categorias;
+DROP POLICY IF EXISTS "Permitir lectura pública de insumos" ON insumos;
+DROP POLICY IF EXISTS "Permitir inserción autenticada de insumos" ON insumos;
+DROP POLICY IF EXISTS "Permitir actualización autenticada de insumos" ON insumos;
+DROP POLICY IF EXISTS "Permitir eliminación autenticada de insumos" ON insumos;
+DROP POLICY IF EXISTS "Administración autenticada de clientes" ON clientes;
+DROP POLICY IF EXISTS "Administración autenticada de ventas" ON ventas;
+DROP POLICY IF EXISTS "Administración autenticada de items de venta" ON venta_items;
+DROP POLICY IF EXISTS "Administración autenticada de proveedores" ON proveedores;
+DROP POLICY IF EXISTS "Administración autenticada de pedidos" ON pedidos;
+DROP POLICY IF EXISTS "Administración autenticada de items de pedido" ON pedido_items;
+DROP POLICY IF EXISTS "Permitir lectura de mensajes a usuarios autenticados" ON whatsapp_messages;
+DROP POLICY IF EXISTS "Permitir inserción de mensajes a usuarios autenticados" ON whatsapp_messages;
+DROP POLICY IF EXISTS "Permitir actualización de mensajes a usuarios autenticados" ON whatsapp_messages;
+DROP POLICY IF EXISTS "Permitir lectura de plantillas a usuarios autenticados" ON whatsapp_templates;
+DROP POLICY IF EXISTS "Permitir lectura de configuración a usuarios autenticados" ON whatsapp_config;
+
 -- Productos: lectura pública, escritura autenticada
 CREATE POLICY "Productos son visibles públicamente"
   ON productos FOR SELECT USING (true);
@@ -337,79 +401,23 @@ CREATE POLICY "Permitir actualización autenticada de insumos"
 CREATE POLICY "Permitir eliminación autenticada de insumos"
   ON insumos FOR DELETE USING (auth.role() = 'authenticated');
 
--- ⚠ NOTA SEGURIDAD: las siguientes políticas permiten escritura pública.
--- ⚠ Ver comentario de cabecera; endurecer antes de producción.
-CREATE POLICY "Permitir lectura de clientes a todos"
-  ON clientes FOR SELECT USING (true);
+CREATE POLICY "Administración autenticada de clientes"
+  ON clientes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Permitir inserción de clientes a todos"
-  ON clientes FOR INSERT WITH CHECK (true);
+CREATE POLICY "Administración autenticada de ventas"
+  ON ventas FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Permitir actualización de clientes a todos"
-  ON clientes FOR UPDATE USING (true);
+CREATE POLICY "Administración autenticada de items de venta"
+  ON venta_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Permitir eliminación de clientes a todos"
-  ON clientes FOR DELETE USING (true);
+CREATE POLICY "Administración autenticada de proveedores"
+  ON proveedores FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Permitir lectura de ventas a todos"
-  ON ventas FOR SELECT USING (true);
+CREATE POLICY "Administración autenticada de pedidos"
+  ON pedidos FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Permitir inserción de ventas a todos"
-  ON ventas FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Permitir actualización de ventas a todos"
-  ON ventas FOR UPDATE USING (true);
-
-CREATE POLICY "Permitir eliminación de ventas a todos"
-  ON ventas FOR DELETE USING (true);
-
-CREATE POLICY "Permitir lectura de items de venta a todos"
-  ON venta_items FOR SELECT USING (true);
-
-CREATE POLICY "Permitir inserción de items de venta a todos"
-  ON venta_items FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Permitir actualización de items de venta a todos"
-  ON venta_items FOR UPDATE USING (true);
-
-CREATE POLICY "Permitir eliminación de items de venta a todos"
-  ON venta_items FOR DELETE USING (true);
-
-CREATE POLICY "Permitir lectura de proveedores a todos"
-  ON proveedores FOR SELECT USING (true);
-
-CREATE POLICY "Permitir inserción de proveedores a todos"
-  ON proveedores FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Permitir actualización de proveedores a todos"
-  ON proveedores FOR UPDATE USING (true);
-
-CREATE POLICY "Permitir eliminación de proveedores a todos"
-  ON proveedores FOR DELETE USING (true);
-
-CREATE POLICY "Permitir lectura de pedidos a todos"
-  ON pedidos FOR SELECT USING (true);
-
-CREATE POLICY "Permitir inserción de pedidos a todos"
-  ON pedidos FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Permitir actualización de pedidos a todos"
-  ON pedidos FOR UPDATE USING (true);
-
-CREATE POLICY "Permitir eliminación de pedidos a todos"
-  ON pedidos FOR DELETE USING (true);
-
-CREATE POLICY "Permitir lectura de items de pedido a todos"
-  ON pedido_items FOR SELECT USING (true);
-
-CREATE POLICY "Permitir inserción de items de pedido a todos"
-  ON pedido_items FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Permitir actualización de items de pedido a todos"
-  ON pedido_items FOR UPDATE USING (true);
-
-CREATE POLICY "Permitir eliminación de items de pedido a todos"
-  ON pedido_items FOR DELETE USING (true);
+CREATE POLICY "Administración autenticada de items de pedido"
+  ON pedido_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- WhatsApp: lectura/escritura para usuarios autenticados (webhook usa service role)
 CREATE POLICY "Permitir lectura de mensajes a usuarios autenticados"

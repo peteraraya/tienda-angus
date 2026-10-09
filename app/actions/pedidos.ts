@@ -22,17 +22,30 @@ export async function fetchPedidosAction(): Promise<PedidoConProveedor[]> {
   return data || []
 }
 
-export async function updatePedidoEstadoAction(id: string, estado: 'pendiente' | 'recibido' | 'cancelado') {
+export async function updatePedidoEstadoAction(id: string, estado: 'cancelado') {
   const supabase = await createClient()
-  const { error } = await supabase.from('pedidos').update({ estado }).eq('id', id)
-  if (error) throw new Error(error.message)
-  revalidatePath('/admin/pedidos')
-}
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({ estado })
+    .eq('id', id)
+    .eq('estado', 'pendiente')
+    .select('id')
+    .maybeSingle()
 
-export async function deletePedidoAction(id: string) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('pedidos').delete().eq('id', id)
   if (error) throw new Error(error.message)
+  if (!data) {
+    const { data: pedido, error: errorPedido } = await supabase
+      .from('pedidos')
+      .select('estado')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (errorPedido) throw new Error(errorPedido.message)
+    if (pedido?.estado !== 'cancelado') {
+      throw new Error('Solo se pueden cancelar pedidos pendientes')
+    }
+  }
+
   revalidatePath('/admin/pedidos')
 }
 
@@ -46,80 +59,49 @@ export async function fetchPedidoItemsAction(pedidoId: string): Promise<PedidoIt
   return data || []
 }
 
-export async function recibirPedidoAction(pedidoId: string) {
+export interface CrearPedidoInput {
+  proveedor_id: string
+  proveedor_nombre: string
+  fecha_pedido: string
+  fecha_esperada: string | null
+  total: number
+  cantidad_items: number
+  notas: string | null
+  items: {
+    insumo_id: string
+    insumo_nombre: string
+    unidad_medida: string
+    precio_unitario: number
+    cantidad: number
+    subtotal: number
+  }[]
+}
+
+export async function crearPedidoAction(input: CrearPedidoInput, requestKey: string): Promise<string> {
   const supabase = await createClient()
+  const { data: { user }, error: errorUsuario } = await supabase.auth.getUser()
+  if (errorUsuario) throw new Error(errorUsuario.message)
 
-  const { data: items, error: errorItems } = await supabase
-    .from('pedido_items')
-    .select('*')
-    .eq('pedido_id', pedidoId)
-  if (errorItems) throw new Error(errorItems.message)
-  if (!items) throw new Error('No se encontraron items del pedido')
-
-  const { error: errorPedido } = await supabase
-    .from('pedidos')
-    .update({
-      estado: 'recibido',
-      fecha_recepcion: new Date().toISOString()
-    })
-    .eq('id', pedidoId)
-  if (errorPedido) throw new Error(errorPedido.message)
-
-  for (const item of items) {
-    if (item.variante_id) {
-      const { data: variante, error: errorVariante } = await supabase
-        .from('variantes')
-        .select('stock')
-        .eq('id', item.variante_id)
-        .single()
-      if (errorVariante) throw new Error(errorVariante.message)
-
-      if (variante) {
-        const nuevoStock = variante.stock + (item.cantidad_recibida || item.cantidad)
-        const { error: errorStock } = await supabase
-          .from('variantes')
-          .update({ stock: nuevoStock })
-          .eq('id', item.variante_id)
-        if (errorStock) throw new Error(errorStock.message)
-      }
-    }
-
-    const { error: errorItem } = await supabase
-      .from('pedido_items')
-      .update({
-        recibido: true,
-        cantidad_recibida: item.cantidad_recibida || item.cantidad
-      })
-      .eq('id', item.id)
-    if (errorItem) throw new Error(errorItem.message)
-  }
-
-  const { data: pedido, error: errorBase } = await supabase
-    .from('pedidos')
-    .select('proveedor_id, total')
-    .eq('id', pedidoId)
-    .single()
-  if (errorBase) throw new Error(errorBase.message)
-  if (!pedido) throw new Error('No se encontró el pedido')
-
-  const { data: proveedor, error: errorProveedor } = await supabase
-    .from('proveedores')
-    .select('total_pedidos, cantidad_pedidos')
-    .eq('id', pedido.proveedor_id)
-    .single()
-  if (errorProveedor) throw new Error(errorProveedor.message)
-
-  if (proveedor) {
-    const { error: errorProveedorUpdate } = await supabase
-      .from('proveedores')
-      .update({
-        total_pedidos: proveedor.total_pedidos + pedido.total,
-        cantidad_pedidos: proveedor.cantidad_pedidos + 1,
-        ultimo_pedido: new Date().toISOString()
-      })
-      .eq('id', pedido.proveedor_id)
-    if (errorProveedorUpdate) throw new Error(errorProveedorUpdate.message)
-  }
+  const { data: pedidoId, error } = await supabase.rpc('crear_pedido_atomico', {
+    p_request_key: requestKey,
+    p_payload: input,
+    p_usuario: user?.email || 'Administrador'
+  })
+  if (error) throw new Error(error.message)
+  if (!pedidoId) throw new Error('No se pudo crear el pedido')
 
   revalidatePath('/admin/pedidos')
+  return pedidoId
+}
+
+export async function recibirPedidoAction(pedidoId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('recibir_pedido_atomico', {
+    p_pedido_id: pedidoId
+  })
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/admin/pedidos')
+  revalidatePath('/admin')
+  revalidatePath('/')
 }

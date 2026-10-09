@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchProductoConVariantesAction, updateProductoConVariantesAction } from '@/app/actions/productos'
 import { formatPrice } from '@/lib/formatPrice'
@@ -14,6 +14,7 @@ const TALLAS_LETRAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
 interface Variante {
   id?: string
+  stock_original?: number
   talla: string
   colegio: string
   stock: number
@@ -23,6 +24,7 @@ interface Variante {
 export default function EditarProducto({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const toast = useToast()
+  const requestKey = useRef<{ fingerprint: string; key: string } | null>(null)
   const { colegios, loading: loadingColegios } = useColegios()
   const { categorias, loading: loadingCategorias } = useCategorias()
   
@@ -142,7 +144,10 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     }
 
     if (variantes) {
-      setVariantes(variantes)
+      setVariantes(variantes.map(variante => ({
+        ...variante,
+        stock_original: variante.stock
+      })))
     }
 
     setLoading(false)
@@ -174,6 +179,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     }
 
     const nuevas = tallasAAgregar.map(t => ({
+      id: crypto.randomUUID(),
       talla: t,
       colegio: colegioFinal,
       stock: parseInt(nuevaVariante.stock) || 0,
@@ -228,6 +234,8 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     }
 
     const variantesConProductoId = variantes.map(v => ({
+      id: v.id,
+      stock_original: v.stock_original,
       talla: v.talla,
       colegio: v.colegio,
       stock: v.stock,
@@ -235,7 +243,18 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
     }))
 
     try {
-      await updateProductoConVariantesAction(productoId, dataProducto, variantesConProductoId)
+      const fingerprint = JSON.stringify({
+        productoId,
+        producto: dataProducto,
+        variantes: variantesConProductoId
+      })
+      if (requestKey.current?.fingerprint !== fingerprint) {
+        requestKey.current = { fingerprint, key: crypto.randomUUID() }
+      }
+      const request = requestKey.current
+      if (!request) throw new Error('No se pudo preparar la clave de solicitud')
+      await updateProductoConVariantesAction(productoId, dataProducto, variantesConProductoId, request.key)
+      requestKey.current = null
       toast.success('Producto actualizado exitosamente')
       router.push('/admin')
     } catch (error) {

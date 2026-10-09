@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 // LazyImage for admin previews
 import { useRouter } from 'next/navigation'
 import { crearProductoConVariantesAction } from '@/app/actions/productos'
@@ -23,6 +23,7 @@ interface Variante {
 export default function NuevoProducto() {
   const router = useRouter()
   const toast = useToast()
+  const requestKey = useRef<{ fingerprint: string; key: string } | null>(null)
   const { colegios, loading: loadingColegios } = useColegios()
   const { categorias, loading: loadingCategorias } = useCategorias()
   
@@ -195,7 +196,14 @@ export default function NuevoProducto() {
     }))
 
     try {
-      await crearProductoConVariantesAction(dataProducto, variantesConProductoId)
+      const fingerprint = JSON.stringify({ producto: dataProducto, variantes: variantesConProductoId })
+      if (requestKey.current?.fingerprint !== fingerprint) {
+        requestKey.current = { fingerprint, key: crypto.randomUUID() }
+      }
+      const request = requestKey.current
+      if (!request) throw new Error('No se pudo preparar la clave de solicitud')
+      await crearProductoConVariantesAction(dataProducto, variantesConProductoId, request.key)
+      requestKey.current = null
       toast.success('Producto creado exitosamente')
       router.push('/admin')
     } catch (error) {

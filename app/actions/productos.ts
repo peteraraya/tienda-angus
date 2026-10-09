@@ -101,42 +101,64 @@ export async function updateDescuentoAction(id: string, descuento: number) {
   return descuento
 }
 
-export async function duplicateProductAction(producto: Producto) {
+export async function duplicateProductAction(producto: Producto, requestKey: string) {
   const supabase = await createClient()
-  const { data: newProduct, error } = await supabase
-    .from('productos')
-    .insert({
+  const { error } = await supabase.rpc('crear_producto_con_variantes', {
+    p_request_key: requestKey,
+    p_data: {
       nombre: `${producto.nombre} (Copia)`,
       descripcion: producto.descripcion,
       precio: producto.precio,
       categoria: producto.categoria,
       imagen_url: producto.imagen_url,
+      imagenes: producto.imagenes,
       descuento_porcentaje: producto.descuento_porcentaje,
       en_oferta: producto.en_oferta,
+      notas: producto.notas,
       activo: producto.activo
-    })
-    .select()
-    .single()
-
+    },
+    p_variantes: (producto.variantes ?? []).map(({ talla, colegio, stock, precio }) => ({
+      talla,
+      colegio,
+      stock,
+      precio
+    }))
+  })
   if (error) throw new Error(error.message)
 
-  if (newProduct && producto.variantes) {
-    const variantesToInsert = producto.variantes.map(v => ({
-      producto_id: newProduct.id,
-      talla: v.talla,
-      colegio: v.colegio,
-      stock: v.stock
-    }))
-    const { error: variantError } = await supabase.from('variantes').insert(variantesToInsert)
-    if (variantError) throw new Error(variantError.message)
-  }
   revalidatePath('/admin')
 }
 
-export async function updateVarianteStockAction(varianteId: string, newStock: number) {
+export async function updateVarianteStockAction(varianteId: string, expectedStock: number, newStock: number) {
+  if (!Number.isInteger(expectedStock) || expectedStock < 0 || !Number.isInteger(newStock) || newStock < 0) {
+    throw new Error('El stock debe ser un número entero no negativo')
+  }
+
   const supabase = await createClient()
-  const { error } = await supabase.from('variantes').update({ stock: newStock }).eq('id', varianteId)
+  const { data, error } = await supabase
+    .from('variantes')
+    .update({ stock: newStock })
+    .eq('id', varianteId)
+    .eq('stock', expectedStock)
+    .select('id')
+    .maybeSingle()
+
   if (error) throw new Error(error.message)
+
+  if (!data) {
+    const { data: variante, error: errorVariante } = await supabase
+      .from('variantes')
+      .select('stock')
+      .eq('id', varianteId)
+      .maybeSingle()
+
+    if (errorVariante) throw new Error(errorVariante.message)
+    if (!variante) throw new Error('No se encontró la variante')
+    if (variante.stock !== newStock) {
+      throw new Error('El stock cambió mientras editabas. Recarga el catálogo antes de guardar')
+    }
+  }
+
   revalidatePath('/admin')
   revalidatePath('/')
 }
@@ -181,39 +203,47 @@ export async function fetchProductoConVariantesAction(id: string): Promise<{ pro
   return { producto, variantes: variantes || [] }
 }
 
-export async function crearProductoConVariantesAction(data: ProductoData, variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[]) {
+export async function crearProductoConVariantesAction(
+  data: ProductoData,
+  variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[],
+  requestKey: string
+) {
   const supabase = await createClient()
-  const { data: producto, error } = await supabase
-    .from('productos')
-    .insert([{ ...data, activo: data.activo ?? true }])
-    .select()
-    .single()
+  const { data: productoId, error } = await supabase.rpc('crear_producto_con_variantes', {
+    p_request_key: requestKey,
+    p_data: { ...data, activo: data.activo ?? true },
+    p_variantes: variantes
+  })
   if (error) throw new Error(error.message)
-  if (!producto) throw new Error('No se pudo crear el producto')
-  if (variantes.length > 0) {
-    const { error: errorVariantes } = await supabase
-      .from('variantes')
-      .insert(variantes.map(v => ({ ...v, producto_id: producto.id })))
-    if (errorVariantes) throw new Error(errorVariantes.message)
-  }
+  if (!productoId) throw new Error('No se pudo crear el producto')
+
+  const { data: producto, error: errorProducto } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('id', productoId)
+    .single()
+  if (errorProducto) throw new Error(errorProducto.message)
+
   revalidatePath('/admin')
   revalidatePath('/admin/nuevo')
   revalidatePath('/')
   return producto
 }
 
-export async function updateProductoConVariantesAction(id: string, data: ProductoData, variantes: { talla: string; colegio: string; stock: number; precio?: number | null }[]) {
+export async function updateProductoConVariantesAction(
+  id: string,
+  data: ProductoData,
+  variantes: { id?: string; stock_original?: number; talla: string; colegio: string; stock: number; precio?: number | null }[],
+  requestKey: string
+) {
   const supabase = await createClient()
-  const { error } = await supabase.from('productos').update({ ...data, activo: data.activo ?? true }).eq('id', id)
+  const { error } = await supabase.rpc('actualizar_producto_con_variantes', {
+    p_producto_id: id,
+    p_data: { ...data, activo: data.activo ?? true },
+    p_variantes: variantes,
+    p_request_key: requestKey
+  })
   if (error) throw new Error(error.message)
-  const { error: errorDelete } = await supabase.from('variantes').delete().eq('producto_id', id)
-  if (errorDelete) throw new Error(errorDelete.message)
-  if (variantes.length > 0) {
-    const { error: errorVariantes } = await supabase
-      .from('variantes')
-      .insert(variantes.map(v => ({ ...v, producto_id: id })))
-    if (errorVariantes) throw new Error(errorVariantes.message)
-  }
   revalidatePath('/admin')
   revalidatePath('/admin/editar')
   revalidatePath('/')

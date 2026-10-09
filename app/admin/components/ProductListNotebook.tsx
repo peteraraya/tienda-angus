@@ -28,7 +28,7 @@ interface Props {
   onUpdateDescuento: (id: string, descuento: number) => void
   onToggleOferta: (id: string, currentState: boolean) => void
   onToggleActivo: (id: string, currentState: boolean) => void
-  onUpdateVarianteStock: (varianteId: string, newStock: number) => void
+  onUpdateVarianteStock: (varianteId: string, expectedStock: number, newStock: number) => void
   onSetEditingVariant: (id: string | null) => void
   onSetEditingProductName: (id: string | null) => void
   onSetEditingProductPrice: (id: string | null) => void
@@ -723,7 +723,7 @@ export default function ProductListNotebook({
                             defaultValue={variante.stock}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                onUpdateVarianteStock(variante.id, parseInt((e.target as HTMLInputElement).value) || 0)
+                                onUpdateVarianteStock(variante.id, variante.stock, parseInt((e.target as HTMLInputElement).value) || 0)
                               }
                             }}
                             className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-semibold focus:ring-2 focus:ring-blue-500"
@@ -732,7 +732,7 @@ export default function ProductListNotebook({
                           <button
                             onClick={() => {
                               const input = document.querySelector(`input[type="number"]`) as HTMLInputElement
-                              onUpdateVarianteStock(variante.id, parseInt(input.value) || 0)
+                              onUpdateVarianteStock(variante.id, variante.stock, parseInt(input.value) || 0)
                             }}
                             className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs font-bold"
                           >
@@ -748,7 +748,7 @@ export default function ProductListNotebook({
                       ) : (
                         <>
                           <button
-                            onClick={() => onUpdateVarianteStock(variante.id, Math.max(0, variante.stock - 1))}
+                            onClick={() => onUpdateVarianteStock(variante.id, variante.stock, Math.max(0, variante.stock - 1))}
                             className="flex-1 bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition-colors text-xs font-bold"
                           >
                             -1
@@ -760,7 +760,7 @@ export default function ProductListNotebook({
                             ✏️
                           </button>
                           <button
-                            onClick={() => onUpdateVarianteStock(variante.id, variante.stock + 1)}
+                            onClick={() => onUpdateVarianteStock(variante.id, variante.stock, variante.stock + 1)}
                             className="flex-1 bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600 transition-colors text-xs font-bold"
                           >
                             +1

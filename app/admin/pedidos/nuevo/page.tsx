@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
+import { crearPedidoAction, type CrearPedidoInput } from '@/app/actions/pedidos'
 import { Button, Input } from '@/app/components/ui'
 import type { Insumo, Proveedor } from '@/types/database'
 import AdminHeader from '../../components/AdminHeader'
@@ -39,14 +40,10 @@ export default function NuevoPedidoPage() {
   const [showProveedorSuggestions, setShowProveedorSuggestions] = useState(false)
   const [preciosCompra, setPreciosCompra] = useState<Record<string, number>>({})
   const [cantidades, setCantidades] = useState<Record<string, number>>({})
-
-  useEffect(() => {
-    loadInsumos()
-    loadProveedores()
-  }, [])
+  const processingPedidoRef = useRef(false)
+  const pedidoRequest = useRef<{ fingerprint: string; key: string; payload: CrearPedidoInput } | null>(null)
 
   async function loadInsumos() {
-    setLoading(true)
     const { data } = await supabase
       .from('insumos')
       .select('*')
@@ -66,6 +63,13 @@ export default function NuevoPedidoPage() {
 
     if (data) setProveedores(data)
   }
+
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      void loadInsumos()
+      void loadProveedores()
+    })
+  }, [])
 
   function agregarAlCarrito(insumo: Insumo) {
     const precioCompra = preciosCompra[insumo.id] || 0
@@ -148,6 +152,8 @@ export default function NuevoPedidoPage() {
   }
 
   async function crearPedido() {
+    if (processingPedidoRef.current) return
+
     if (cart.length === 0) {
       toast.error('El pedido está vacío')
       return
@@ -167,53 +173,50 @@ export default function NuevoPedidoPage() {
 
     if (!confirmed) return
 
+    processingPedidoRef.current = true
     setProcessingPedido(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const usuario = user?.email || 'Administrador'
-
       const totales = calcularTotales()
-
-      const { data: pedido, error: errorPedido } = await supabase
-        .from('pedidos')
-        .insert({
-          proveedor_id: selectedProveedor.id,
-          proveedor_nombre: selectedProveedor.nombre,
-          fecha_pedido: new Date().toISOString(),
-          fecha_esperada: fechaEsperada || null,
-          estado: 'pendiente',
-          total: totales.total,
-          cantidad_items: totales.cantidad_items,
-          notas: notasPedido.trim() || null,
-          usuario
-        })
-        .select()
-        .single()
-
-      if (errorPedido || !pedido) {
-        throw new Error('Error al crear el pedido')
-      }
-
       const items = cart.map(item => ({
-        pedido_id: pedido.id,
         insumo_id: item.insumo_id,
         insumo_nombre: item.insumo_nombre,
         unidad_medida: item.unidad_medida,
         precio_unitario: item.precio_unitario,
         cantidad: item.cantidad,
-        subtotal: item.precio_unitario * item.cantidad,
-        recibido: false,
-        cantidad_recibida: 0
+        subtotal: item.precio_unitario * item.cantidad
       }))
+      const fingerprint = JSON.stringify({
+        proveedor_id: selectedProveedor.id,
+        proveedor_nombre: selectedProveedor.nombre,
+        fecha_esperada: fechaEsperada || null,
+        total: totales.total,
+        cantidad_items: totales.cantidad_items,
+        notas: notasPedido.trim() || null,
+        items
+      })
 
-      const { error: errorItems } = await supabase
-        .from('pedido_items')
-        .insert(items)
-
-      if (errorItems) {
-        throw new Error('Error al crear los items del pedido')
+      if (pedidoRequest.current?.fingerprint !== fingerprint) {
+        pedidoRequest.current = {
+          fingerprint,
+          key: crypto.randomUUID(),
+          payload: {
+            proveedor_id: selectedProveedor.id,
+            proveedor_nombre: selectedProveedor.nombre,
+            fecha_pedido: new Date().toISOString(),
+            fecha_esperada: fechaEsperada || null,
+            total: totales.total,
+            cantidad_items: totales.cantidad_items,
+            notas: notasPedido.trim() || null,
+            items
+          }
+        }
       }
+      const request = pedidoRequest.current
+      if (!request) throw new Error('No se pudo preparar la clave de solicitud')
+
+      await crearPedidoAction(request.payload, request.key)
+      pedidoRequest.current = null
 
       toast.success('¡Pedido creado exitosamente!')
       router.push('/admin/pedidos')
@@ -222,6 +225,7 @@ export default function NuevoPedidoPage() {
       console.error('Error al crear pedido:', error)
       toast.error('Error al crear el pedido')
     } finally {
+      processingPedidoRef.current = false
       setProcessingPedido(false)
     }
   }

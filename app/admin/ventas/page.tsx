@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/formatPrice'
@@ -54,13 +54,14 @@ export default function VentasPage() {
   const queryClient = useQueryClient()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [productos, setProductos] = useState<Producto[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoria, setSelectedCategoria] = useState('')
   const [processingVenta, setProcessingVenta] = useState(false)
   const [notasVenta, setNotasVenta] = useState('')
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
+  const processingVentaRef = useRef(false)
+  const saleRequestRef = useRef<{ fingerprint: string; key: string } | null>(null)
   
   // Estado para la boleta/ticket
   const [showTicket, setShowTicket] = useState(false)
@@ -72,16 +73,13 @@ export default function VentasPage() {
     staleTime: 60 * 1000,
   })
 
-  // Derivar solo productos con al menos una variante con stock
-  useEffect(() => {
-    const productosDisponibles: Producto[] = (productosData as ProductoAction[])
+  const productos: Producto[] = useMemo(() =>
+    (productosData as ProductoAction[])
       .filter(p => p.variantes?.some(v => v.stock > 0))
       .map(p => ({
         ...p,
         variantes: p.variantes!.filter(v => v.stock > 0)
-      }))
-    setProductos(productosDisponibles)
-  }, [productosData])
+      })), [productosData])
 
   function agregarAlCarrito(producto: Producto, variante: Variante) {
     const precioBase = variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio;
@@ -166,6 +164,8 @@ export default function VentasPage() {
   }
 
   async function procesarVenta() {
+    if (processingVentaRef.current) return
+
     if (cart.length === 0) {
       toast.error('El carrito está vacío')
       return
@@ -185,12 +185,12 @@ export default function VentasPage() {
 
     if (!confirmed) return
 
+    processingVentaRef.current = true
     setProcessingVenta(true)
 
     try {
       const totales = calcularTotales()
-
-      const ventaId = await crearVentaAction({
+      const input = {
         ...totales,
         notas: notasVenta.trim() || null,
         vendedor: 'Administrador',
@@ -209,13 +209,17 @@ export default function VentasPage() {
           precio_final: item.precio_final,
           cantidad: item.cantidad,
           subtotal: item.precio_final * item.cantidad
-        })),
-        cliente_stats: {
-          id: selectedCliente.id,
-          total_compras: selectedCliente.total_compras,
-          cantidad_compras: selectedCliente.cantidad_compras
-        }
-      })
+        }))
+      }
+      const fingerprint = JSON.stringify(input)
+      if (saleRequestRef.current?.fingerprint !== fingerprint) {
+        saleRequestRef.current = { fingerprint, key: crypto.randomUUID() }
+      }
+      const saleRequest = saleRequestRef.current
+      if (!saleRequest) throw new Error('No se pudo preparar la clave de solicitud')
+
+      const ventaId = await crearVentaAction(input, saleRequest.key)
+      saleRequestRef.current = null
 
       toast.success('¡Venta procesada exitosamente!')
       
@@ -240,6 +244,7 @@ export default function VentasPage() {
       console.error('Error al procesar venta:', error)
       toast.error('Error al procesar la venta')
     } finally {
+      processingVentaRef.current = false
       setProcessingVenta(false)
     }
   }

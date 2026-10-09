@@ -45,14 +45,16 @@ export async function POST(request: NextRequest) {
 
     console.log('Received WhatsApp message:', message)
 
+    // Guardar primero para que una reentrega no repita efectos de procesamiento.
+    const isNewMessage = await saveMessageToDatabase(message)
+
     // Marcar mensaje como leído
     await markMessageAsRead(message.id)
 
-    // Guardar mensaje en la base de datos
-    await saveMessageToDatabase(message)
-
     // Procesar el mensaje y responder automáticamente si es necesario
-    await processIncomingMessage(message)
+    if (isNewMessage) {
+      await processIncomingMessage(message)
+    }
 
     return NextResponse.json({ status: 'ok' }, { status: 200 })
   } catch (error) {
@@ -64,9 +66,10 @@ export async function POST(request: NextRequest) {
 /**
  * Guardar mensaje en la base de datos
  */
-async function saveMessageToDatabase(message: WhatsAppWebhookMessage) {
-  try {
-    const { error } = await supabase.from('whatsapp_messages').insert({
+async function saveMessageToDatabase(message: WhatsAppWebhookMessage): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('whatsapp_messages')
+    .upsert({
       message_id: message.id,
       from_number: message.from,
       message_type: message.type,
@@ -74,14 +77,15 @@ async function saveMessageToDatabase(message: WhatsAppWebhookMessage) {
       timestamp: new Date(parseInt(message.timestamp) * 1000).toISOString(),
       status: 'received',
       direction: 'incoming',
+    }, {
+      onConflict: 'message_id',
+      ignoreDuplicates: true
     })
+    .select('message_id')
+    .maybeSingle()
 
-    if (error) {
-      console.error('Error saving message to database:', error)
-    }
-  } catch (error) {
-    console.error('Error in saveMessageToDatabase:', error)
-  }
+  if (error) throw new Error(`Error saving WhatsApp message: ${error.message}`)
+  return Boolean(data)
 }
 
 /**

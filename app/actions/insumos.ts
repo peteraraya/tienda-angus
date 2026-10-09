@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import type { Insumo } from '@/types/database'
 import { revalidatePath } from 'next/cache'
+import { createAdminRecordIdempotently } from './idempotency'
 
 export async function fetchInsumosAction(): Promise<Insumo[]> {
   const supabase = await createClient()
@@ -16,10 +17,8 @@ export async function fetchInsumosAction(): Promise<Insumo[]> {
   return data || []
 }
 
-export async function createInsumoAction(nuevoInsumo: Partial<Insumo>) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('insumos').insert([nuevoInsumo])
-  if (error) throw new Error(error.message)
+export async function createInsumoAction(nuevoInsumo: Partial<Insumo>, requestKey: string) {
+  await createAdminRecordIdempotently('insumos', nuevoInsumo, requestKey)
   revalidatePath('/admin/insumos')
 }
 

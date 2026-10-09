@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Proveedor } from '@/types/database'
+import { useIdempotencyKeys } from '@/app/hooks/useIdempotencyKeys'
 import { 
   fetchProveedoresAction, 
   createProveedorAction, 
@@ -12,6 +13,7 @@ import {
 
 export function useAdminProveedores() {
   const queryClient = useQueryClient()
+  const { getKey, clearKey } = useIdempotencyKeys()
 
   const { data: proveedores = [], isLoading: isLoadingProveedores } = useQuery({
     queryKey: ['adminProveedores'],
@@ -20,9 +22,12 @@ export function useAdminProveedores() {
 
   const createProveedorMutation = useMutation({
     mutationFn: async (nuevoProveedor: Partial<Proveedor>) => {
-      await createProveedorAction(nuevoProveedor)
+      await createProveedorAction(nuevoProveedor, getKey('proveedor', nuevoProveedor))
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminProveedores'] })
+    onSuccess: async (_, nuevoProveedor) => {
+      await queryClient.invalidateQueries({ queryKey: ['adminProveedores'] })
+      clearKey('proveedor', nuevoProveedor)
+    }
   })
 
   const updateProveedorMutation = useMutation({

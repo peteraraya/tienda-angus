@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Categoria } from '@/types/database'
 import { clearAllCache } from '@/app/hooks/useStaticData'
+import { useIdempotencyKeys } from '@/app/hooks/useIdempotencyKeys'
 import { 
   fetchCategoriasAction, 
   createCategoriaAction, 
@@ -13,10 +14,11 @@ import {
 
 export function useAdminCategorias() {
   const queryClient = useQueryClient()
+  const { getKey, clearKey } = useIdempotencyKeys()
 
-  function invalidate() {
+  async function invalidate() {
     clearAllCache()
-    queryClient.invalidateQueries({ queryKey: ['adminCategorias'] })
+    await queryClient.invalidateQueries({ queryKey: ['adminCategorias'] })
   }
 
   const { data: categorias = [], isLoading: isLoadingCategorias } = useQuery({
@@ -26,9 +28,12 @@ export function useAdminCategorias() {
 
   const createCategoriaMutation = useMutation({
     mutationFn: async (nuevaCategoria: Partial<Categoria>) => {
-      await createCategoriaAction(nuevaCategoria)
+      await createCategoriaAction(nuevaCategoria, getKey('categoria', nuevaCategoria))
     },
-    onSuccess: invalidate
+    onSuccess: async (_, nuevaCategoria) => {
+      await invalidate()
+      clearKey('categoria', nuevaCategoria)
+    }
   })
 
   const updateCategoriaMutation = useMutation({
