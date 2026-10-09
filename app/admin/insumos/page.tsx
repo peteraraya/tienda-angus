@@ -237,7 +237,7 @@ export default function InsumosPage() {
                 onChange={(e) => setSelectedCategoria(e.target.value)}
                 className="w-full p-3.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white transition-colors font-semibold"
               >
-                <option value="">📁 Todas las categorías</option>
+                <option value="">Todas las categorías</option>
                 {categorias.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -280,7 +280,7 @@ export default function InsumosPage() {
                     )}
                     {insumo.stock_actual <= insumo.stock_minimo && (
                       <div className="absolute top-2 left-2 bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        ⚠️ Stock bajo
+                        Stock bajo
                       </div>
                     )}
                   </div>

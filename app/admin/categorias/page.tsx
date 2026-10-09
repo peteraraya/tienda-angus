@@ -125,7 +125,7 @@ export default function CategoriasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
       <AdminHeader 
-        title="🏷️ Gestión de Categorías" 
+        title="Gestión de Categorías"
         subtitle="Administra las categorías de productos"
       />
 

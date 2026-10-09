@@ -26,11 +26,11 @@ export default function AdminTopBar() {
   }
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-3">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+    <header className="sticky top-0 z-30 border-b border-[#123f3d]/10 bg-[#fffdf9]/95 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#0d1a1a]/95">
+      <div className="mx-auto w-full max-w-[1800px] px-3 py-2 sm:px-5 lg:px-7">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm mb-2 sm:mb-0 overflow-hidden bg-white dark:bg-gray-800">
+            <div className="hidden h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white sm:flex dark:bg-[#142b2a]">
               <Image 
                 src="/logo_ig.png" 
                 alt="Confecciones Angus" 
@@ -41,18 +41,18 @@ export default function AdminTopBar() {
               />
             </div>
             <div className="text-center sm:text-left">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-lg font-bold tracking-tight text-[#173b39] dark:text-[#edf5f2] sm:text-xl">
                 Panel de Administración
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Gestiona tu inventario</p>
+              <p className="text-xs text-[#5f7a73] dark:text-[#bfd4d0]">Confecciones Angus</p>
             </div>
             <NotificationCenter />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
+          <div className="flex w-full flex-wrap justify-center gap-1.5 sm:w-auto sm:justify-end">
             <Button
               variant="success"
               onClick={() => router.push('/admin/ventas')}
-              className="min-h-11 shadow-md hover:shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              className="min-h-10 shadow-sm transition-all flex items-center justify-center gap-2"
               title="Punto de Venta"
               aria-label="Punto de Venta"
             >
@@ -65,7 +65,7 @@ export default function AdminTopBar() {
             <Button
               variant="primary"
               onClick={() => router.push('/admin/nuevo')}
-              className="min-h-11 shadow-md hover:shadow-sm transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              className="min-h-10 shadow-sm transition-all flex items-center justify-center gap-2"
               title="Añadir Nuevo Producto"
               aria-label="Añadir Nuevo Producto"
             >
@@ -77,7 +77,7 @@ export default function AdminTopBar() {
             
             <Button
               onClick={() => window.open('/', '_blank')}
-              className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
+              className="min-h-10 bg-transparent hover:bg-[#edf3f1] dark:hover:bg-white/5 text-[#4f6967] dark:text-[#d6e3e0] border border-[#123f3d]/15 dark:border-white/10 px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-2"
               title="Abrir Tienda"
               aria-label="Abrir Tienda"
             >
@@ -89,7 +89,7 @@ export default function AdminTopBar() {
 
             <Button
               onClick={() => window.print()}
-              className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm print:hidden"
+              className="min-h-10 bg-transparent hover:bg-[#edf3f1] dark:hover:bg-white/5 text-[#4f6967] dark:text-[#d6e3e0] border border-[#123f3d]/15 dark:border-white/10 px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-2 print:hidden"
               title="Imprimir Vista Actual"
               aria-label="Imprimir Vista Actual"
             >
@@ -100,7 +100,7 @@ export default function AdminTopBar() {
             </Button>
             <Button
               onClick={handleLogout}
-              className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
+              className="min-h-10 bg-transparent hover:bg-red-50 text-[#a23f37] dark:hover:bg-red-950/30 dark:text-red-300 border border-red-200/70 dark:border-red-900/50 px-3 py-2 rounded-lg font-semibold transition-all text-sm flex items-center gap-2"
               title="Cerrar Sesión"
               aria-label="Cerrar Sesión"
             >
@@ -112,6 +112,7 @@ export default function AdminTopBar() {
           </div>
         </div>
       </div>
-    </div>
+    </header>
+
   )
 }

@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { Button } from '@/app/components/ui'
 import React from 'react'
-import Image from 'next/image'
 
 interface AdminHeaderProps {
   title: string
@@ -23,37 +22,25 @@ export default function AdminHeader({
   const router = useRouter()
 
   return (
-    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+    <header className="mb-4 rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] px-3 py-3 shadow-sm dark:border-white/10 dark:bg-[#142b2a] sm:px-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <Button
               onClick={() => router.push(backPath)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
+              className="min-h-10 min-w-10 rounded-md border border-[#123f3d]/10 text-[#4f6967] transition-colors hover:bg-[#edf3f1] dark:border-white/10 dark:text-[#d6e3e0] dark:hover:bg-white/5"
+              aria-label="Volver al inventario"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Button>
-            
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-white dark:bg-gray-800 flex-shrink-0 ml-1 sm:ml-2">
-              <Image 
-                src="/logo_ig.png" 
-                alt="Confecciones Angus" 
-                width={48}
-                height={48}
-                className="w-full h-full object-contain p-1"
-                priority
-              />
-            </div>
-            
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white truncate flex items-center gap-2">
+              <h1 className="flex items-center gap-2 truncate text-lg font-semibold tracking-tight text-[#173b39] dark:text-[#edf5f2] sm:text-xl">
                 {icon && <span>{icon}</span>}
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 truncate">
+                <p className="mt-0.5 truncate text-xs text-[#5f7a73] dark:text-[#bfd4d0] sm:text-sm">
                   {subtitle}
                 </p>
               )}
@@ -61,12 +48,11 @@ export default function AdminHeader({
           </div>
 
           {actions && (
-            <div className="flex flex-wrap justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="flex w-full flex-wrap justify-start gap-2 sm:w-auto sm:justify-end">
               {actions}
             </div>
           )}
-        </div>
       </div>
-    </div>
+    </header>
   )
 }

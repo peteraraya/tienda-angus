@@ -271,7 +271,7 @@ export default function NuevoPedidoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
       <AdminHeader 
-        title="📦 Nuevo Pedido" 
+        title="Nuevo Pedido"
         subtitle="Crea una orden de compra para reabastecer inventario"
         backPath="/admin/pedidos"
       />
@@ -300,7 +300,7 @@ export default function NuevoPedidoPage() {
                   onChange={(e) => setSelectedCategoria(e.target.value)}
                   className="w-full sm:w-1/3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-semibold transition-colors"
                 >
-                  <option value="">📁 Todas las categorías</option>
+                  <option value="">Todas las categorías</option>
                   {categorias.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -439,7 +439,7 @@ export default function NuevoPedidoPage() {
                       {selectedProveedor.email && <p>📧 {selectedProveedor.email}</p>}
                       {selectedProveedor.cantidad_pedidos > 0 && (
                         <p className="text-xs mt-2 pt-2 border-t border-green-300 dark:border-green-700">
-                          📦 {selectedProveedor.cantidad_pedidos} pedidos anteriores
+                          {selectedProveedor.cantidad_pedidos} pedidos anteriores
                         </p>
                       )}
                     </div>
@@ -476,7 +476,7 @@ export default function NuevoPedidoPage() {
                               <p className="text-sm text-gray-600 dark:text-gray-400">👤 {proveedor.contacto}</p>
                               {proveedor.cantidad_pedidos > 0 && (
                                 <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                  📦 {proveedor.cantidad_pedidos} pedidos anteriores
+                                  {proveedor.cantidad_pedidos} pedidos anteriores
                                 </p>
                               )}
                             </button>

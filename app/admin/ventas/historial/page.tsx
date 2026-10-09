@@ -113,7 +113,7 @@ export default function HistorialVentasPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                  📊 Historial de Ventas
+                  Historial de Ventas
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Registro completo de transacciones</p>
               </div>
@@ -265,11 +265,11 @@ export default function HistorialVentasPage() {
                         </span>
                         {venta.cliente_nombre && (
                           <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            🛍️ {venta.cliente_nombre}
+                            {venta.cliente_nombre}
                           </span>
                         )}
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          📦 {venta.cantidad_items} items
+                          {venta.cantidad_items} artículos
                         </span>
                         {venta.notas && (
                           <span className="text-sm text-gray-600 dark:text-gray-400 italic">

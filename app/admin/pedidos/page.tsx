@@ -143,8 +143,8 @@ export default function PedidosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
-      <AdminHeader 
-        title="📦 Gestión de Pedidos" 
+      <AdminHeader
+        title="Gestión de Pedidos"
         subtitle="Administra tus órdenes de compra"
         actions={
           <>
@@ -152,7 +152,7 @@ export default function PedidosPage() {
               onClick={() => router.push('/admin/proveedores')}
               className="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 px-4 py-2.5 rounded-xl font-bold transition-all border border-orange-200 dark:border-orange-800"
             >
-              🏭 Proveedores
+              Proveedores
             </Button>
             <Button
               onClick={() => router.push('/admin/pedidos/nuevo')}
@@ -307,7 +307,7 @@ export default function PedidosPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          🏭 {pedido.proveedor_nombre}
+                          {pedido.proveedor_nombre}
                         </span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           📅 {formatFecha(pedido.fecha_pedido)}
@@ -318,7 +318,7 @@ export default function PedidosPage() {
                           </span>
                         )}
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          📦 {pedido.cantidad_items} items
+                          {pedido.cantidad_items} artículos
                         </span>
                       </div>
                     </div>

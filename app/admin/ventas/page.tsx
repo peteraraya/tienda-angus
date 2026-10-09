@@ -278,7 +278,7 @@ export default function VentasPage() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">💰 Punto de Venta</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Punto de Venta</h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Registra ventas y descuenta del inventario</p>
         </div>
         <Button
@@ -452,7 +452,7 @@ export default function VentasPage() {
                   onChange={(e) => setSelectedCategoria(e.target.value)}
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">📁 Todas las categorías</option>
+                  <option value="">Todas las categorías</option>
                   {categorias.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}

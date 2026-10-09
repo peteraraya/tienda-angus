@@ -534,7 +534,7 @@ export default function EditarProducto({ params }: { params: Promise<{ id: strin
                   </div>
                   <div>
                     <span className={`font-bold transition-colors ${formData.en_oferta ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                      Marcar como &quot;OFERTA 🔥&quot;
+                      Marcar como oferta
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">Se mostrará con un badge animado</p>
                   </div>

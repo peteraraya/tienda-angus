@@ -152,14 +152,14 @@ export default function ProveedoresPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
       <AdminHeader 
-        title="🏭 Proveedores" 
+        title="Proveedores"
         subtitle="Gestiona tus proveedores"
         actions={
           <Button
             onClick={() => router.push('/admin/pedidos')}
             className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-sm hover:-translate-y-0.5"
           >
-            📦 Ver Pedidos
+            Ver pedidos
           </Button>
         }
       />

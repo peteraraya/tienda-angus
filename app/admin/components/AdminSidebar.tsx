@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const modules = [
-  { href: '/admin', label: 'Inventario', icon: '▦' },
-  { href: '/admin/ventas', label: 'Punto de Venta', icon: '$' },
-  { href: '/admin/nuevo', label: 'Nuevo Producto', icon: '+' },
-  { href: '/admin/colegios', label: 'Colegios', icon: '⌂' },
-  { href: '/admin/categorias', label: 'Categorías', icon: '◇' },
-  { href: '/admin/clientes', label: 'Clientes', icon: '♙' },
-  { href: '/admin/proveedores', label: 'Proveedores', icon: '▤' },
-  { href: '/admin/insumos', label: 'Insumos', icon: '▣' },
-  { href: '/admin/pedidos', label: 'Pedidos', icon: '☷' },
-  { href: '/admin/whatsapp', label: 'WhatsApp', icon: '◉' }
+  { href: '/admin', label: 'Inventario' },
+  { href: '/admin/ventas', label: 'Punto de venta' },
+  { href: '/admin/nuevo', label: 'Nuevo producto' },
+  { href: '/admin/colegios', label: 'Colegios' },
+  { href: '/admin/categorias', label: 'Categorías' },
+  { href: '/admin/clientes', label: 'Clientes' },
+  { href: '/admin/proveedores', label: 'Proveedores' },
+  { href: '/admin/insumos', label: 'Insumos' },
+  { href: '/admin/pedidos', label: 'Pedidos' },
+  { href: '/admin/whatsapp', label: 'WhatsApp' }
 ]
 
 export default function AdminSidebar() {
@@ -26,6 +26,15 @@ export default function AdminSidebar() {
       : pathname === module.href || pathname.startsWith(`${module.href}/`)
   )
   const mobileMenuOpen = openForPathname === pathname
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpenForPathname(null)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileMenuOpen])
 
   function isActive(path: string) {
     return path === '/admin'
@@ -40,43 +49,55 @@ export default function AdminSidebar() {
         aria-expanded={mobileMenuOpen}
         aria-controls="admin-mobile-modules"
         onClick={() => setOpenForPathname(mobileMenuOpen ? null : pathname)}
-        className="flex min-h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-left text-sm font-semibold text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 md:hidden"
+        className="flex min-h-11 w-full items-center justify-between rounded-lg border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-left text-sm font-semibold text-[#173b39] shadow-sm dark:border-white/10 dark:bg-[#142b2a] dark:text-[#edf5f2] md:hidden"
       >
         <span>Módulos: {activeModule?.label ?? 'Administración'}</span>
-        <span aria-hidden="true" className="ml-3 text-lg">{mobileMenuOpen ? '−' : '+'}</span>
+        <span aria-hidden="true" className="ml-3 text-xs">{mobileMenuOpen ? 'Cerrar' : 'Ver'}</span>
       </button>
       {mobileMenuOpen && (
-        <nav
-          id="admin-mobile-modules"
-          aria-label="Módulos administrativos"
-          className="absolute inset-x-0 top-full z-40 mt-2 max-h-[60vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-800 md:hidden"
-        >
-          <div className="grid grid-cols-2 gap-2">
-            {modules.map(module => {
-              const active = isActive(module.href)
-              return (
-                <Link
-                  key={module.href}
-                  href={module.href}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => setOpenForPathname(null)}
-                  className={`flex min-h-11 min-w-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
-                    active
-                      ? 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
-                      : 'border-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <span aria-hidden="true" className="w-5 shrink-0 text-center text-base">{module.icon}</span>
-                  <span className="truncate">{module.label}</span>
-                </Link>
-              )
-            })}
+        <div className="fixed inset-0 z-50 flex items-end bg-slate-950/45 md:hidden" onClick={() => setOpenForPathname(null)}>
+          <div
+            id="admin-mobile-modules"
+            role="dialog"
+            aria-modal="true"
+            className="max-h-[82dvh] w-full overflow-y-auto rounded-t-2xl border border-[#123f3d]/10 bg-[#fffdf9] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl dark:border-white/10 dark:bg-[#142b2a]"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-[#173b39] dark:text-[#edf5f2]">Módulos</h2>
+                <p className="text-xs text-[#5f7a73] dark:text-[#bfd4d0]">Administración</p>
+              </div>
+              <button type="button" onClick={() => setOpenForPathname(null)} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-[#4f6967] hover:bg-[#edf3f1] dark:text-[#d6e3e0] dark:hover:bg-white/5">
+                Cerrar
+              </button>
+            </div>
+            <nav aria-label="Módulos administrativos" className="grid grid-cols-2 gap-2">
+              {modules.map(module => {
+                const active = isActive(module.href)
+                return (
+                  <Link
+                    key={module.href}
+                    href={module.href}
+                    aria-current={active ? 'page' : undefined}
+                    onClick={() => setOpenForPathname(null)}
+                    className={`flex min-h-11 min-w-0 items-center rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                      active
+                        ? 'border-[#123f3d]/20 bg-[#dfeae7] text-[#123f3d] dark:border-[#8ac7ae]/30 dark:bg-[#1a312f] dark:text-[#edf5f2]'
+                        : 'border-transparent text-[#4f6967] hover:bg-[#f0eadf] dark:text-[#d6e3e0] dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="truncate">{module.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
           </div>
-        </nav>
+        </div>
       )}
       <nav aria-label="Módulos administrativos" className="hidden w-full min-w-0 md:block">
-      <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-4">
-        <h2 className="mb-3 hidden px-2 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 md:block">
+      <div className="rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] p-2 shadow-sm dark:border-white/10 dark:bg-[#142b2a] md:p-3">
+        <h2 className="mb-2 hidden px-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#5f7a73] dark:text-[#bfd4d0] md:block">
           Módulos
         </h2>
         <div className="flex flex-col gap-2">
@@ -87,13 +108,12 @@ export default function AdminSidebar() {
                 key={module.href}
                 href={module.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                className={`flex min-h-10 w-full min-w-0 items-center rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
-                    : 'border-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                    ? 'border-l-[#b98a2f] bg-[#edf3f1] text-[#123f3d] dark:bg-white/5 dark:text-[#edf5f2]'
+                    : 'border-l-transparent text-[#4f6967] hover:bg-[#f0eadf] dark:text-[#d6e3e0] dark:hover:bg-white/5'
                 }`}
               >
-                <span aria-hidden="true" className="w-5 text-center text-base">{module.icon}</span>
                 {module.label}
               </Link>
             )

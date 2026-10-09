@@ -59,16 +59,16 @@ export default function NotificationCenter() {
     setUnreadCount(0)
   }
 
-  const getIcon = (type: Notification['type']) => {
+  const getLabel = (type: Notification['type']) => {
     switch (type) {
       case 'stock_bajo':
-        return '⚠️'
+        return 'Stock'
       case 'pedido_pendiente':
-        return '📦'
+        return 'Pedido'
       case 'venta_nueva':
-        return '💰'
+        return 'Venta'
       default:
-        return 'ℹ️'
+        return 'Info'
     }
   }
 
@@ -136,7 +136,7 @@ export default function NotificationCenter() {
                       onClick={() => markAsRead(notification.id)}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl">{getIcon(notification.type)}</span>
+                        <span className="rounded-md bg-[#edf3f1] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#123f3d] dark:bg-white/5 dark:text-[#d6e3e0]">{getLabel(notification.type)}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-900 dark:text-white text-sm">
                             {notification.title}

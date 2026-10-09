@@ -76,13 +76,6 @@ export default function ProductListNotebook({
 
   // Función para filtrar variantes según filtros globales y búsqueda local
   const filterVariantes = (variantes: Variante[]) => {
-    console.log('🔍 Filtrando variantes:', {
-      totalVariantes: variantes.length,
-      selectedColegio,
-      selectedTalla,
-      variantSearchTerm
-    })
-    
     const filtered = variantes.filter(v => {
       // Filtro de búsqueda local (dentro del panel de variantes)
       if (variantSearchTerm) {
@@ -97,7 +90,6 @@ export default function ProductListNotebook({
       if (selectedColegio && selectedColegio.trim() !== '') {
         const colegioMatch = v.colegio.trim() === selectedColegio.trim()
         if (!colegioMatch) {
-          console.log(`❌ Variante "${v.colegio}" no coincide con filtro "${selectedColegio}"`)
           return false
         }
       }
@@ -106,7 +98,6 @@ export default function ProductListNotebook({
       if (selectedTalla && selectedTalla.trim() !== '') {
         const tallaMatch = v.talla.trim() === selectedTalla.trim()
         if (!tallaMatch) {
-          console.log(`❌ Variante talla "${v.talla}" no coincide con filtro "${selectedTalla}"`)
           return false
         }
       }
@@ -114,7 +105,6 @@ export default function ProductListNotebook({
       return true
     })
     
-    console.log('✅ Variantes filtradas:', filtered.length)
     return filtered
   }
 
@@ -133,11 +123,11 @@ export default function ProductListNotebook({
   }
 
   return (
-    <div className="w-full min-w-0 space-y-3 pb-8">
+    <div className="w-full min-w-0 space-y-2 pb-6">
       <div className="w-full min-w-0">
       {/* Header estilo cuaderno - Solo visible en desktop */}
-      <div className="hidden lg:block bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-4 py-2 shadow-md border border-slate-300 dark:border-slate-600 sticky  z-30">
-        <div className="grid grid-cols-12 gap-4 items-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+      <div className="hidden lg:block rounded-lg border border-[#123f3d]/10 bg-[#edf3f1] px-3 py-2 dark:border-white/10 dark:bg-[#142b2a]">
+        <div className="grid grid-cols-12 items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#5f7a73] dark:text-[#bfd4d0]">
           <div className="col-span-1">Imagen</div>
           <div className="col-span-2">Nombre</div>
           <div className="col-span-1">Categoría</div>
@@ -151,11 +141,11 @@ export default function ProductListNotebook({
 
       {/* Lista de productos */}
       {productos.map((producto) => (
-        <div key={producto.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 overflow-hidden group/row relative">
+        <div key={producto.id} className="group/row relative overflow-hidden rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-[#142b2a]">
           
           {/* Vista Desktop - Grid de 12 columnas */}
-          <div className="hidden lg:block px-4 py-2">
-            <div className="grid grid-cols-12 gap-4 items-center">
+          <div className="hidden px-3 py-2 lg:block">
+            <div className="grid grid-cols-12 items-center gap-3">
               {/* Imagen */}
               <div className="col-span-1">
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600">
@@ -317,7 +307,7 @@ export default function ProductListNotebook({
                       : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  {producto.en_oferta ? '🔥 OFERTA' : 'Normal'}
+                  {producto.en_oferta ? 'Oferta' : 'Normal'}
                 </button>
               </div>
 
@@ -574,7 +564,7 @@ export default function ProductListNotebook({
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
-                  {producto.en_oferta ? '🔥 Sí' : 'No'}
+                  {producto.en_oferta ? 'Sí' : 'No'}
                 </button>
               </div>
               <div>
@@ -596,21 +586,21 @@ export default function ProductListNotebook({
             <div className="flex gap-2">
               <button
                 onClick={() => router.push(`/admin/editar/${producto.id}`)}
-                className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+                className="flex-1 rounded-md border border-[#123f3d]/15 px-3 py-2 text-sm font-semibold text-[#123f3d] transition-colors hover:bg-[#edf3f1] dark:border-white/10 dark:text-[#d6e3e0] dark:hover:bg-white/5"
               >
-                ✏️ Editar
+                Editar
               </button>
               <button
                 onClick={() => onDuplicate(producto)}
-                className="flex-1 p-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+                className="flex-1 rounded-md border border-[#123f3d]/15 px-3 py-2 text-sm font-semibold text-[#123f3d] transition-colors hover:bg-[#edf3f1] dark:border-white/10 dark:text-[#d6e3e0] dark:hover:bg-white/5"
               >
-                📋 Duplicar
+                Duplicar
               </button>
               <button
                 onClick={() => onDelete(producto.id)}
-                className="flex-1 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all shadow-sm font-semibold text-sm"
+                className="flex-1 rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-[#a23f37] transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
               >
-                🗑️ Eliminar
+                Archivar
               </button>
             </div>
           </div>
@@ -758,7 +748,7 @@ export default function ProductListNotebook({
                             onClick={() => onSetEditingVariant(variante.id)}
                             className="flex-1 bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 transition-colors text-xs font-bold"
                           >
-                            ✏️
+                            Editar
                           </button>
                           <button
                             onClick={() => onUpdateVarianteStock(variante.id, variante.stock, variante.stock + 1)}
@@ -911,9 +901,9 @@ export default function ProductListNotebook({
                       onUpdateProductPrice(editingProductPrice, parseInt(input.value) || 0)
                     }
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-sm"
+                  className="flex-1 rounded-lg bg-[#123f3d] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d2f2d] dark:bg-[#2f6f5a] dark:hover:bg-[#3b8068]"
                 >
-                  💰 Actualizar Precio
+                  Actualizar precio
                 </button>
                 <button
                   onClick={() => onSetEditingProductPrice(null)}

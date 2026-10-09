@@ -14,12 +14,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (user?.app_metadata?.role !== 'admin') redirect('/login?error=admin-required')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 transition-colors duration-300">
-      
+    <div className="min-h-screen bg-[#f4efe7] text-[#173b39] dark:bg-[#0d1a1a] dark:text-[#edf5f2]">
       <AdminTopBar />
 
-      <div className="w-full max-w-[1800px] mx-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
-        <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
+      <div className="mx-auto w-full max-w-[1800px] px-3 py-3 sm:px-5 sm:py-5 lg:px-7">
+        <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:gap-5">
           <AdminSidebar />
           <main className="w-full min-w-0 flex-1">
             {children}

@@ -191,7 +191,7 @@ export default function CalendarView({ events, onEventClick }: CalendarViewProps
                           }`}
                           title={`${event.title} - ${event.proveedor || ''}`}
                         >
-                          {event.type === 'pedido' ? '📦' : '🚚'} {event.title}
+                          {event.type === 'pedido' ? 'Pedido:' : 'Entrega:'} {event.title}
                         </button>
                       ))}
                       {dayEvents.length > 3 && (

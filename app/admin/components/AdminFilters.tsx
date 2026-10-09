@@ -44,13 +44,13 @@ export default function AdminFilters({
   stockEspecifico
 }: AdminFiltersProps) {
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-6 border border-slate-200 dark:border-slate-700">
-      <div className="flex flex-col gap-4">
+    <div className="mb-4 rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] p-3 shadow-sm dark:border-white/10 dark:bg-[#142b2a] sm:p-4">
+      <div className="flex flex-col gap-3">
         
         {/* Fila Principal: Buscador */}
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg className="h-6 w-6 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-[#6e827f] group-focus-within:text-[#123f3d] transition-colors dark:text-[#aec7c4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -60,7 +60,7 @@ export default function AdminFilters({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Busca por nombre, notas, descripción..."
-            className="w-full pl-12 pr-12 py-4 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white text-lg font-medium transition-all shadow-inner"
+            className="min-h-11 w-full rounded-md border border-[#123f3d]/15 bg-[#f7f1e7] py-2 pl-10 pr-11 text-sm font-medium text-[#173b39] transition-colors placeholder:text-[#6e827f] focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#0d1a1a] dark:text-[#edf5f2] dark:placeholder:text-[#aec7c4]"
           />
           {searchTerm && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -79,14 +79,11 @@ export default function AdminFilters({
 
         {/* Fila Secundaria: Filtros Rápidos */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 text-sm">📁</span>
-            </div>
+          <div className="relative min-w-0 flex-1">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+              className="min-h-11 w-full appearance-none rounded-md border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-sm font-medium text-[#4f6967] transition-colors focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#142b2a] dark:text-[#d6e3e0]"
             >
               <option value="">Todas las categorías</option>
               {categories.map(cat => (
@@ -98,14 +95,11 @@ export default function AdminFilters({
             </div>
           </div>
 
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 text-sm">🏫</span>
-            </div>
+          <div className="relative min-w-0 flex-1">
             <select
               value={selectedColegio}
               onChange={(e) => setSelectedColegio(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+              className="min-h-11 w-full appearance-none rounded-md border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-sm font-medium text-[#4f6967] transition-colors focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#142b2a] dark:text-[#d6e3e0]"
             >
               <option value="">Todos los colegios</option>
               {colegios.map(colegio => (
@@ -117,14 +111,11 @@ export default function AdminFilters({
             </div>
           </div>
 
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 text-sm">📏</span>
-            </div>
+          <div className="relative min-w-0 flex-1">
             <select
               value={selectedTalla}
               onChange={(e) => setSelectedTalla(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+              className="min-h-11 w-full appearance-none rounded-md border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-sm font-medium text-[#4f6967] transition-colors focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#142b2a] dark:text-[#d6e3e0]"
             >
               <option value="">Todas las tallas</option>
               {tallas.map(talla => (
@@ -136,37 +127,31 @@ export default function AdminFilters({
             </div>
           </div>
 
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 text-sm">📦</span>
-            </div>
+          <div className="relative min-w-0 flex-1">
             <select
               value={selectedStockFilter}
               onChange={(e) => setSelectedStockFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+              className="min-h-11 w-full appearance-none rounded-md border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-sm font-medium text-[#4f6967] transition-colors focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#142b2a] dark:text-[#d6e3e0]"
             >
               <option value="">Todo el inventario</option>
-              <option value="disponible">🟢 Stock disponible (+6)</option>
-              <option value="bajo">🟡 Stock bajo (1-6)</option>
-              <option value="agotado">🔴 Agotados (0)</option>
+              <option value="disponible">Stock disponible (más de 6)</option>
+              <option value="bajo">Stock bajo (1-6)</option>
+              <option value="agotado">Agotados (0)</option>
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
           </div>
 
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 text-sm">🔘</span>
-            </div>
+          <div className="relative min-w-0 flex-1">
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold appearance-none cursor-pointer transition-colors"
+              className="min-h-11 w-full appearance-none rounded-md border border-[#123f3d]/15 bg-[#fffdf9] px-3 py-2 text-sm font-medium text-[#4f6967] transition-colors focus:border-[#123f3d] focus:outline-none focus:ring-2 focus:ring-[#123f3d]/15 dark:border-white/10 dark:bg-[#142b2a] dark:text-[#d6e3e0]"
             >
               <option value="">Todos los estados</option>
-              <option value="activo">✅ Activos</option>
-              <option value="inactivo">⛔ Inactivos</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -197,39 +182,38 @@ export default function AdminFilters({
       </div>
 
       {/* Área de Tags (Filtros Activos) y Contador */}
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <div className="inline-flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-bold border border-blue-200 dark:border-blue-800 mr-2 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
-          {filteredProductsLength} {filteredProductsLength === 1 ? 'resultado' : 'resultados'}
-        </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="inline-flex items-center rounded-md border border-[#123f3d]/10 bg-[#edf3f1] px-2.5 py-1.5 text-xs font-semibold text-[#123f3d] dark:border-white/10 dark:bg-white/5 dark:text-[#d6e3e0]">
+        {filteredProductsLength} {filteredProductsLength === 1 ? 'resultado' : 'resultados'}
+      </div>
         
         {selectedCategory && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
-            📁 {selectedCategory}
+            {selectedCategory}
             <button onClick={() => setSelectedCategory('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}
         {selectedColegio && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
-            🏫 {selectedColegio}
+            {selectedColegio}
             <button onClick={() => setSelectedColegio('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}
         {selectedTalla && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
-            📏 Talla {selectedTalla}
+            Talla {selectedTalla}
             <button onClick={() => setSelectedTalla('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}
         {selectedStockFilter && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
-            📦 {selectedStockFilter === 'disponible' ? '🟢 Disponible' : selectedStockFilter === 'bajo' ? '🟡 Stock Bajo' : '🔴 Agotado'}
+            {selectedStockFilter === 'disponible' ? 'Stock disponible' : selectedStockFilter === 'bajo' ? 'Stock bajo' : 'Agotado'}
             <button onClick={() => setSelectedStockFilter('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}
         {selectedStatusFilter && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm">
-            🔘 {selectedStatusFilter === 'activo' ? '✅ Activos' : '⛔ Inactivos'}
+            {selectedStatusFilter === 'activo' ? 'Activos' : 'Inactivos'}
             <button onClick={() => setSelectedStatusFilter('')} className="w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center ml-1 transition-colors">✕</button>
           </span>
         )}

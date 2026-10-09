@@ -21,8 +21,8 @@ export function DashboardMetrics() {
 
   if (loading) {
     return (
-      <div className="mb-8">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm animate-pulse">
+      <div className="mb-4">
+        <div className="rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] p-4 shadow-sm animate-pulse dark:border-white/10 dark:bg-[#142b2a]">
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
         </div>
       </div>
@@ -31,7 +31,7 @@ export function DashboardMetrics() {
 
   if (isError || !metrics) {
     return (
-      <div role="alert" className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+      <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
         <p>{error instanceof Error ? error.message : 'No se pudieron cargar las métricas.'}</p>
         <button onClick={() => void refetch()} className="mt-2 min-h-11 rounded-lg px-3 font-semibold underline">
           Reintentar
@@ -41,19 +41,17 @@ export function DashboardMetrics() {
   }
 
   return (
-    <div className="mb-8">
-      {/* Header colapsable */}
+    <section className="mb-4 overflow-hidden rounded-lg border border-[#123f3d]/10 bg-[#fffdf9] shadow-sm dark:border-white/10 dark:bg-[#142b2a]">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
         aria-controls="dashboard-metrics-content"
-        className="w-full bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-xl transition-all mb-4"
+        className="w-full px-3 py-3 text-left transition-colors hover:bg-[#f7f1e7] dark:hover:bg-white/5 sm:px-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">📊</span>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Dashboard de Métricas
+            <h2 className="text-sm font-semibold text-[#173b39] dark:text-[#edf5f2]">
+              Ventas y actividad
             </h2>
           </div>
           
@@ -61,23 +59,21 @@ export function DashboardMetrics() {
           {!isExpanded && (
             <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">Hoy:</span>
-                <span className="font-bold text-green-600 dark:text-green-400">
+                <span className="text-[#5f7a73] dark:text-[#bfd4d0]">Hoy</span>
+                <span className="font-semibold text-[#2f6f5a] dark:text-[#8ac7ae]">
                   {formatPrice(metrics.ventasHoy.total)}
                 </span>
               </div>
               {metrics.stockBajo > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-orange-600 dark:text-orange-400">⚠️</span>
-                  <span className="font-semibold text-orange-600 dark:text-orange-400">
-                    {metrics.stockBajo} stock bajo
+                  <span className="font-semibold text-[#9a681a] dark:text-[#e7c77c]">
+                    {metrics.stockBajo} con stock bajo
                   </span>
                 </div>
               )}
               {metrics.pedidosPendientes > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-yellow-600 dark:text-yellow-400">📋</span>
-                  <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                  <span className="font-semibold text-[#9a681a] dark:text-[#e7c77c]">
                     {metrics.pedidosPendientes} pedidos
                   </span>
                 </div>
@@ -87,7 +83,7 @@ export function DashboardMetrics() {
 
           {/* Icono de expandir/colapsar */}
           <svg
-            className={`w-6 h-6 text-gray-600 dark:text-gray-400 transition-transform ${
+            className={`w-5 h-5 text-[#5f7a73] dark:text-[#bfd4d0] transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
             fill="none"
@@ -99,55 +95,35 @@ export function DashboardMetrics() {
         </div>
       </button>
 
-      {/* Contenido expandible */}
       {isExpanded && (
-        <div id="dashboard-metrics-content" className="space-y-6 animate-fadeIn">
-          {/* Métricas principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Ventas de hoy */}
+        <div id="dashboard-metrics-content" className="space-y-4 border-t border-[#123f3d]/10 p-3 dark:border-white/10 sm:p-4">
+          <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
             <MetricCard
               title="Ventas Hoy"
               value={formatPrice(metrics.ventasHoy.total)}
               subtitle={`${metrics.ventasHoy.cantidad} ventas`}
-              icon="💰"
-              color="blue"
             />
-
-            {/* Ventas de la semana */}
             <MetricCard
               title="Ventas Semana"
               value={formatPrice(metrics.ventasSemana.total)}
               subtitle={`${metrics.ventasSemana.cantidad} ventas`}
-              icon="📊"
-              color="green"
             />
-
-            {/* Ventas del mes */}
             <MetricCard
               title="Ventas Mes"
               value={formatPrice(metrics.ventasMes.total)}
               subtitle={`${metrics.ventasMes.cantidad} ventas`}
-              icon="📈"
-              color="purple"
             />
-
-            {/* Clientes nuevos */}
             <MetricCard
               title="Clientes Nuevos"
               value={metrics.clientesNuevos.toString()}
               subtitle="Este mes"
-              icon="👥"
-              color="indigo"
             />
           </div>
 
-          {/* Alertas y productos más vendidos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Alertas */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span>⚠️</span>
-                Alertas
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="rounded-lg border border-[#123f3d]/10 p-3 dark:border-white/10 sm:p-4">
+              <h3 className="mb-2 text-sm font-semibold text-[#173b39] dark:text-[#edf5f2]">
+                Pendientes
               </h3>
               <div className="space-y-3">
                 <AlertItem
@@ -165,10 +141,8 @@ export function DashboardMetrics() {
               </div>
             </div>
 
-            {/* Productos más vendidos */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span>🏆</span>
+            <div className="rounded-lg border border-[#123f3d]/10 p-3 dark:border-white/10 sm:p-4">
+              <h3 className="mb-2 text-sm font-semibold text-[#173b39] dark:text-[#edf5f2]">
                 Top 5 Productos (30 días)
               </h3>
               <div className="space-y-2">
@@ -176,17 +150,17 @@ export function DashboardMetrics() {
                   metrics.productosMasVendidos.map((producto, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="flex items-center justify-between border-b border-[#123f3d]/5 px-2 py-2 last:border-0 hover:bg-[#f7f1e7] dark:border-white/5 dark:hover:bg-white/5"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-gray-400 dark:text-gray-500 w-6">
+                        <span className="w-6 text-xs font-semibold text-[#6e827f] dark:text-[#aec7c4]">
                           {index + 1}
                         </span>
-                        <span className="text-sm text-gray-900 dark:text-white">
+                        <span className="text-sm text-[#173b39] dark:text-[#edf5f2]">
                           {producto.nombre}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      <span className="text-xs font-medium text-[#123f3d] dark:text-[#8ac7ae]">
                         {producto.cantidad} vendidos
                       </span>
                     </div>
@@ -201,7 +175,7 @@ export function DashboardMetrics() {
           </div>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -209,38 +183,14 @@ interface MetricCardProps {
   title: string
   value: string
   subtitle: string
-  icon: string
-  color: 'blue' | 'green' | 'purple' | 'indigo' | 'orange' | 'yellow'
 }
 
-function MetricCard({ title, value, subtitle, icon, color }: MetricCardProps) {
-  const colorClasses = {
-    blue: 'from-blue-500 to-blue-600',
-    green: 'from-green-500 to-green-600',
-    purple: 'from-purple-500 to-purple-600',
-    indigo: 'from-indigo-500 to-indigo-600',
-    orange: 'from-orange-500 to-orange-600',
-    yellow: 'from-yellow-500 to-yellow-600'
-  }
-
+function MetricCard({ title, value, subtitle }: MetricCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-xl transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-            {title}
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {value}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {subtitle}
-          </p>
-        </div>
-        <div className={`text-3xl p-3 rounded-lg bg-gradient-to-br ${colorClasses[color]} bg-opacity-10`}>
-          {icon}
-        </div>
-      </div>
+    <div className="min-w-0 rounded-md border border-[#123f3d]/10 px-3 py-3 dark:border-white/10">
+      <p className="truncate text-xs font-medium text-[#5f7a73] dark:text-[#bfd4d0]">{title}</p>
+      <p className="mt-1 truncate text-lg font-semibold text-[#173b39] dark:text-[#edf5f2]">{value}</p>
+      <p className="mt-0.5 text-[11px] text-[#6e827f] dark:text-[#aec7c4]">{subtitle}</p>
     </div>
   )
 }
@@ -261,12 +211,12 @@ function AlertItem({ label, value, color, link }: AlertItemProps) {
   return (
     <a
       href={link}
-      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      className="flex min-h-10 items-center justify-between border-b border-[#123f3d]/5 px-2 py-2 last:border-0 hover:bg-[#f7f1e7] dark:border-white/5 dark:hover:bg-white/5"
     >
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </span>
-      <span className={`px-3 py-1 rounded-full text-sm font-bold ${colorClasses[color]}`}>
+      <span className={`min-w-8 rounded-md px-2 py-1 text-center text-xs font-semibold ${colorClasses[color]}`}>
         {value}
       </span>
     </a>

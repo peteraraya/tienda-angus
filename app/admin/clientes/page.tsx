@@ -135,7 +135,7 @@ export default function ClientesPage() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">👥 Clientes</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clientes</h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Administra tu base de clientes</p>
         </div>
       </div>
