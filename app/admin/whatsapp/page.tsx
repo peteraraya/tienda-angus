@@ -32,7 +32,7 @@ export default function WhatsAppPage() {
   const queryClient = useQueryClient()
 
   // Obtener conversaciones
-  const { data: conversations = [] } = useQuery({
+  const { data: conversations = [], isError: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['whatsapp-conversations'],
     queryFn: async () => {
       const data = await fetchWhatsappMessagesAction()
@@ -61,11 +61,12 @@ export default function WhatsAppPage() {
 
       return Array.from(conversationsMap.values())
     },
-    refetchInterval: 5000, // Actualizar cada 5 segundos
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
   })
 
   // Obtener mensajes de una conversación
-  const { data: messages = [] } = useQuery({
+  const { data: messages = [], isError: messagesError, refetch: refetchMessages } = useQuery({
     queryKey: ['whatsapp-messages', selectedConversation],
     queryFn: async () => {
       if (!selectedConversation) return []
@@ -73,7 +74,8 @@ export default function WhatsAppPage() {
       return data as WhatsAppMessage[]
     },
     enabled: !!selectedConversation,
-    refetchInterval: 3000, // Actualizar cada 3 segundos
+    refetchInterval: 10000,
+    refetchIntervalInBackground: false,
   })
 
   // Enviar mensaje
@@ -124,17 +126,22 @@ export default function WhatsAppPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+        <div className="h-[calc(100dvh-16rem)] min-h-[24rem] overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800 md:h-[calc(100vh-14rem)]">
           <div className="flex h-full">
             {/* Lista de conversaciones */}
-            <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+            <div className={`h-full w-full overflow-y-auto border-r border-gray-200 dark:border-gray-700 md:block md:w-1/3 ${selectedConversation ? 'hidden' : 'block'}`}>
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Conversaciones
                 </h2>
               </div>
 
-              {conversations.length === 0 ? (
+              {conversationsError ? (
+                <div role="alert" className="p-5 text-center text-red-700 dark:text-red-300">
+                  <p>No se pudieron cargar las conversaciones.</p>
+                  <button onClick={() => void refetchConversations()} className="mt-2 min-h-11 underline">Reintentar</button>
+                </div>
+              ) : conversations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   No hay conversaciones
                 </div>
@@ -173,19 +180,31 @@ export default function WhatsAppPage() {
             </div>
 
             {/* Área de mensajes */}
-            <div className="flex-1 flex flex-col">
+            <div className={`h-full min-w-0 flex-1 flex-col ${selectedConversation ? 'flex' : 'hidden md:flex'}`}>
               {selectedConversation ? (
                 <>
                   {/* Header de conversación */}
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                    <button
+                      onClick={() => setSelectedConversation(null)}
+                      className="min-h-11 min-w-11 rounded-lg text-gray-700 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-700 md:hidden"
+                      aria-label="Volver a conversaciones"
+                    >
+                      ←
+                    </button>
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {selectedConversation}
                     </h3>
                   </div>
 
                   {/* Mensajes */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((msg) => (
+                  <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                    {messagesError ? (
+                      <div role="alert" className="text-center text-red-700 dark:text-red-300">
+                        <p>No se pudieron cargar los mensajes.</p>
+                        <button onClick={() => void refetchMessages()} className="mt-2 min-h-11 underline">Reintentar</button>
+                      </div>
+                    ) : messages.map((msg) => (
                       <div
                         key={msg.id}
                         className={`flex ${
@@ -196,7 +215,7 @@ export default function WhatsAppPage() {
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                             msg.direction === 'outgoing'
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 dark:bg-gray-700 text-white'
+                              : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
                           }`}
                         >
                           <p className="text-sm">{msg.message_body}</p>
@@ -227,12 +246,12 @@ export default function WhatsAppPage() {
                         onChange={(e) => setMessageText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder="Escribe un mensaje..."
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-white"
+                        className="min-h-11 flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
                       <button
                         onClick={handleSendMessage}
                         disabled={!messageText.trim() || sendMessageMutation.isPending}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
+                        className="min-h-11 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
                       >
                         {sendMessageMutation.isPending ? 'Enviando...' : 'Enviar'}
                       </button>

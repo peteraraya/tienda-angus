@@ -30,6 +30,18 @@ export async function fetchVentasAction(fechaInicio: string, fechaFin: string): 
   return (data as Venta[]) || []
 }
 
+export async function fetchVentaItemsAction(ventaId: string): Promise<VentaItem[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('venta_items')
+    .select('*')
+    .eq('venta_id', ventaId)
+    .order('created_at', { ascending: true })
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 export interface CrearVentaInput {
   total: number
   subtotal: number

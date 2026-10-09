@@ -133,8 +133,8 @@ export default function ProductListNotebook({
   }
 
   return (
-    <div className="space-y-3 overflow-x-auto pb-8">
-      <div className="min-w-[1000px] lg:min-w-[900px]">
+    <div className="w-full min-w-0 space-y-3 pb-8">
+      <div className="w-full min-w-0">
       {/* Header estilo cuaderno - Solo visible en desktop */}
       <div className="hidden lg:block bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl px-4 py-2 shadow-md border border-slate-300 dark:border-slate-600 sticky  z-30">
         <div className="grid grid-cols-12 gap-4 items-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
@@ -190,7 +190,7 @@ export default function ProductListNotebook({
                         }
                       }}
                       onBlur={() => onSetEditingProductName(null)}
-                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
                     <button
@@ -290,7 +290,7 @@ export default function ProductListNotebook({
                 <select
                   value={producto.descuento_porcentaje || 0}
                   onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
-                  className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
+                  className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
                 >
                   <option value="0">Sin descuento</option>
                   <option value="5">5%</option>
@@ -378,7 +378,8 @@ export default function ProductListNotebook({
                   <button
                     onClick={() => onDelete(producto.id)}
                     className="p-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg transition-all shadow-sm border border-red-200 dark:border-red-800"
-                    title="Eliminar producto"
+                    title="Archivar producto"
+                    aria-label="Archivar producto"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -422,7 +423,7 @@ export default function ProductListNotebook({
                         }
                       }}
                       onBlur={() => onSetEditingProductName(null)}
-                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
                     <button
@@ -547,7 +548,7 @@ export default function ProductListNotebook({
                 <select
                   value={producto.descuento_porcentaje || 0}
                   onChange={(e) => onUpdateDescuento(producto.id, parseInt(e.target.value))}
-                  className="w-full px-2 py-2 text-xs border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-2 py-2 text-xs border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="0">Sin desc.</option>
                   <option value="5">5%</option>
@@ -636,7 +637,7 @@ export default function ProductListNotebook({
                         value={variantSearchTerm}
                         onChange={(e) => onSetVariantSearchTerm(e.target.value)}
                         placeholder="🔍 Buscar variante..."
-                        className="w-full pl-3 pr-8 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-3 pr-8 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       {variantSearchTerm && (
                         <button
@@ -726,7 +727,7 @@ export default function ProductListNotebook({
                                 onUpdateVarianteStock(variante.id, variante.stock, parseInt((e.target as HTMLInputElement).value) || 0)
                               }
                             }}
-                            className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-white font-semibold focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500"
                             autoFocus
                           />
                           <button
@@ -811,7 +812,7 @@ export default function ProductListNotebook({
               <textarea
                 defaultValue={productos.find(p => p.id === editingProductNotas)?.notas || ''}
                 placeholder="Escribe notas sobre este producto... Ej: Pedir más tela, revisar stock el viernes, etc."
-                className="w-full h-40 px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
+                className="w-full h-40 px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') {
@@ -885,7 +886,7 @@ export default function ProductListNotebook({
                 step="1"
                 defaultValue={productos.find(p => p.id === editingProductPrice)?.precio || 0}
                 placeholder="Ej: 15000"
-                className="w-full px-4 py-3 text-lg border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-white font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 text-lg border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {

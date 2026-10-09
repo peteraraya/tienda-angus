@@ -142,7 +142,7 @@ export default function ClientesPage() {
 
       <div className="w-full max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-800 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,21 +256,21 @@ export default function ClientesPage() {
                                 value={editForm.nombre}
                                 onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })}
                                 placeholder="Nombre *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                               <Input
                                 type="text"
                                 value={editForm.contacto}
                                 onChange={(e) => setEditForm({ ...editForm, contacto: e.target.value })}
                                 placeholder="Contacto *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                               <Input
                                 type="tel"
                                 value={editForm.telefono}
                                 onChange={(e) => setEditForm({ ...editForm, telefono: e.target.value })}
                                 placeholder="Teléfono *"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -279,21 +279,21 @@ export default function ClientesPage() {
                                 value={editForm.red_social}
                                 onChange={(e) => setEditForm({ ...editForm, red_social: e.target.value })}
                                 placeholder="Red Social"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                               <Input
                                 type="text"
                                 value={editForm.direccion}
                                 onChange={(e) => setEditForm({ ...editForm, direccion: e.target.value })}
                                 placeholder="Dirección"
-                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                                className="p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                             </div>
                             <textarea
                               value={editForm.notas}
                               onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
                               placeholder="Notas"
-                              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
+                              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                               rows={2}
                             />
                             <div className="flex gap-2">

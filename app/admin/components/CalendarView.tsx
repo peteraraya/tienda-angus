@@ -140,7 +140,7 @@ export default function CalendarView({ events, onEventClick }: CalendarViewProps
       {/* Calendar Grid */}
           <div className="p-3 sm:p-6">
             <div className="overflow-x-auto">
-              <div className="min-w-[600px]">
+              <div className="min-w-[420px] sm:min-w-[600px]">
                 {/* Day headers */}
                 <div className="grid grid-cols-7 gap-2 mb-2">
           {dayNames.map(day => (

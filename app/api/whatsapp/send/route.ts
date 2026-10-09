@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendTextMessage, sendImage, sendDocument } from '@/lib/whatsapp'
 import { supabase } from '@/lib/supabase'
+import { isAdminRequest } from '@/utils/supabase/admin'
 
 /**
  * POST - Enviar mensaje de WhatsApp
  */
 export async function POST(request: NextRequest) {
   try {
+    if (!await isAdminRequest()) {
+      return NextResponse.json(
+        { error: 'Acceso restringido al administrador' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
     const { to, message, type = 'text', imageUrl, documentUrl, filename } = body
 

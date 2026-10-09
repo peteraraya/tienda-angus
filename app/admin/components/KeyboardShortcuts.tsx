@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface KeyboardShortcutsProps {
@@ -16,15 +16,16 @@ interface ShortcutRow {
 export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsProps) {
   const router = useRouter()
   const [showHelp, setShowHelp] = useState(false)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   const shortcuts: ShortcutRow[] = [
-    { keys: 'Ctrl+F', label: 'Buscar productos', description: 'Enfoca el campo de búsqueda' },
-    { keys: 'Ctrl+N', label: 'Nuevo producto', description: 'Ir a crear producto' },
-    { keys: 'Ctrl+V', label: 'Ir a Ventas', description: 'Abrir el punto de venta' },
-    { keys: 'Ctrl+C', label: 'Ir a Clientes', description: 'Abrir clientes' },
-    { keys: 'Ctrl+I', label: 'Ir a Insumos', description: 'Abrir insumos' },
-    { keys: 'Ctrl+P', label: 'Ir a Pedidos', description: 'Abrir pedidos' },
-    { keys: 'Ctrl+H', label: 'Ir al inicio', description: 'Volver al dashboard' },
+    { keys: '/', label: 'Buscar productos', description: 'Enfoca el campo de búsqueda' },
+    { keys: 'Alt+Shift+N', label: 'Nuevo producto', description: 'Ir a crear producto' },
+    { keys: 'Alt+Shift+V', label: 'Ir a Ventas', description: 'Abrir el punto de venta' },
+    { keys: 'Alt+Shift+C', label: 'Ir a Clientes', description: 'Abrir clientes' },
+    { keys: 'Alt+Shift+I', label: 'Ir a Insumos', description: 'Abrir insumos' },
+    { keys: 'Alt+Shift+P', label: 'Ir a Pedidos', description: 'Abrir pedidos' },
+    { keys: 'Alt+Shift+H', label: 'Ir al inicio', description: 'Volver al dashboard' },
     { keys: 'Alt+1 / Alt+2', label: 'Cambiar vista', description: 'Vista compacta o expandida' },
     { keys: 'Enter', label: 'Guardar cambios', description: 'Al editar nombre, precio o stock' },
     { keys: 'Esc', label: 'Cancelar / cerrar', description: 'Cierra modales y cancela cambios' },
@@ -32,12 +33,21 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
   ]
 
   useEffect(() => {
+    if (!showHelp) return
+    const previousFocus = document.activeElement
+    closeButtonRef.current?.focus()
+    return () => {
+      if (previousFocus instanceof HTMLElement) previousFocus.focus()
+    }
+  }, [showHelp])
+
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement
-      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+      const isTyping = target.isContentEditable ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
 
-      // Ctrl+F siempre funciona, incluso escribiendo en un input
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !isTyping) {
         e.preventDefault()
         if (searchInputRef?.current) {
           searchInputRef.current.focus()
@@ -63,10 +73,9 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
         return
       }
 
-      const ctrl = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
-      const alt = e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey
+      const altShift = e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey
 
-      if (ctrl) {
+      if (altShift) {
         switch (e.key.toLowerCase()) {
           case 'n': e.preventDefault(); router.push('/admin/nuevo'); return
           case 'v': e.preventDefault(); router.push('/admin/ventas'); return
@@ -77,7 +86,7 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
         }
       }
 
-      if (alt) {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         if (e.key === '1') {
           e.preventDefault()
           window.dispatchEvent(new CustomEvent('changeView', { detail: 'compact' }))
@@ -106,6 +115,9 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
       {/* Modal de ayuda */}
       {showHelp && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="keyboard-shortcuts-title"
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden"
           onClick={() => setShowHelp(false)}
         >
@@ -122,11 +134,13 @@ export default function KeyboardShortcuts({ searchInputRef }: KeyboardShortcutsP
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Atajos de Teclado</h3>
+                  <h3 id="keyboard-shortcuts-title" className="text-xl font-bold text-slate-900 dark:text-white">Atajos de Teclado</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">Trabaja más rápido</p>
                 </div>
                 <button
+                  ref={closeButtonRef}
                   onClick={() => setShowHelp(false)}
+                  aria-label="Cerrar ayuda de atajos"
                   className="p-2 ml-auto hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 >
                   <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

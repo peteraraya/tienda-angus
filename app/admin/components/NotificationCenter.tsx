@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { fetchAdminNotificationsAction, type AdminNotificationData } from '@/app/actions/notificaciones'
 
 interface Notification {
   id: string
@@ -16,68 +16,46 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPanel, setShowPanel] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notificationError, setNotificationError] = useState<string | null>(null)
+  const notificationsRef = useRef(notifications)
 
-  async function checkNotifications() {
-    const newNotifications: Notification[] = []
-
-    // Verificar insumos con stock bajo
-    const { data: insumos } = await supabase
-      .from('insumos')
-      .select('*')
-      .eq('activo', true)
-
-    if (insumos && insumos.length > 0) {
-      // Filtrar en el cliente los que tienen stock bajo
-      const insumosStockBajo = insumos.filter(insumo => insumo.stock_actual <= insumo.stock_minimo)
-      
-      insumosStockBajo.forEach(insumo => {
-        newNotifications.push({
-          id: `stock-${insumo.id}`,
-          type: 'stock_bajo',
-          title: '⚠️ Stock Bajo',
-          message: `${insumo.nombre}: ${insumo.stock_actual} ${insumo.unidad_medida} (mínimo: ${insumo.stock_minimo})`,
-          timestamp: new Date(),
-          read: false
-        })
-      })
-    }
-
-    // Verificar pedidos pendientes
-    const { data: pedidos } = await supabase
-      .from('pedidos')
-      .select('*')
-      .eq('estado', 'pendiente')
-
-    if (pedidos && pedidos.length > 0) {
-      newNotifications.push({
-        id: 'pedidos-pendientes',
-        type: 'pedido_pendiente',
-        title: '📦 Pedidos Pendientes',
-        message: `Tienes ${pedidos.length} pedido(s) pendiente(s) de recibir`,
+  const checkNotifications = useCallback(async () => {
+    try {
+      const result: AdminNotificationData[] = await fetchAdminNotificationsAction()
+      const newNotifications = result.map(notification => ({
+        ...notification,
         timestamp: new Date(),
-        read: false
-      })
+        read: notificationsRef.current.find(item => item.id === notification.id)?.read ?? false
+      }))
+      notificationsRef.current = newNotifications
+      setNotifications(newNotifications)
+      setUnreadCount(newNotifications.filter(notification => !notification.read).length)
+      setNotificationError(null)
+    } catch (error) {
+      console.error('Error al cargar notificaciones administrativas:', error)
+      setNotificationError(error instanceof Error ? error.message : 'No se pudieron cargar las notificaciones')
     }
-
-    setNotifications(newNotifications)
-    setUnreadCount(newNotifications.filter(n => !n.read).length)
-  }
-
-  useEffect(() => {
-    setTimeout(() => checkNotifications(), 0)
-    const interval = setInterval(checkNotifications, 60000) // Cada minuto
-    return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    void checkNotifications()
+    const interval = setInterval(() => void checkNotifications(), 60000)
+    return () => clearInterval(interval)
+  }, [checkNotifications])
+
   function markAsRead(id: string) {
-    setNotifications(notifications.map(n => 
+    const updatedNotifications = notifications.map(n =>
       n.id === id ? { ...n, read: true } : n
-    ))
+    )
+    notificationsRef.current = updatedNotifications
+    setNotifications(updatedNotifications)
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
   function markAllAsRead() {
-    setNotifications(notifications.map(n => ({ ...n, read: true })))
+    const updatedNotifications = notifications.map(n => ({ ...n, read: true }))
+    notificationsRef.current = updatedNotifications
+    setNotifications(updatedNotifications)
     setUnreadCount(0)
   }
 
@@ -133,7 +111,14 @@ export default function NotificationCenter() {
             </div>
 
             <div className="overflow-y-auto flex-1">
-              {notifications.length === 0 ? (
+              {notificationError ? (
+                <div role="alert" className="p-5 text-center text-red-700 dark:text-red-300">
+                  <p>{notificationError}</p>
+                  <button onClick={() => void checkNotifications()} className="mt-2 min-h-11 underline">
+                    Reintentar
+                  </button>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
                   <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

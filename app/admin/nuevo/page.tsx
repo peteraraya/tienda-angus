@@ -24,8 +24,8 @@ export default function NuevoProducto() {
   const router = useRouter()
   const toast = useToast()
   const requestKey = useRef<{ fingerprint: string; key: string } | null>(null)
-  const { colegios, loading: loadingColegios } = useColegios()
-  const { categorias, loading: loadingCategorias } = useCategorias()
+  const { colegios, loading: loadingColegios, error: errorColegios, refresh: refreshColegios } = useColegios()
+  const { categorias, loading: loadingCategorias, error: errorCategorias, refresh: refreshCategorias } = useCategorias()
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -283,6 +283,11 @@ export default function NuevoProducto() {
                       </svg>
                     </Button>
                   </div>
+                  {errorCategorias && (
+                    <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">
+                      No se pudieron cargar las categorías. <button type="button" onClick={() => void refreshCategorias()} className="underline">Reintentar</button>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -551,11 +556,17 @@ export default function NuevoProducto() {
                   <select
                     value={nuevaVariante.colegio}
                     onChange={(e) => setNuevaVariante({...nuevaVariante, colegio: e.target.value})}
-                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-white font-bold"
+                    disabled={loadingColegios}
+                    className="w-full p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-0 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold"
                   >
                     <option value="">General / Sin Colegio</option>
                     {colegios.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
+                  {errorColegios && (
+                    <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">
+                      No se pudieron cargar los colegios. <button type="button" onClick={() => void refreshColegios()} className="underline">Reintentar</button>
+                    </p>
+                  )}
                 </div>
 
                 <div>

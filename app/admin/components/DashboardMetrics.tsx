@@ -1,139 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/formatPrice'
-
-interface Metrics {
-  ventasHoy: {
-    total: number
-    cantidad: number
-  }
-  ventasSemana: {
-    total: number
-    cantidad: number
-  }
-  ventasMes: {
-    total: number
-    cantidad: number
-  }
-  stockBajo: number
-  pedidosPendientes: number
-  clientesNuevos: number
-  productosMasVendidos: Array<{
-    nombre: string
-    cantidad: number
-  }>
-}
-
-interface VentaItemProducto {
-  cantidad: number
-  variante_id?: string
-  productos?: unknown
-}
+import { fetchAdminDashboardMetricsAction } from '@/app/actions/dashboard'
 
 export function DashboardMetrics() {
-  const [metrics, setMetrics] = useState<Metrics | null>(null)
-  const [loading, setLoading] = useState(true)
+  const {
+    data: metrics,
+    isLoading: loading,
+    isError,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['adminDashboardMetrics'],
+    queryFn: fetchAdminDashboardMetricsAction,
+    staleTime: 60_000
+  })
   const [isExpanded, setIsExpanded] = useState(false)
-
-  useEffect(() => {
-    loadMetrics()
-  }, [])
-
-  async function loadMetrics() {
-    try {
-      const now = new Date()
-      const hoyInicio = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      const semanaInicio = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1)
-
-      // Ventas de hoy
-      const { data: ventasHoy } = await supabase
-        .from('ventas')
-        .select('total')
-        .gte('fecha', hoyInicio.toISOString())
-
-      // Ventas de la semana
-      const { data: ventasSemana } = await supabase
-        .from('ventas')
-        .select('total')
-        .gte('fecha', semanaInicio.toISOString())
-
-      // Ventas del mes
-      const { data: ventasMes } = await supabase
-        .from('ventas')
-        .select('total')
-        .gte('fecha', mesInicio.toISOString())
-
-      // Stock bajo
-      const { count: stockBajo } = await supabase
-        .from('variantes')
-        .select('*', { count: 'exact', head: true })
-        .lte('stock', 10)
-
-      // Pedidos pendientes
-      const { count: pedidosPendientes } = await supabase
-        .from('pedidos')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'pendiente')
-
-      // Clientes nuevos este mes
-      const { count: clientesNuevos } = await supabase
-        .from('clientes')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', mesInicio.toISOString())
-
-      // Productos más vendidos (últimos 30 días)
-      const treintaDiasAtras = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      const { data: ventasRecientes } = await supabase
-        .from('venta_items')
-        .select(`
-          cantidad,
-          variante_id,
-          variantes!inner(producto_id),
-          productos:variantes(productos!inner(nombre))
-        `)
-        .gte('created_at', treintaDiasAtras.toISOString())
-
-      // Procesar productos más vendidos
-      const productosMap = new Map<string, number>()
-      ventasRecientes?.forEach((item: VentaItemProducto) => {
-        const nombre = (item.productos as { productos?: { nombre?: string } } | undefined)?.productos?.nombre
-        if (nombre) {
-          productosMap.set(nombre, (productosMap.get(nombre) || 0) + item.cantidad)
-        }
-      })
-
-      const productosMasVendidos = Array.from(productosMap.entries())
-        .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-        .sort((a, b) => b.cantidad - a.cantidad)
-        .slice(0, 5)
-
-      setMetrics({
-        ventasHoy: {
-          total: ventasHoy?.reduce((sum, v) => sum + v.total, 0) || 0,
-          cantidad: ventasHoy?.length || 0
-        },
-        ventasSemana: {
-          total: ventasSemana?.reduce((sum, v) => sum + v.total, 0) || 0,
-          cantidad: ventasSemana?.length || 0
-        },
-        ventasMes: {
-          total: ventasMes?.reduce((sum, v) => sum + v.total, 0) || 0,
-          cantidad: ventasMes?.length || 0
-        },
-        stockBajo: stockBajo || 0,
-        pedidosPendientes: pedidosPendientes || 0,
-        clientesNuevos: clientesNuevos || 0,
-        productosMasVendidos
-      })
-    } catch (error) {
-      console.error('Error al cargar métricas:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -145,13 +29,24 @@ export function DashboardMetrics() {
     )
   }
 
-  if (!metrics) return null
+  if (isError || !metrics) {
+    return (
+      <div role="alert" className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+        <p>{error instanceof Error ? error.message : 'No se pudieron cargar las métricas.'}</p>
+        <button onClick={() => void refetch()} className="mt-2 min-h-11 rounded-lg px-3 font-semibold underline">
+          Reintentar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="mb-8">
       {/* Header colapsable */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-controls="dashboard-metrics-content"
         className="w-full bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-xl transition-all mb-4"
       >
         <div className="flex items-center justify-between">
@@ -206,7 +101,7 @@ export function DashboardMetrics() {
 
       {/* Contenido expandible */}
       {isExpanded && (
-        <div className="space-y-6 animate-fadeIn">
+        <div id="dashboard-metrics-content" className="space-y-6 animate-fadeIn">
           {/* Métricas principales */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Ventas de hoy */}

@@ -212,7 +212,7 @@ export default function ColegiosPage() {
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Nombre del colegio *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
                 <Input
@@ -220,7 +220,7 @@ export default function ColegiosPage() {
                   value={formData.insignia_url}
                   onChange={(e) => setFormData({ ...formData, insignia_url: e.target.value })}
                   placeholder="URL de insignia (opcional)"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 

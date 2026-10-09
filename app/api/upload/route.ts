@@ -1,5 +1,6 @@
 import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary';
 import { NextResponse } from 'next/server';
+import { isAdminRequest } from '@/utils/supabase/admin';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -10,6 +11,10 @@ cloudinary.config({
 
 export async function POST(request: Request) {
   try {
+    if (!await isAdminRequest()) {
+      return NextResponse.json({ error: 'Acceso restringido al administrador' }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const url = formData.get('url') as string | null;

@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Colegio } from '@/types/database'
-import { clearAllCache } from '@/app/hooks/useStaticData'
 import { useIdempotencyKeys } from '@/app/hooks/useIdempotencyKeys'
 import { 
   fetchColegiosAction, 
@@ -17,8 +16,10 @@ export function useAdminColegios() {
   const { getKey, clearKey } = useIdempotencyKeys()
 
   async function invalidate() {
-    clearAllCache()
-    await queryClient.invalidateQueries({ queryKey: ['adminColegios'] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['adminColegios'] }),
+      queryClient.invalidateQueries({ queryKey: ['catalogos', 'colegios'] })
+    ])
   }
 
   const { data: colegios = [], isLoading: isLoadingColegios } = useQuery({

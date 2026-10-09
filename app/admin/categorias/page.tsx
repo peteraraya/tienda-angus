@@ -215,7 +215,7 @@ export default function CategoriasPage() {
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Nombre de la categoría *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
                 <Input
@@ -223,7 +223,7 @@ export default function CategoriasPage() {
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   placeholder="Descripción (opcional)"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
               <div className="flex gap-2">

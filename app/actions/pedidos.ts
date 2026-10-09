@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import type { Insumo, Proveedor } from '@/types/database'
 import type { Pedido, PedidoItem } from '@/types/database'
 import { revalidatePath } from 'next/cache'
 
@@ -75,6 +76,22 @@ export interface CrearPedidoInput {
     cantidad: number
     subtotal: number
   }[]
+}
+
+export async function fetchCatalogoPedidoAction(): Promise<{ insumos: Insumo[]; proveedores: Proveedor[] }> {
+  const supabase = await createClient()
+  const [insumosResult, proveedoresResult] = await Promise.all([
+    supabase.from('insumos').select('*').eq('activo', true).order('nombre', { ascending: true }),
+    supabase.from('proveedores').select('*').eq('activo', true).order('nombre', { ascending: true })
+  ])
+
+  if (insumosResult.error) throw new Error(insumosResult.error.message)
+  if (proveedoresResult.error) throw new Error(proveedoresResult.error.message)
+
+  return {
+    insumos: insumosResult.data ?? [],
+    proveedores: proveedoresResult.data ?? []
+  }
 }
 
 export async function crearPedidoAction(input: CrearPedidoInput, requestKey: string): Promise<string> {

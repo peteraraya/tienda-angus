@@ -22,54 +22,79 @@ export type ProductoData = Partial<Omit<DBProducto, 'imagen_url' | 'imagenes'>> 
 export async function fetchProductosAction(): Promise<Producto[]> {
   const supabase = await createClient()
 
-  const { data: productosData, error: productosError } = await supabase
-    .from('productos')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const productosData: DBProducto[] = []
+  let productoOffset = 0
+  const pageSize = 500
 
-  if (productosError) throw new Error(productosError.message)
+  while (true) {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(productoOffset, productoOffset + pageSize - 1)
 
-  const { data: colegiosData } = await supabase
+    if (error) throw new Error(error.message)
+    productosData.push(...(data ?? []))
+    if (!data || data.length < pageSize) break
+    productoOffset += pageSize
+  }
+
+  const variantesData: DBVariante[] = []
+  let varianteOffset = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('variantes')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .range(varianteOffset, varianteOffset + pageSize - 1)
+
+    if (error) throw new Error(error.message)
+    variantesData.push(...(data ?? []))
+    if (!data || data.length < pageSize) break
+    varianteOffset += pageSize
+  }
+
+  const { data: colegiosData, error: colegiosError } = await supabase
     .from('colegios')
     .select('nombre, insignia_url')
 
+  if (colegiosError) throw new Error(colegiosError.message)
+
   const colegiosMap = new Map(
-    colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) || []
+    colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) ?? []
   )
 
-  if (!productosData) return []
-
-  const productosConInfo = await Promise.all(
-    productosData.map(async (producto) => {
-      const { data: variantes } = await supabase
-        .from('variantes')
-        .select('*')
-        .eq('producto_id', producto.id)
-
-      const variantesConInsignia = variantes?.map(v => ({
-        ...v,
-        insignia_url: colegiosMap.get(v.colegio.trim())
-      })) || []
-
-      const stock_total = variantes?.reduce((sum, v) => sum + v.stock, 0) || 0
-      const variantes_count = variantes?.length || 0
-
-      return {
-        ...producto,
-        stock_total,
-        variantes_count,
-        variantes: variantesConInsignia
-      }
+  const variantesPorProducto = new Map<string, Variante[]>()
+  for (const variante of variantesData) {
+    const variantes = variantesPorProducto.get(variante.producto_id) ?? []
+    variantes.push({
+      ...variante,
+      insignia_url: colegiosMap.get(variante.colegio.trim())
     })
-  )
+    variantesPorProducto.set(variante.producto_id, variantes)
+  }
 
-  return productosConInfo
+  return productosData.map(producto => {
+    const variantes = variantesPorProducto.get(producto.id) ?? []
+    return {
+      ...producto,
+      stock_total: variantes.reduce((sum, variante) => sum + variante.stock, 0),
+      variantes_count: variantes.length,
+      variantes
+    }
+  })
 }
 
 export async function deleteProductoAction(id: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('productos').delete().eq('id', id)
+  const { data, error } = await supabase
+    .from('productos')
+    .update({ activo: false })
+    .eq('id', id)
+    .select('id')
+    .maybeSingle()
   if (error) throw new Error(error.message)
+  if (!data) throw new Error('No se encontró el producto')
   revalidatePath('/admin')
   revalidatePath('/')
 }
@@ -196,10 +221,11 @@ export async function fetchProductoConVariantesAction(id: string): Promise<{ pro
     .eq('id', id)
     .single()
   if (error) throw new Error(error.message)
-  const { data: variantes } = await supabase
+  const { data: variantes, error: variantesError } = await supabase
     .from('variantes')
     .select('*')
     .eq('producto_id', id)
+  if (variantesError) throw new Error(variantesError.message)
   return { producto, variantes: variantes || [] }
 }
 

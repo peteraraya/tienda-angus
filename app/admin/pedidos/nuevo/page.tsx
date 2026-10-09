@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { useConfirm } from '@/app/hooks/useConfirm'
-import { crearPedidoAction, type CrearPedidoInput } from '@/app/actions/pedidos'
+import { crearPedidoAction, fetchCatalogoPedidoAction, type CrearPedidoInput } from '@/app/actions/pedidos'
 import { Button, Input } from '@/app/components/ui'
 import type { Insumo, Proveedor } from '@/types/database'
 import AdminHeader from '../../components/AdminHeader'
@@ -25,16 +25,13 @@ export default function NuevoPedidoPage() {
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   
-  const [insumos, setInsumos] = useState<Insumo[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoria, setSelectedCategoria] = useState('')
-  const [loading, setLoading] = useState(true)
   const [processingPedido, setProcessingPedido] = useState(false)
   const [notasPedido, setNotasPedido] = useState('')
   const [fechaEsperada, setFechaEsperada] = useState('')
   
-  const [proveedores, setProveedores] = useState<Proveedor[]>([])
   const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null)
   const [searchProveedor, setSearchProveedor] = useState('')
   const [showProveedorSuggestions, setShowProveedorSuggestions] = useState(false)
@@ -42,34 +39,18 @@ export default function NuevoPedidoPage() {
   const [cantidades, setCantidades] = useState<Record<string, number>>({})
   const processingPedidoRef = useRef(false)
   const pedidoRequest = useRef<{ fingerprint: string; key: string; payload: CrearPedidoInput } | null>(null)
-
-  async function loadInsumos() {
-    const { data } = await supabase
-      .from('insumos')
-      .select('*')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) setInsumos(data)
-    setLoading(false)
-  }
-
-  async function loadProveedores() {
-    const { data } = await supabase
-      .from('proveedores')
-      .select('*')
-      .eq('activo', true)
-      .order('nombre', { ascending: true })
-
-    if (data) setProveedores(data)
-  }
-
-  useEffect(() => {
-    void Promise.resolve().then(() => {
-      void loadInsumos()
-      void loadProveedores()
-    })
-  }, [])
+  const {
+    data: catalogo,
+    isLoading: loading,
+    error: errorCatalogo,
+    refetch: refetchCatalogo
+  } = useQuery({
+    queryKey: ['adminPedidoCatalogo'],
+    queryFn: fetchCatalogoPedidoAction,
+    staleTime: 60_000
+  })
+  const insumos: Insumo[] = catalogo?.insumos ?? []
+  const proveedores: Proveedor[] = catalogo?.proveedores ?? []
 
   function agregarAlCarrito(insumo: Insumo) {
     const precioCompra = preciosCompra[insumo.id] || 0
@@ -271,6 +252,22 @@ export default function NuevoPedidoPage() {
     )
   }
 
+  if (errorCatalogo) {
+    return (
+      <main className="mx-auto max-w-4xl p-4 sm:p-6">
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+          <p>{errorCatalogo instanceof Error ? errorCatalogo.message : 'No se pudo cargar el catálogo del pedido.'}</p>
+          <button
+            onClick={() => void refetchCatalogo()}
+            className="mt-3 min-h-11 rounded-lg px-3 font-semibold underline"
+          >
+            Reintentar
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 pb-12">
       <AdminHeader 
@@ -402,7 +399,7 @@ export default function NuevoPedidoPage() {
 
           {/* Carrito - Sidebar responsivo */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-24">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 lg:sticky lg:top-24">
               <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -463,7 +460,7 @@ export default function NuevoPedidoPage() {
                         onChange={(e) => setSearchProveedor(e.target.value)}
                         onFocus={() => setShowProveedorSuggestions(true)}
                         placeholder="Buscar proveedor..."
-                        className="w-full p-3 border border-orange-300 dark:border-orange-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                        className="w-full p-3 border border-orange-300 dark:border-orange-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
 
                       {showProveedorSuggestions && searchProveedor.length >= 1 && proveedoresFiltrados.length > 0 && (
@@ -502,7 +499,7 @@ export default function NuevoPedidoPage() {
                     type="date"
                     value={fechaEsperada}
                     onChange={(e) => setFechaEsperada(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -539,14 +536,14 @@ export default function NuevoPedidoPage() {
                             <span className="text-xs text-gray-600 dark:text-gray-400">Cantidad:</span>
                             <button
                               onClick={() => actualizarCantidad(item.insumo_id, item.cantidad - 1)}
-                              className="w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center"
+                              className="min-h-11 min-w-11 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center"
                             >
                               -
                             </button>
                             <span className="w-12 text-center font-bold text-gray-900 dark:text-white">{item.cantidad}</span>
                             <button
                               onClick={() => actualizarCantidad(item.insumo_id, item.cantidad + 1)}
-                              className="w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center"
+                              className="min-h-11 min-w-11 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center"
                             >
                               +
                             </button>
@@ -558,7 +555,7 @@ export default function NuevoPedidoPage() {
                               type="number"
                               value={item.precio_unitario}
                               onChange={(e) => actualizarPrecio(item.insumo_id, parseFloat(e.target.value) || 0)}
-                              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-white"
+                              className="min-h-11 flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               min="0"
                             />
                           </div>
@@ -589,7 +586,7 @@ export default function NuevoPedidoPage() {
                       value={notasPedido}
                       onChange={(e) => setNotasPedido(e.target.value)}
                       placeholder="Notas del pedido (opcional)..."
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-white resize-none"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                       rows={2}
                     />
 

@@ -1,8 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo } from 'react'
 import { useToast } from '@/app/components/ui/ToastContainer'
 import { Button, Pagination, usePagination } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
@@ -16,8 +14,6 @@ import AdminFilters from './components/AdminFilters'
 import { useAdminFilters } from '@/app/hooks/useAdminFilters'
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [variantSearchTerm, setVariantSearchTerm] = useState('')
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
@@ -25,12 +21,13 @@ export default function AdminPage() {
   const [editingProductPrice, setEditingProductPrice] = useState<string | null>(null)
   const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
   
-  const router = useRouter()
   const toast = useToast()
 
   const { 
     productos, 
     isLoadingProductos,
+    isErrorProductos,
+    errorProductos,
     deleteProducto, 
     toggleOferta,
     toggleActivoProducto,
@@ -64,16 +61,6 @@ export default function AdminPage() {
     filteredProducts,
     stockEspecifico
   } = useAdminFilters(productos)
-
-  useEffect(() => {
-    async function checkAuth() {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      setIsAuthenticated(!!session)
-      setLoading(false)
-    }
-    checkAuth()
-  }, []) 
 
   function updateVarianteStock(varianteId: string, expectedStock: number, newStock: number) {
     if (newStock < 0) {
@@ -129,7 +116,7 @@ export default function AdminPage() {
     return filteredProducts.slice(startIndex, endIndex)
   }, [filteredProducts, startIndex, endIndex])
 
-  if (loading || isLoadingProductos) {
+  if (isLoadingProductos) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
@@ -138,8 +125,16 @@ export default function AdminPage() {
     )
   }
 
-  if (!isAuthenticated) {
-    return null // Layout redirect to login, but just in case
+  if (isErrorProductos) {
+    return (
+      <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+        <p className="font-semibold">No se pudo cargar el inventario.</p>
+        <p className="mt-1 text-sm">{errorProductos instanceof Error ? errorProductos.message : 'Error de consulta'}</p>
+        <Button onClick={() => void refetchProductos()} className="mt-4 min-h-11">
+          Reintentar
+        </Button>
+      </div>
+    )
   }
 
   function handleExportCsv() {

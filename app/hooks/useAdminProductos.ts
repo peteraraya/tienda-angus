@@ -39,7 +39,13 @@ export function useAdminProductos() {
    * Fetches all products and their associated variants from the database using React Query.
    * Also maps school badges (insignias) to the corresponding variants.
    */
-  const { data: productos = [], isLoading: isLoadingProductos } = useQuery({
+  const {
+    data: productos = [],
+    isLoading: isLoadingProductos,
+    isError: isErrorProductos,
+    error: errorProductos,
+    refetch: refetchProductos
+  } = useQuery({
     queryKey: ['adminProductos'],
     queryFn: fetchProductosAction,
   })
@@ -48,10 +54,10 @@ export function useAdminProductos() {
   const deleteMutation = useMutation({
     mutationFn: deleteProductoAction,
     onSuccess: () => {
-      toast.success('Producto eliminado exitosamente')
+      toast.success('Producto archivado; se conserva en el historial de ventas')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al eliminar el producto')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo archivar el producto')
   })
 
   const updateOfertaMutation = useMutation({
@@ -62,7 +68,7 @@ export function useAdminProductos() {
       toast.success(nuevoEstado ? 'Oferta activada exitosamente' : 'Oferta desactivada')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al cambiar el estado de la oferta')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo cambiar el estado de la oferta')
   })
 
   const toggleActivoMutation = useMutation({
@@ -73,7 +79,7 @@ export function useAdminProductos() {
       toast.success(nuevoEstado ? 'Producto activado' : 'Producto desactivado')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al cambiar el estado del producto')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo cambiar el estado del producto')
   })
 
   const updateDescuentoMutation = useMutation({
@@ -84,7 +90,7 @@ export function useAdminProductos() {
       toast.success(descuento === 0 ? 'Descuento eliminado' : `Descuento del ${descuento}% aplicado exitosamente`)
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al aplicar el descuento')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo aplicar el descuento')
   })
 
   const duplicateMutation = useMutation({
@@ -101,7 +107,7 @@ export function useAdminProductos() {
       duplicateRequestKeys.current.delete(producto.id)
       toast.success('Producto duplicado exitosamente')
     },
-    onError: () => toast.error('Error al duplicar el producto')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo duplicar el producto')
   })
 
   /**
@@ -115,10 +121,10 @@ export function useAdminProductos() {
    */
   async function deleteProducto(id: string) {
     const confirmed = await confirm({
-      title: '¿Eliminar producto?',
-      message: 'Se eliminará este producto y todas sus variantes. Esta acción no se puede deshacer.',
-      confirmText: 'Eliminar',
-      variant: 'danger'
+      title: '¿Archivar producto?',
+      message: 'El producto dejará de estar disponible en la tienda. Se conservará junto con sus variantes y ventas históricas.',
+      confirmText: 'Archivar',
+      variant: 'warning'
     })
 
     if (!confirmed) return
@@ -239,7 +245,7 @@ export function useAdminProductos() {
       toast.success('Nombre actualizado')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al actualizar el nombre')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo actualizar el nombre')
   })
 
   const updateProductPriceMutation = useMutation({
@@ -250,7 +256,7 @@ export function useAdminProductos() {
       toast.success('Precio actualizado')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al actualizar el precio')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudo actualizar el precio')
   })
 
   const updateProductNotasMutation = useMutation({
@@ -261,12 +267,15 @@ export function useAdminProductos() {
       toast.success(notas.trim() ? 'Notas guardadas' : 'Notas eliminadas')
       queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
     },
-    onError: () => toast.error('Error al actualizar las notas')
+    onError: error => toast.error(error instanceof Error ? error.message : 'No se pudieron actualizar las notas')
   })
 
   return {
     productos,
     isLoadingProductos,
+    isErrorProductos,
+    errorProductos,
+    refetchProductos,
     deleteProducto,
     toggleOferta,
     toggleActivoProducto,
@@ -276,7 +285,6 @@ export function useAdminProductos() {
     updateProductNameMutation,
     updateProductPriceMutation,
     updateProductNotasMutation,
-    ConfirmDialog,
-    refetchProductos: () => queryClient.invalidateQueries({ queryKey: ['adminProductos'] })
+    ConfirmDialog
   }
 }

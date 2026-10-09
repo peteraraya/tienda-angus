@@ -166,7 +166,7 @@ export default function ProveedoresPage() {
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-800 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,7 +250,7 @@ export default function ProveedoresPage() {
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Nombre del proveedor *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
                 <Input
@@ -258,7 +258,7 @@ export default function ProveedoresPage() {
                   value={formData.contacto}
                   onChange={(e) => setFormData({ ...formData, contacto: e.target.value })}
                   placeholder="Nombre de contacto *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
                 <Input
@@ -266,7 +266,7 @@ export default function ProveedoresPage() {
                   value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   placeholder="Teléfono *"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
                 <Input
@@ -274,28 +274,28 @@ export default function ProveedoresPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Email"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
                 <Input
                   type="text"
                   value={formData.rut}
                   onChange={(e) => setFormData({ ...formData, rut: e.target.value })}
                   placeholder="RUT"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
                 <Input
                   type="text"
                   value={formData.direccion}
                   onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                   placeholder="Dirección"
-                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
               <textarea
                 value={formData.notas}
                 onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                 placeholder="Notas adicionales"
-                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                 rows={3}
               />
               <div className="flex gap-2">

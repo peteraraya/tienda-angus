@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Input, Button } from '@/app/components/ui'
 import type { Cliente } from '@/types/database'
-import { createClienteAction } from '@/app/actions/clientes'
+import { createClienteAction, fetchClienteAction, searchClientesAction } from '@/app/actions/clientes'
+import { useToast } from '@/app/components/ui/ToastContainer'
 
 interface ClienteAutocompleteProps {
   onClienteSelect: (cliente: Cliente | null) => void
@@ -12,6 +12,7 @@ interface ClienteAutocompleteProps {
 }
 
 export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }: ClienteAutocompleteProps) {
+  const toast = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -42,18 +43,15 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
 
   async function buscarClientes(term: string) {
     setLoading(true)
-    const { data } = await supabase
-      .from('clientes')
-      .select('*')
-      .or(`nombre.ilike.%${term}%,telefono.ilike.%${term}%,contacto.ilike.%${term}%`)
-      .order('cantidad_compras', { ascending: false })
-      .limit(5)
-
-    if (data) {
+    try {
+      const data = await searchClientesAction(term)
       setClientes(data)
       setShowSuggestions(true)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo buscar el cliente')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   function ejecutarBusqueda(term: string) {
@@ -102,12 +100,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
       const request = createRequest.current
       if (!request) throw new Error('No se pudo preparar la clave de solicitud')
       const clienteId = await createClienteAction(cliente, request.key)
-      const { data, error } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('id', clienteId)
-        .single()
-      if (error) throw new Error(error.message)
+      const data = await fetchClienteAction(clienteId)
 
       createRequest.current = null
       seleccionarCliente(data)
@@ -196,7 +189,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.nombre}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
               placeholder="Ej: Juan Pérez"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
@@ -209,7 +202,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.contacto}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, contacto: e.target.value })}
               placeholder="Ej: juan@email.com"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
@@ -222,7 +215,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.telefono}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
               placeholder="Ej: +56912345678"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
@@ -235,7 +228,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.red_social}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, red_social: e.target.value })}
               placeholder="Ej: @usuario_instagram"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
@@ -248,7 +241,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
               value={nuevoCliente.direccion}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, direccion: e.target.value })}
               placeholder="Ej: Av. Principal 123"
-              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
@@ -282,7 +275,7 @@ export default function ClienteAutocomplete({ onClienteSelect, selectedCliente }
           }}
           onFocus={() => searchTerm.length >= 2 && setShowSuggestions(true)}
           placeholder="Buscar por nombre, teléfono o contacto..."
-          className="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+          className="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
 
         {loading && (

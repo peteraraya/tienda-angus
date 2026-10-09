@@ -31,16 +31,27 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith('/admin')
-  ) {
+  if (error && error.name !== 'AuthSessionMissingError') {
+    throw new Error(`No se pudo verificar la sesión: ${error.message}`)
+  }
+
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isProtectedApi = ['/api/upload', '/api/whatsapp/send'].includes(request.nextUrl.pathname)
+  const isAdmin = user?.app_metadata?.role === 'admin'
+
+  if ((isAdminRoute || isProtectedApi) && !isAdmin) {
+    if (isProtectedApi) {
+      return NextResponse.json(
+        { error: user ? 'Acceso restringido al administrador' : 'Autenticación requerida' },
+        { status: user ? 403 : 401 }
+      )
+    }
+
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    if (user) url.searchParams.set('error', 'admin-required')
     return NextResponse.redirect(url)
   }
 

@@ -167,7 +167,7 @@ export default function InsumosPage() {
         
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-800 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,7 +473,7 @@ export default function InsumosPage() {
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Ej: Tela Poliéster Azul"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -485,7 +485,7 @@ export default function InsumosPage() {
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   placeholder="Descripción del insumo..."
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                   rows={3}
                 />
               </div>
@@ -498,7 +498,7 @@ export default function InsumosPage() {
                   <select
                     value={formData.unidad_medida}
                     onChange={(e) => setFormData({ ...formData, unidad_medida: e.target.value })}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="unidades">Unidades</option>
                     <option value="metros">Metros</option>
@@ -519,7 +519,7 @@ export default function InsumosPage() {
                     value={formData.categoria}
                     onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     placeholder="Ej: Telas, Botones, Hilos"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -533,7 +533,7 @@ export default function InsumosPage() {
                     type="number"
                     value={formData.precio_referencia}
                     onChange={(e) => setFormData({ ...formData, precio_referencia: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     min="0"
                   />
                 </div>
@@ -546,7 +546,7 @@ export default function InsumosPage() {
                     type="number"
                     value={formData.stock_actual}
                     onChange={(e) => setFormData({ ...formData, stock_actual: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     min="0"
                     step="0.01"
                   />
@@ -560,7 +560,7 @@ export default function InsumosPage() {
                     type="number"
                     value={formData.stock_minimo}
                     onChange={(e) => setFormData({ ...formData, stock_minimo: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     min="0"
                     step="0.01"
                   />
@@ -576,7 +576,7 @@ export default function InsumosPage() {
                   value={formData.imagen_url}
                   onChange={(e) => setFormData({ ...formData, imagen_url: e.target.value })}
                   placeholder="https://ejemplo.com/imagen.jpg"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -588,7 +588,7 @@ export default function InsumosPage() {
                   value={formData.notas}
                   onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                   placeholder="Notas adicionales..."
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-white resize-none"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                   rows={2}
                 />
               </div>

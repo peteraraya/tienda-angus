@@ -1,15 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/formatPrice'
 import { Button } from '@/app/components/ui'
 import { useAdminVentas, type Venta } from '@/app/hooks/useAdminVentas'
 import Image from 'next/image'
+import { fetchVentaItemsAction } from '@/app/actions/ventas'
+import { useToast } from '@/app/components/ui/ToastContainer'
 
 export default function HistorialVentasPage() {
   const router = useRouter()
+  const toast = useToast()
   
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
@@ -30,18 +32,15 @@ export default function HistorialVentasPage() {
 
     if (!ventaBase) return
 
-    const { data: items } = await supabase
-      .from('venta_items')
-      .select('*')
-      .eq('venta_id', ventaId)
-      .order('created_at', { ascending: true })
-
-    if (items) {
+    try {
+      const items = await fetchVentaItemsAction(ventaId)
       setVentasConItems(prev => [
         ...prev.filter(v => v.id !== ventaId),
         { ...ventaBase, items }
       ])
       setExpandedVenta(ventaId)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo cargar el detalle de la venta')
     }
   }
 
@@ -91,7 +90,7 @@ export default function HistorialVentasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
       {/* Header */}
-      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
         <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
@@ -132,7 +131,7 @@ export default function HistorialVentasPage() {
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-800 rounded-xl shadow-sm p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +197,7 @@ export default function HistorialVentasPage() {
                 type="date"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-white"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
             <div>
@@ -207,7 +206,7 @@ export default function HistorialVentasPage() {
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-white"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
             <div className="flex items-end gap-3">
