@@ -37,8 +37,8 @@ interface CartItem {
 interface VentaTicket {
   id: string
   fecha: string
-  cliente: Cliente
-  items: CartItem[]
+  cliente: Pick<Cliente, 'nombre'>
+  items: Pick<CartItem, 'producto_nombre' | 'talla' | 'colegio' | 'precio_final' | 'cantidad'>[]
   totales: {
     subtotal: number
     descuento_total: number
@@ -82,10 +82,9 @@ export default function VentasPage() {
       })), [productosData])
 
   function agregarAlCarrito(producto: Producto, variante: Variante) {
-    const precioBase = variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio;
-    const precio_final = producto.descuento_porcentaje 
-      ? precioBase - (precioBase * producto.descuento_porcentaje / 100)
-      : precioBase;
+    const precioBase = Math.round(variante.precio !== null && variante.precio !== undefined ? variante.precio : producto.precio)
+    const descuento = producto.descuento_porcentaje || 0
+    const precio_final = Math.round(precioBase * (100 - descuento) / 100)
 
     const itemExistente = cart.find(item => item.variante_id === variante.id)
 
@@ -189,26 +188,16 @@ export default function VentasPage() {
     setProcessingVenta(true)
 
     try {
-      const totales = calcularTotales()
       const input = {
-        ...totales,
         notas: notasVenta.trim() || null,
-        vendedor: 'Administrador',
         cliente_id: selectedCliente.id,
-        cliente_nombre: selectedCliente.nombre,
-        cliente_telefono: selectedCliente.telefono,
-        cliente_contacto: selectedCliente.contacto,
         items: cart.map(item => ({
           producto_id: item.producto_id,
           variante_id: item.variante_id,
-          producto_nombre: item.producto_nombre,
-          talla: item.talla,
-          colegio: item.colegio,
           precio_unitario: item.precio_unitario,
           descuento_porcentaje: item.descuento_porcentaje,
           precio_final: item.precio_final,
-          cantidad: item.cantidad,
-          subtotal: item.precio_final * item.cantidad
+          cantidad: item.cantidad
         }))
       }
       const fingerprint = JSON.stringify(input)
@@ -218,19 +207,24 @@ export default function VentasPage() {
       const saleRequest = saleRequestRef.current
       if (!saleRequest) throw new Error('No se pudo preparar la clave de solicitud')
 
-      const ventaId = await crearVentaAction(input, saleRequest.key)
+      const venta = await crearVentaAction(input, saleRequest.key)
       saleRequestRef.current = null
 
       toast.success('¡Venta procesada exitosamente!')
       
       // Guardar datos para el ticket
       setUltimaVenta({
-        id: ventaId,
-        fecha: new Date().toLocaleString('es-CL'),
-        cliente: selectedCliente,
-        items: [...cart],
-        totales,
-        vendedor: 'Administrador'
+        id: venta.id,
+        fecha: new Date(venta.fecha).toLocaleString('es-CL'),
+        cliente: venta.cliente,
+        items: venta.items,
+        totales: {
+          subtotal: venta.subtotal,
+          descuento_total: venta.descuento_total,
+          total: venta.total,
+          cantidad_items: venta.cantidad_items
+        },
+        vendedor: venta.vendedor
       })
       setShowTicket(true)
       
@@ -242,7 +236,7 @@ export default function VentasPage() {
 
     } catch (error) {
       console.error('Error al procesar venta:', error)
-      toast.error('Error al procesar la venta')
+      toast.error(error instanceof Error ? error.message : 'Error al procesar la venta')
     } finally {
       processingVentaRef.current = false
       setProcessingVenta(false)
@@ -338,7 +332,7 @@ export default function VentasPage() {
                     <div className="col-span-4 text-right">Total</div>
                   </div>
                   <div className="space-y-3">
-                    {ultimaVenta.items.map((item: CartItem, index: number) => (
+                    {ultimaVenta.items.map((item, index) => (
                       <div key={index} className="grid grid-cols-12 gap-2 text-sm text-gray-800 dark:text-gray-200 items-center">
                         <div className="col-span-6">
                           <p className="font-semibold line-clamp-1">{item.producto_nombre}</p>
