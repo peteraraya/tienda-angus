@@ -38,12 +38,16 @@ Agrega las siguientes variables a tu archivo `.env.local`:
 WHATSAPP_PHONE_NUMBER_ID=tu_phone_number_id
 WHATSAPP_ACCESS_TOKEN=tu_access_token_permanente
 WHATSAPP_VERIFY_TOKEN=tu_token_de_verificacion_personalizado
+WHATSAPP_APP_SECRET=secreto_de_la_aplicacion_de_meta
 WHATSAPP_BUSINESS_ACCOUNT_ID=tu_business_account_id
 ```
 
 **Importante:**
 - `WHATSAPP_VERIFY_TOKEN`: Crea un token personalizado (puede ser cualquier string seguro)
+- `WHATSAPP_APP_SECRET`: Secreto de la aplicación de Meta; se usa para comprobar `X-Hub-Signature-256` en cada POST del webhook
 - `WHATSAPP_ACCESS_TOKEN`: Genera un token permanente desde la consola de Meta
+
+El endpoint rechaza las notificaciones POST si falta `WHATSAPP_APP_SECRET` o la firma no es válida. No uses un secreto de ejemplo en producción.
 
 ### 3. Configurar el Webhook
 

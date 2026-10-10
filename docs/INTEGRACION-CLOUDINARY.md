@@ -106,12 +106,12 @@ export async function uploadToCloudinary(input, folder = "general") {
 Para asegurar que la base de datos mantenga integridad y que Cloudinary no acumule "archivos huérfanos" (imágenes subidas que no están referenciadas en tu base de datos):
 
 1. **Validación de Tamaño y Formato (Frontend + Backend):**
-   * Restringir inputs exclusivamente a los MIME types válidos (`image/jpeg, image/png, image/webp`).
-   * Limitar el peso desde el cliente antes de consumir ancho de banda (ej. máximo 5MB).
+   * El endpoint `/api/upload` permite `image/jpeg`, `image/png` e `image/webp`, y valida tanto el MIME declarado como la firma del contenido.
+   * El límite de servidor es 5 MB por archivo. Mantén la validación en el cliente para evitar transferencias innecesarias, sin depender de ella como control de seguridad.
    
 2. **Validación Proactiva de URLs Externas:**
-   * Usar expresiones regulares en el cliente/servidor para asegurar que es un enlace válido.
-   * Como mejor práctica, el servidor puede realizar un rápido `HEAD request` para verificar que el `Content-Type` de la URL es efectivamente una imagen antes de intentar enviarla a Cloudinary.
+   * El endpoint acepta únicamente URLs HTTPS de dominios públicos, sin credenciales, IP literal ni nombres locales, y Cloudinary restringe el tipo de recurso y formatos procesados.
+   * Si se habilitan fuentes remotas controladas, mantener una lista de dominios permitidos; la validación de sintaxis de URL por sí sola no acredita que su contenido sea una imagen.
 
 3. **Manejo de Transacciones Temporales (Rollbacks):**
    * En caso de que la carga a Cloudinary sea exitosa pero ocurra un error fatal al intentar insertar la referencia en tu base de datos (por caída de red u error de Supabase/SQL), el bloque `catch` del manejador de la base de datos debe disparar un comando inverso: `cloudinary.uploader.destroy(public_id)` para limpiar el residuo inmediatamente.

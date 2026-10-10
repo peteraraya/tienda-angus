@@ -1,9 +1,22 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateWebhook, processWebhookMessage, markMessageAsRead } from '@/lib/whatsapp'
 import { supabase } from '@/lib/supabase'
 import type { WhatsAppWebhookMessage } from '@/lib/whatsapp'
 
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'your-verify-token'
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN
+const APP_SECRET = process.env.WHATSAPP_APP_SECRET
+
+function hasValidSignature(body: string, signature: string | null): boolean {
+  if (!APP_SECRET || !signature) return false
+
+  const expected = `sha256=${createHmac('sha256', APP_SECRET).update(body).digest('hex')}`
+  const expectedBuffer = Buffer.from(expected)
+  const receivedBuffer = Buffer.from(signature)
+
+  return expectedBuffer.length === receivedBuffer.length &&
+    timingSafeEqual(expectedBuffer, receivedBuffer)
+}
 
 /**
  * GET - Verificación del webhook de WhatsApp
@@ -15,7 +28,7 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  if (mode && token) {
+  if (VERIFY_TOKEN && mode && token && challenge) {
     if (validateWebhook(mode, token, VERIFY_TOKEN)) {
       console.log('Webhook verified successfully')
       return new NextResponse(challenge, { status: 200 })
@@ -34,7 +47,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.text()
+    if (!hasValidSignature(rawBody, request.headers.get('x-hub-signature-256'))) {
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 403 })
+    }
+
+    const body = JSON.parse(rawBody)
 
     // Procesar el mensaje
     const message = processWebhookMessage(body)
