@@ -55,9 +55,10 @@ BEGIN
     GROUP BY p.id
   ),
   filtered_products AS (
-    SELECT p.*, ps.stock_total, ps.variantes_count
+    SELECT p.*, pn.notas AS admin_notas, ps.stock_total, ps.variantes_count
     FROM public.productos AS p
     JOIN product_stock AS ps ON ps.id = p.id
+    LEFT JOIN public.producto_notas AS pn ON pn.producto_id = p.id
     WHERE (v_category IS NULL OR p.categoria = v_category)
       AND (
         v_status_filter IS NULL
@@ -86,7 +87,7 @@ BEGIN
         OR POSITION(v_search IN LOWER(p.descripcion)) > 0
         OR POSITION(v_search IN LOWER(p.categoria)) > 0
         OR POSITION(v_search IN p.precio::TEXT) > 0
-        OR POSITION(v_search IN LOWER(COALESCE(p.notas, ''))) > 0
+        OR POSITION(v_search IN LOWER(COALESCE(pn.notas, ''))) > 0
         OR EXISTS (
           SELECT 1
           FROM public.variantes AS vs
@@ -112,6 +113,7 @@ BEGIN
   page_json AS (
     SELECT COALESCE(jsonb_agg(
       (to_jsonb(pp) - 'variantes') || jsonb_build_object(
+        'notas', pp.admin_notas,
         'activo', pp.activo IS DISTINCT FROM FALSE,
         'variantes',
         COALESCE((

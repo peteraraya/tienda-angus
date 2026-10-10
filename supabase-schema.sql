@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Archivo consolidado a partir de supabase/*.sql y supabase/migrations/*.sql.
 -- Para instalar desde cero, ejecutar este archivo y luego las migraciones
--- 34 a 42 en orden.
+-- 34 a 43 en orden.
 --
 -- Se ejecuta de forma idempotente sobre una base vacía (CREATE TABLE IF NOT
 -- EXISTS). Para bases existentes, usa los archivos numerados en orden.
@@ -32,10 +32,17 @@ CREATE TABLE IF NOT EXISTS productos (
   activo BOOLEAN DEFAULT true,
   descuento_porcentaje INTEGER DEFAULT 0 CHECK (descuento_porcentaje >= 0 AND descuento_porcentaje <= 100),
   en_oferta BOOLEAN DEFAULT FALSE,
-  notas TEXT,
+  notas TEXT, -- Legacy compatibility only; private notes are stored in producto_notas.
   idempotency_key UUID UNIQUE,
   idempotency_payload TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Private product notes. The legacy productos.notas column is kept empty for compatibility.
+CREATE TABLE IF NOT EXISTS producto_notas (
+  producto_id UUID PRIMARY KEY REFERENCES productos(id) ON DELETE CASCADE,
+  notas TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Tabla de variantes (tallas y colegios con stock)
@@ -364,6 +371,58 @@ $$;
 REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
+ALTER TABLE public.producto_notas ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.producto_notas FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.producto_notas TO authenticated;
+DROP POLICY IF EXISTS "Administrador único de notas de productos" ON public.producto_notas;
+CREATE POLICY "Administrador único de notas de productos"
+  ON public.producto_notas FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+CREATE OR REPLACE FUNCTION public.sync_legacy_product_notes()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NULLIF(BTRIM(NEW.notas), '') IS NOT NULL THEN
+      IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Acceso restringido al administrador';
+      END IF;
+
+      INSERT INTO public.producto_notas (producto_id, notas, updated_at)
+      VALUES (NEW.id, BTRIM(NEW.notas), NOW())
+      ON CONFLICT (producto_id) DO UPDATE
+      SET notas = EXCLUDED.notas, updated_at = EXCLUDED.updated_at;
+    END IF;
+  ELSIF NEW.notas IS DISTINCT FROM OLD.notas THEN
+    IF NOT public.is_admin() THEN
+      RAISE EXCEPTION 'Acceso restringido al administrador';
+    END IF;
+
+    IF NULLIF(BTRIM(NEW.notas), '') IS NULL THEN
+      DELETE FROM public.producto_notas WHERE producto_id = NEW.id;
+    ELSE
+      INSERT INTO public.producto_notas (producto_id, notas, updated_at)
+      VALUES (NEW.id, BTRIM(NEW.notas), NOW())
+      ON CONFLICT (producto_id) DO UPDATE
+      SET notas = EXCLUDED.notas, updated_at = EXCLUDED.updated_at;
+    END IF;
+  END IF;
+
+  NEW.notas := NULL;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.sync_legacy_product_notes() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS sync_legacy_product_notes ON public.productos;
+CREATE TRIGGER sync_legacy_product_notes
+  BEFORE INSERT OR UPDATE OF notas ON public.productos
+  FOR EACH ROW EXECUTE FUNCTION public.sync_legacy_product_notes();
+
 DO $$
 DECLARE
   policy_row RECORD;
@@ -579,9 +638,10 @@ BEGIN
     GROUP BY p.id
   ),
   filtered_products AS (
-    SELECT p.*, ps.stock_total, ps.variantes_count
+    SELECT p.*, pn.notas AS admin_notas, ps.stock_total, ps.variantes_count
     FROM public.productos AS p
     JOIN product_stock AS ps ON ps.id = p.id
+    LEFT JOIN public.producto_notas AS pn ON pn.producto_id = p.id
     WHERE (v_category IS NULL OR p.categoria = v_category)
       AND (
         v_status_filter IS NULL
@@ -609,7 +669,7 @@ BEGIN
         OR POSITION(v_search IN LOWER(p.descripcion)) > 0
         OR POSITION(v_search IN LOWER(p.categoria)) > 0
         OR POSITION(v_search IN p.precio::TEXT) > 0
-        OR POSITION(v_search IN LOWER(COALESCE(p.notas, ''))) > 0
+        OR POSITION(v_search IN LOWER(COALESCE(pn.notas, ''))) > 0
         OR EXISTS (
           SELECT 1 FROM public.variantes AS vs
           WHERE vs.producto_id = p.id
@@ -633,6 +693,7 @@ BEGIN
   page_json AS (
     SELECT COALESCE(jsonb_agg(
       (to_jsonb(pp) - 'variantes') || jsonb_build_object(
+        'notas', pp.admin_notas,
         'activo', pp.activo IS DISTINCT FROM FALSE,
         'variantes',
         COALESCE((

@@ -802,6 +802,7 @@ export default function ProductListNotebook({
               <textarea
                 defaultValue={productos.find(p => p.id === editingProductNotas)?.notas || ''}
                 placeholder="Escribe notas sobre este producto... Ej: Pedir más tela, revisar stock el viernes, etc."
+                maxLength={5000}
                 className="w-full h-40 px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
                 autoFocus
                 onKeyDown={(e) => {

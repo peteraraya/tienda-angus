@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 import { revalidatePath } from 'next/cache'
+import { isAdminRequest } from '@/utils/supabase/admin'
 
 export interface Variante extends DBVariante {
   insignia_url?: string
@@ -423,28 +424,52 @@ export async function updateProductPriceAction(id: string, precio: number) {
 }
 
 export async function updateProductNotasAction(id: string, notas: string) {
+  if (!await isAdminRequest()) throw new Error('Acceso restringido al administrador')
+  if (typeof notas !== 'string' || notas.length > 5000) {
+    throw new Error('Las notas no pueden superar los 5000 caracteres')
+  }
+
   const supabase = await createClient()
-  const { error } = await supabase.from('productos').update({ notas: notas.trim() || null }).eq('id', id)
-  if (error) throw new Error(error.message)
+  const cleanNotes = notas.trim()
+
+  if (cleanNotes) {
+    const { error } = await supabase
+      .from('producto_notas')
+      .upsert({ producto_id: id, notas: cleanNotes, updated_at: new Date().toISOString() }, {
+        onConflict: 'producto_id'
+      })
+    if (error) throw new Error(`No se pudieron guardar las notas: ${error.message}`)
+  } else {
+    const { error } = await supabase.from('producto_notas').delete().eq('producto_id', id)
+    if (error) throw new Error(`No se pudieron eliminar las notas: ${error.message}`)
+  }
+
   revalidatePath('/admin')
-  revalidatePath('/')
-  return notas
+  return cleanNotes
 }
 
 export async function fetchProductoConVariantesAction(id: string): Promise<{ producto: DBProducto | null; variantes: DBVariante[] }> {
+  if (!await isAdminRequest()) throw new Error('Acceso restringido al administrador')
+
   const supabase = await createClient()
-  const { data: producto, error } = await supabase
-    .from('productos')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const [
+    { data: producto, error },
+    { data: variantes, error: variantesError },
+    { data: productNotes, error: notesError }
+  ] = await Promise.all([
+    supabase.from('productos').select('*').eq('id', id).single(),
+    supabase.from('variantes').select('*').eq('producto_id', id),
+    supabase.from('producto_notas').select('notas').eq('producto_id', id).maybeSingle()
+  ])
+
   if (error) throw new Error(error.message)
-  const { data: variantes, error: variantesError } = await supabase
-    .from('variantes')
-    .select('*')
-    .eq('producto_id', id)
   if (variantesError) throw new Error(variantesError.message)
-  return { producto, variantes: variantes || [] }
+  if (notesError) throw new Error(`No se pudieron cargar las notas del producto: ${notesError.message}`)
+
+  return {
+    producto: { ...producto, notas: productNotes?.notas },
+    variantes: variantes || []
+  }
 }
 
 export async function crearProductoConVariantesAction(
