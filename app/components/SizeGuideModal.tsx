@@ -3,10 +3,21 @@ import CloseIcon from '@mui/icons-material/Close'
 
 interface SizeGuideModalProps {
   onClose: () => void
+  productName?: string
+  school?: string
+  size?: string
 }
 
-export default function SizeGuideModal({ onClose }: SizeGuideModalProps) {
+export default function SizeGuideModal({ onClose, productName, school, size }: SizeGuideModalProps) {
   const modalRef = useRef<HTMLDivElement | null>(null)
+  const consultationText = [
+    'Hola, necesito orientación para elegir la talla de una prenda.',
+    productName ? `Producto: ${productName}.` : '',
+    school ? `Colegio: ${school}.` : '',
+    size ? `Estoy considerando la talla ${size}.` : '',
+    '¿Me ayudan a revisar el calce y las medidas antes de solicitar?'
+  ].filter(Boolean).join(' ')
+  const consultationUrl = `https://wa.me/56983852967?text=${encodeURIComponent(consultationText)}`
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -217,6 +228,21 @@ export default function SizeGuideModal({ onClose }: SizeGuideModalProps) {
             <p className="text-sm text-[#123f3d] dark:text-[#edf5f2]">
               <span className="font-bold">Tip de medición:</span> Toma una prenda de tu hijo(a) que le quede bien, ponla plana sobre una mesa y mide el ancho del pecho (de axila a axila) o el largo total. Compara esos centímetros con la tabla.
             </p>
+          </div>
+
+          <div className="rounded-xl border border-[#123f3d]/10 bg-white p-4 dark:border-white/10 dark:bg-gray-800">
+            <h3 className="font-bold text-gray-900 dark:text-white">¿Aún tienes dudas?</h3>
+            <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
+              Escríbenos con tus medidas y la prenda que estás buscando. Te ayudaremos a interpretar la guía y elegir con más confianza.
+            </p>
+            <a
+              href={consultationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#128C7E] px-4 text-sm font-bold text-white transition-colors hover:bg-[#0d7065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+            >
+              Pedir ayuda con mi talla
+            </a>
           </div>
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">

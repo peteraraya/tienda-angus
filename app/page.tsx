@@ -91,6 +91,7 @@ export default async function Home() {
   const productoDestacado = productos.find(producto =>
     producto.stock_total > 0 && (producto.imagen_url || producto.imagenes?.length)
   ) ?? productos.find(producto => producto.stock_total > 0) ?? productos[0]
+  const tieneImagenDestacada = Boolean(productoDestacado?.imagen_url || productoDestacado?.imagenes?.[0])
   const preciosVariantesDestacado = productoDestacado?.variantes
     .filter(variante => variante.stock > 0)
     .map(variante => variante.precio ?? productoDestacado.precio) ?? []
@@ -181,17 +182,17 @@ export default async function Home() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20" id="inicio">
         <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr] rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-4 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-6 lg:p-8 dark:border-[#d7b972]/10 dark:bg-[#112827]/85 dark:shadow-[0_18px_45px_rgba(3,7,7,0.25)]">
           <div>
-            <span className="accent-chip mb-5">Uniformes escolares • calidad artesanal</span>
+            <span className="accent-chip mb-5">Confección cuidada • materiales seleccionados • asesoría cercana</span>
             <h1 className="section-title leading-[0.95] tracking-[-0.06em] max-w-xl dark:text-[#edf5f2]">
-              Uniformes <span className="gradient-text">escolares</span> con identidad y estilo.
+              Bien hechos para <span className="gradient-text">acompañar</span> cada jornada.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-[#355c58] leading-relaxed dark:text-[#dfeae7]">
-              Confección de buzos, poleras, calzas y prendas de colegio con terminación cuidada, reforzadas para la exigencia diaria del año escolar.
+              Encuentra uniformes escolares confeccionados con atención al detalle y materiales elegidos para el uso diario. Si tienes dudas de talla, calce o cuidado, te orientamos personalmente antes de solicitar.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <a href="#productos" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Ver catálogo</a>
-              <a href="https://wa.me/56983852967?text=Hola%2C%20quiero%20consultar%20por%20uniformes%20escolares" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Consultar por WhatsApp</a>
+              <a href="#productos" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Encuentra tu uniforme</a>
+              <a href="https://wa.me/56983852967?text=Hola%2C%20necesito%20orientaci%C3%B3n%20para%20elegir%20un%20uniforme.%20%C2%BFMe%20pueden%20ayudar%20con%20la%20talla%2C%20el%20calce%20o%20el%20cuidado%3F" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Pedir asesoría</a>
             </div>
 
             <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
@@ -211,7 +212,7 @@ export default async function Home() {
           </div>
 
           <div className="brand-showcase p-3 sm:p-4">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534]">
+            <div className={`relative overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534] ${tieneImagenDestacada ? 'aspect-[4/3]' : 'min-h-[360px] sm:aspect-[4/3]'}`}>
               {productoDestacado?.imagen_url || productoDestacado?.imagenes?.[0] ? (
                 <Image
                   src={productoDestacado.imagen_url || productoDestacado.imagenes?.[0] || ''}
@@ -223,36 +224,47 @@ export default async function Home() {
                   className="object-cover transition-transform duration-700 hover:scale-[1.03]"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2]">
-                  <Image src="/logo_ig.png" alt="" width={112} height={112} className="h-24 w-24 object-contain opacity-80" />
+                <div className="flex h-full min-h-[360px] flex-col items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] px-6 text-center text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2] sm:min-h-0">
+                  <Image src="/logo_ig.png" alt="Confecciones Angus" width={112} height={112} className="mb-4 h-20 w-20 object-contain opacity-90" />
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#8a6f3d] dark:text-[#e7c77c]">Confecciones Angus</span>
+                  <p className="mt-3 max-w-sm text-2xl font-black tracking-tight sm:text-3xl">Una buena elección comienza con una buena orientación.</p>
+                  <p className="mt-3 max-w-sm text-sm leading-6 text-[#355c58] dark:text-[#cfe0dd]">Cuéntanos qué prenda y talla buscas; te ayudaremos a revisar las opciones disponibles.</p>
                 </div>
               )}
-              <span className="absolute left-4 top-4 rounded-full border border-white/30 bg-[#123f3d]/90 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur">
-                Hecho para el día a día
-              </span>
+              {tieneImagenDestacada && (
+                <span className="absolute left-4 top-4 rounded-full border border-white/30 bg-[#123f3d]/90 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur">
+                  Atención en cada detalle
+                </span>
+              )}
             </div>
 
-            <div className="flex flex-col gap-4 px-2 pb-2 pt-5 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">
-                  {productoDestacado?.categoria ?? 'Catálogo Angus'}
-                </p>
-                <h2 className="mt-1 line-clamp-2 text-xl font-black tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
-                  {productoDestacado?.nombre ?? 'Uniformes con identidad'}
-                </h2>
-                <p className="mt-1 text-sm text-[#4f6967] dark:text-[#bfd4d0]">
-                  {colegios.length > 0 ? `${colegios.length} colegios disponibles` : 'Explora la colección'}
-                </p>
-              </div>
-              {precioDestacado && (
-                <div className="shrink-0 sm:text-right">
-                  <span className="block text-xs text-[#5f7a73] dark:text-[#bfd4d0]">
-                    {preciosVariantesDestacado.some(precio => precio !== precioBaseDestacado) ? 'Desde' : 'Precio referencial'}
-                  </span>
-                  <span className="text-lg font-black text-[#123f3d] dark:text-[#edf5f2]">{precioDestacado}</span>
+            {tieneImagenDestacada ? (
+              <div className="flex flex-col gap-4 px-2 pb-2 pt-5 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">
+                    {productoDestacado?.categoria ?? 'Catálogo Angus'}
+                  </p>
+                  <h2 className="mt-1 line-clamp-2 text-xl font-black tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
+                    {productoDestacado?.nombre ?? 'Uniformes con identidad'}
+                  </h2>
+                  <p className="mt-1 text-sm text-[#4f6967] dark:text-[#bfd4d0]">
+                    {colegios.length > 0 ? `${colegios.length} colegios disponibles` : 'Explora la colección'}
+                  </p>
                 </div>
-              )}
-            </div>
+                {precioDestacado && (
+                  <div className="shrink-0 sm:text-right">
+                    <span className="block text-xs text-[#5f7a73] dark:text-[#bfd4d0]">
+                      {preciosVariantesDestacado.some(precio => precio !== precioBaseDestacado) ? 'Desde' : 'Precio referencial'}
+                    </span>
+                    <span className="text-lg font-black text-[#123f3d] dark:text-[#edf5f2]">{precioDestacado}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="px-2 pb-2 pt-5 text-sm text-[#4f6967] dark:text-[#bfd4d0]">
+                La disponibilidad y el valor se confirman según la prenda, el colegio y la talla.
+              </p>
+            )}
 
             <a
               href="#productos"
@@ -288,7 +300,7 @@ export default async function Home() {
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8a6f3d]">Nuestra diferencia</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#123f3d] sm:text-4xl">Calidad y atención que se sienten.</h2>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#123f3d] sm:text-4xl">Una buena prenda empieza en cómo se hace y cómo se elige.</h2>
           </div>
           <div className="h-px flex-1 bg-gradient-to-r from-[#d3a954]/70 via-[#123f3d]/30 to-transparent hidden sm:block" />
         </div>
@@ -298,8 +310,8 @@ export default async function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(211,169,84,0.18),_transparent_52%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d7b972] text-xl text-[#123f3d] shadow-inner">✦</div>
-              <h3 className="text-xl font-black text-[#f7f1e7]">Confección a medida</h3>
-              <p className="mt-2 text-[#edf3ee]/85 leading-relaxed">Uniformes fabricados con estilo, consistencia y cuidado en cada detalle.</p>
+              <h3 className="text-xl font-black text-[#f7f1e7]">Oficio y terminaciones cuidadas</h3>
+              <p className="mt-2 text-[#edf3ee]/85 leading-relaxed">Ponemos atención en la confección y en los detalles para que cada prenda esté preparada para acompañar la rutina escolar.</p>
             </div>
           </article>
 
@@ -307,8 +319,8 @@ export default async function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(18,63,61,0.09),_transparent_45%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d3a954] text-xl text-[#123f3d] shadow-inner">✂</div>
-              <h3 className="text-xl font-black text-[#123f3d]">Ajustes y reparaciones</h3>
-              <p className="mt-2 text-[#4c6865] leading-relaxed">Retoques, cierres, cambios de medida y servicio postventa para que dure más.</p>
+              <h3 className="text-xl font-black text-[#123f3d]">Materiales para el uso diario</h3>
+              <p className="mt-2 text-[#4c6865] leading-relaxed">Elegimos materiales pensando en comodidad y uso frecuente. Si necesitas conocer la composición o cómo cuidar una prenda, consúltanos antes de elegir.</p>
             </div>
           </article>
 
@@ -316,8 +328,8 @@ export default async function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(18,63,61,0.06),_transparent_45%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dfeae5] text-xl text-[#123f3d] shadow-inner">✓</div>
-              <h3 className="text-xl font-black text-[#123f3d]">Atención personalizada</h3>
-              <p className="mt-2 text-[#4c6865] leading-relaxed">Respuesta directa, asesoría por WhatsApp y orientación para elegir lo correcto.</p>
+              <h3 className="text-xl font-black text-[#123f3d]">Asesoría de persona a persona</h3>
+              <p className="mt-2 text-[#4c6865] leading-relaxed">Te orientamos con tallas, calce, disponibilidad y recomendaciones de cuidado para que elijas con más seguridad.</p>
             </div>
           </article>
         </div>
@@ -331,16 +343,26 @@ export default async function Home() {
           <div className="relative grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#d7b972]">Servicio especializado</p>
-              <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">Reparación y cuidado de prendas.</h2>
+              <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">El cuidado también forma parte de una buena prenda.</h2>
               <p className="mt-4 max-w-xl text-base text-[#edf3ee] leading-relaxed">
-                Solucionamos prendas, uniformes y ajustes con atención cercana, buen criterio y trabajo bien hecho. Hacemos que cada pieza siga luciendo impecable.
+                ¿Tienes una duda de talla, uso o cuidado? Cuéntanos qué necesitas y te orientaremos. También puedes solicitar una evaluación para reparar o ajustar una prenda.
               </p>
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <a href="/arreglos" className="inline-flex items-center justify-center rounded-2xl bg-[#d3a954] px-6 py-3 font-black text-[#123f3d] shadow-lg">
-                Solicitar evaluación
-              </a>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <a href="/arreglos" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#d3a954] px-6 py-3 font-black text-[#123f3d] shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                  Evaluar un arreglo
+                </a>
+                <a
+                  href="https://wa.me/56983852967?text=Hola%2C%20quiero%20recibir%20orientaci%C3%B3n%20personalizada%20sobre%20una%20prenda."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/35 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  Hablar con una persona
+                </a>
+              </div>
             </div>
           </div>
         </div>
