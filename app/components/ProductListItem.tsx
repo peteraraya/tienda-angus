@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
 import { getProductBasePrice, getProductFinalPrice } from '@/lib/productPricing'
+import { productPath } from '@/lib/productSlug'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
@@ -44,19 +46,10 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
 
   return (
     <>
-      <div 
-        role="button"
-        tabIndex={0}
+      <article
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setShowModal(true);
-          }
-        }}
-        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 hover:scale-105"
-        onClick={() => setShowModal(true)}
+        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
       >
         <div className="flex flex-col sm:flex-row">
           {/* Imagen */}
@@ -121,7 +114,9 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
                 {producto.categoria}
               </p>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-[#123f3d] dark:group-hover:text-[#e7c77c] transition-colors tracking-tight">
+                <Link href={productPath(producto.id, producto.nombre)} className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954]">
                 {producto.nombre}
+                </Link>
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 leading-relaxed">
                 {producto.descripcion}
@@ -211,7 +206,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Agotado temporalmente</span>
                   </div>
                 ) : null}
-                <button type="button" className="bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-1 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954]">
+                <button type="button" onClick={() => setShowModal(true)} className="bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-1 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -222,7 +217,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
       {showModal && (
         <ProductModal producto={producto} relatedProducts={relatedProducts} onClose={() => setShowModal(false)} />

@@ -6,15 +6,12 @@ import ClientCartIcon from './components/ClientCartIcon'
 import MapModalTrigger from './components/MapModalTrigger'
 import MobileNavigation from './components/MobileNavigation'
 import { getProductFinalPrice } from '@/lib/productPricing'
-import type { Colegio, Producto, Variante } from '@/types/database'
+import { getPublicCatalogPage } from '@/app/actions/catalogo-publico'
+import { productPath } from '@/lib/productSlug'
+import type { Colegio } from '@/types/database'
 import Image from 'next/image';
 import Link from 'next/link'
 export const revalidate = 0
-
-interface ProductoConVariantes extends Producto {
-  variantes: Variante[]
-  stock_total: number
-}
 
 type ColegioCatalogo = Pick<Colegio, 'nombre' | 'insignia_url'>
 
@@ -29,67 +26,12 @@ async function getColegios(): Promise<ColegioCatalogo[]> {
   return data ?? []
 }
 
-async function getProductos() {
-  const pageSize = 500
-  const productosData: Producto[] = []
-  let productOffset = 0
-
-  while (true) {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .or('activo.is.null,activo.eq.true')
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
-      .range(productOffset, productOffset + pageSize - 1)
-
-    if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`)
-    productosData.push(...(data ?? []))
-    if (!data || data.length < pageSize) break
-    productOffset += pageSize
-  }
-
-  const variantesPorProducto = new Map<string, Variante[]>()
-  const productIdBatchSize = 100
-  for (let index = 0; index < productosData.length; index += productIdBatchSize) {
-    const productIds = productosData.slice(index, index + productIdBatchSize).map(producto => producto.id)
-    let variantOffset = 0
-
-    while (true) {
-      const { data: variantes, error } = await supabase
-        .from('variantes')
-        .select('id, producto_id, talla, colegio, stock, precio, created_at')
-        .in('producto_id', productIds)
-        .order('created_at', { ascending: true })
-        .order('id', { ascending: true })
-        .range(variantOffset, variantOffset + 999)
-
-      if (error) throw new Error(`No se pudieron cargar las variantes: ${error.message}`)
-      for (const variante of variantes ?? []) {
-        const actuales = variantesPorProducto.get(variante.producto_id) ?? []
-        actuales.push(variante)
-        variantesPorProducto.set(variante.producto_id, actuales)
-      }
-
-      if (!variantes || variantes.length < 1000) break
-      variantOffset += 1000
-    }
-  }
-
-  const productosConVariantes = productosData.map(producto => {
-    const variantes = variantesPorProducto.get(producto.id) ?? []
-    return {
-      ...producto,
-      variantes,
-      stock_total: variantes.reduce((sum, variante) => sum + variante.stock, 0)
-    }
-  })
-
-  return productosConVariantes as ProductoConVariantes[]
-}
-
 export default async function Home() {
-  const [productos, colegios] = await Promise.all([getProductos(), getColegios()])
+  const [catalog, colegios] = await Promise.all([
+    getPublicCatalogPage({ page: 1, pageSize: 12 }),
+    getColegios()
+  ])
+  const productos = catalog.products
   const productoDestacado = productos.find(producto =>
     producto.stock_total > 0 && (producto.imagen_url || producto.imagenes?.length)
   ) ?? productos.find(producto => producto.stock_total > 0) ?? productos[0]
@@ -108,8 +50,6 @@ export default async function Home() {
     ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
       .format(precioFinalDestacado)
     : null
-  const productosDisponibles = productos.filter(producto => producto.stock_total > 0).length
-
   const jsonLdProducts = productos.map((p) => {
     const precioFinal = getProductFinalPrice(p)
     return {
@@ -122,7 +62,7 @@ export default async function Home() {
       priceCurrency: 'CLP',
       price: Math.round(precioFinal),
       availability: p.stock_total > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: 'https://www.confeccionesangus.cl#productos'
+      url: `https://www.confeccionesangus.cl${productPath(p.id, p.nombre)}`
     }
     }
   })
@@ -199,7 +139,7 @@ export default async function Home() {
             </div>
 
             <p className="mt-4 text-base leading-5 text-[#4d6d5f] dark:text-[#cfe0dd] sm:mt-6 sm:text-sm">
-              <span className="font-bold">{productosDisponibles}</span> productos disponibles
+              <span className="font-bold">{catalog.total}</span> productos en catálogo
               <span aria-hidden="true"> · </span>
               <span className="font-bold">{colegios.length}</span> colegios
               <span aria-hidden="true"> · </span>
@@ -285,7 +225,7 @@ export default async function Home() {
               <h2 id="catalog-title" className="mt-1 text-2xl font-bold tracking-tight text-[#123f3d] dark:text-[#edf5f2]">Uniformes escolares</h2>
               <p className="mt-1 text-base text-[#4f6967] dark:text-[#bfd4d0] sm:text-sm">Elige colegio, prenda y talla para revisar disponibilidad.</p>
             </div>
-            <ClientProductList productos={productos} colegiosData={colegios} />
+            <ClientProductList initialCatalog={catalog} colegiosData={colegios} />
           </div>
         </section>
       )}

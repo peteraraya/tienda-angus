@@ -1,15 +1,45 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
+import { supabase } from '@/lib/supabase'
+import { productPath } from '@/lib/productSlug'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  // As this is a single page application essentially from the public view,
-  // we just have the root URL. If there were public product pages, 
-  // we would fetch them and add them here.
+const SITE_URL = 'https://www.confeccionesangus.cl'
+
+export const dynamic = 'force-dynamic'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pageSize = 500
+  const productEntries: MetadataRoute.Sitemap = []
+  let offset = 0
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('id, nombre, created_at')
+      .or('activo.is.null,activo.eq.true')
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+
+    if (error) throw new Error(`No se pudieron cargar los productos para el sitemap: ${error.message}`)
+    const products = data ?? []
+    productEntries.push(...products.map(product => ({
+      url: `${SITE_URL}${productPath(product.id, product.nombre)}`,
+      lastModified: product.created_at,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7
+    })))
+
+    if (products.length < pageSize) break
+    offset += pageSize
+  }
+
   return [
     {
-      url: 'https://www.confeccionesangus.cl',
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 1,
+      priority: 1
     },
+    ...productEntries
   ]
 }

@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
 import GuidedProductFilters from './GuidedProductFilters'
 import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
-import { getProductFinalPrice } from '@/lib/productPricing'
-import { matchesSearchText } from '@/lib/normalizeSearchText'
 import { trackStorefrontMetric } from '@/lib/storefrontMetrics'
+import { getPublicCatalogPage, type PublicCatalogPage } from '@/app/actions/catalogo-publico'
 // Hook para favoritos
 function readFavorites() {
   try {
@@ -51,22 +50,9 @@ import type { Producto as DBProducto, Variante as DBVariante } from '@/types/dat
 
 type Variante = Pick<DBVariante, 'id' | 'talla' | 'colegio' | 'stock' | 'precio'>
 
-interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'descuento_porcentaje' | 'en_oferta'> {
+interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'precio' | 'categoria' | 'imagen_url' | 'imagenes' | 'descuento_porcentaje' | 'en_oferta'> {
   variantes: Variante[]
   stock_total: number
-}
-
-function matchesProductSearch(producto: Producto, query: string): boolean {
-  if (!query.trim()) return true
-  const productText = [
-    producto.nombre,
-    producto.descripcion,
-    producto.categoria,
-    ...producto.variantes
-      .filter(variante => variante.stock > 0)
-      .map(variante => `talla ${variante.talla} colegio ${variante.colegio}`)
-  ].join(' ')
-  return matchesSearchText(productText, query)
 }
 
 interface ColegioData {
@@ -75,12 +61,12 @@ interface ColegioData {
 }
 
 interface ClientProductListProps {
-  productos: Producto[]
+  initialCatalog: PublicCatalogPage
   colegiosData?: ColegioData[]
 }
 
 
-export default function ClientProductList({ productos, colegiosData = [] }: ClientProductListProps) {
+export default function ClientProductList({ initialCatalog, colegiosData = [] }: ClientProductListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSort, setSelectedSort] = useState('newest')
@@ -91,87 +77,53 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   const [showOnlyOffers, setShowOnlyOffers] = useState(false)
   const favorites = useFavorites();
   const noResultsKeyRef = useRef('')
-  // Renderizar resultados progresivamente para mantener la lista manejable.
   const PAGE_SIZE = 12
-  const [page, setPage] = useState(1)
+  const [catalog, setCatalog] = useState(initialCatalog)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [catalogError, setCatalogError] = useState('')
+  const [retryCounter, setRetryCounter] = useState(0)
+  const requestIdRef = useRef(0)
+  const skipInitialRequestRef = useRef(true)
+  const productos = catalog.products as Producto[]
+  const categories = catalog.categories
+  const tallas = catalog.sizes
+  const colegios = catalog.schools
 
-  const categories = useMemo(() => {
-    return [...new Set(productos.map(p => p.categoria))].sort()
-  }, [productos])
-
-  // Filtros dinámicos de tallas y colegios según productos filtrados
-  const filteredProductsForFilters = useMemo(() => {
-    return productos.filter(producto => {
-      const matchesSearch = matchesProductSearch(producto, searchTerm)
-      const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-      const matchesSchool = selectedColegio === '' ||
-        producto.variantes.some(variante => variante.stock > 0 && variante.colegio === selectedColegio)
-      return matchesSearch && matchesCategory && matchesSchool
-    })
-  }, [productos, searchTerm, selectedCategory, selectedColegio])
-
-  const tallas = useMemo(() => {
-    const allTallas = filteredProductsForFilters.flatMap(p =>
-      p.variantes?.filter(variante => variante.stock > 0).map(variante => variante.talla) || []
-    )
-    return [...new Set(allTallas)].filter(t => t !== 'Única').sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-  }, [filteredProductsForFilters])
-
-  const colegios = useMemo(() => {
-    const allColegios = productos.flatMap(p =>
-      p.variantes?.filter(variante => variante.stock > 0).map(variante => variante.colegio) || []
-    )
-    return [...new Set(allColegios)].filter(Boolean).filter(c => c !== 'General').sort()
-  }, [productos])
-
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = productos.filter(producto => {
-      const matchesSearch = matchesProductSearch(producto, searchTerm)
-      const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-      const matchesVariant = (selectedTalla === '' && selectedColegio === '') ||
-        producto.variantes.some(v =>
-          v.stock > 0 &&
-          (selectedTalla === '' || v.talla === selectedTalla) &&
-          (selectedColegio === '' || v.colegio === selectedColegio)
-        )
-      return matchesSearch && matchesCategory && matchesVariant
-    })
-    if (showOnlyFavorites) {
-      filtered = filtered.filter(producto => favorites.includes(producto.id));
-    }
-    if (showOnlyOffers) {
-      filtered = filtered.filter(producto => producto.en_oferta || (producto.descuento_porcentaje && producto.descuento_porcentaje > 0));
-    }
-    // Ordenar
-    switch (selectedSort) {
-      case 'price-asc':
-        filtered.sort((a, b) => getProductFinalPrice(a) - getProductFinalPrice(b))
-        break
-      case 'price-desc':
-        filtered.sort((a, b) => getProductFinalPrice(b) - getProductFinalPrice(a))
-        break
-      case 'name-asc':
-        filtered.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        break
-      case 'name-desc':
-        filtered.sort((a, b) => b.nombre.localeCompare(a.nombre))
-        break
-      case 'stock-desc':
-        filtered.sort((a, b) => b.stock_total - a.stock_total)
-        break
-      default: // newest
-        break
-    }
-    return filtered
-  }, [productos, searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites])
-
-  // Reiniciar página cuando cambian filtros o el conjunto de resultados
   useEffect(() => {
-    // Defer the update to avoid calling setState synchronously within the effect
-    const t = window.setTimeout(() => setPage(1), 0)
-    // scroll to top of product list? leave to consumer
-    return () => clearTimeout(t)
-  }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites])
+    if (skipInitialRequestRef.current) {
+      skipInitialRequestRef.current = false
+      return
+    }
+    const requestId = ++requestIdRef.current
+    const timeout = window.setTimeout(async () => {
+      setIsLoading(true)
+      setCatalogError('')
+      try {
+        const result = await getPublicCatalogPage({
+          search: searchTerm,
+          category: selectedCategory,
+          school: selectedColegio,
+          size: selectedTalla,
+          favoritesOnly: showOnlyFavorites,
+          favoriteIds: favorites,
+          offersOnly: showOnlyOffers,
+          sort: selectedSort,
+          page: 1,
+          pageSize: PAGE_SIZE
+        })
+        if (requestId === requestIdRef.current) setCatalog(result)
+      } catch (error) {
+        if (requestId === requestIdRef.current) {
+          console.error('No se pudo actualizar el catálogo:', error)
+          setCatalogError('No se pudieron actualizar los productos. Inténtalo nuevamente.')
+        }
+      } finally {
+        if (requestId === requestIdRef.current) setIsLoading(false)
+      }
+    }, searchTerm.trim() ? 250 : 0)
+    return () => window.clearTimeout(timeout)
+  }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites, retryCounter])
 
   useEffect(() => {
     const hasFilters = Boolean(
@@ -182,7 +134,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       showOnlyFavorites ||
       showOnlyOffers
     )
-    if (filteredAndSortedProducts.length > 0 || !hasFilters) {
+    if (catalog.total > 0 || !hasFilters) {
       noResultsKeyRef.current = ''
       return
     }
@@ -202,11 +154,38 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       }
     }, 600)
     return () => window.clearTimeout(timeout)
-  }, [filteredAndSortedProducts.length, searchTerm, selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers])
+  }, [catalog.total, searchTerm, selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers])
 
-  const displayedProducts = useMemo(() => {
-    return filteredAndSortedProducts.slice(0, page * PAGE_SIZE)
-  }, [filteredAndSortedProducts, page])
+  const displayedProducts = productos
+
+  const loadMore = async () => {
+    if (isLoadingMore || productos.length >= catalog.total) return
+    setIsLoadingMore(true)
+    setCatalogError('')
+    try {
+      const requestId = requestIdRef.current
+      const result = await getPublicCatalogPage({
+        search: searchTerm,
+        category: selectedCategory,
+        school: selectedColegio,
+        size: selectedTalla,
+        favoritesOnly: showOnlyFavorites,
+        favoriteIds: favorites,
+        offersOnly: showOnlyOffers,
+        sort: selectedSort,
+        page: Math.floor(productos.length / PAGE_SIZE) + 1,
+        pageSize: PAGE_SIZE
+      })
+      if (requestId === requestIdRef.current) {
+        setCatalog(current => ({ ...result, products: [...current.products, ...result.products] }))
+      }
+    } catch (error) {
+      console.error('No se pudo cargar la siguiente página del catálogo:', error)
+      setCatalogError('No se pudieron cargar más productos. Inténtalo nuevamente.')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const activeFilterChips = [
     ...(searchTerm.trim() ? [{ label: `Búsqueda: ${searchTerm.trim()}`, clear: () => setSearchTerm('') }] : []),
@@ -229,7 +208,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
         selectedCategory={selectedCategory}
         selectedTalla={selectedTalla}
         selectedColegio={selectedColegio}
-        resultCount={filteredAndSortedProducts.length}
+        resultCount={catalog.total}
         onCategoryChange={setSelectedCategory}
         onTallaChange={setSelectedTalla}
         onColegioChange={setSelectedColegio}
@@ -412,9 +391,21 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               )}
             </div>
           )}
-          
+          {catalogError && (
+            <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">
+              <span>{catalogError}</span>
+              <button type="button" onClick={() => setRetryCounter(value => value + 1)} className="underline underline-offset-2">
+                Reintentar
+              </button>
+            </div>
+          )}
+          {isLoading && (
+            <p role="status" aria-live="polite" className="mb-4 text-sm text-gray-600 dark:text-gray-300">
+              Actualizando productos…
+            </p>
+          )}
 
-      {filteredAndSortedProducts.length === 0 ? (
+          {catalog.total === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-[#edf3ee] dark:bg-gray-800 rounded-full mb-6">
             <svg className="w-12 h-12 text-[#4d6d5f] dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,10 +443,9 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
         <div className="space-y-6 lg:space-y-8">
           <div className="flex justify-between items-center pt-1">
             <p aria-live="polite" aria-atomic="true" suppressHydrationWarning className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              <CountDisplayClient displayed={displayedProducts.length} total={filteredAndSortedProducts.length} />
+              <CountDisplayClient displayed={displayedProducts.length} total={catalog.total} />
             </p>
           </div>
-
           {currentView === 'grid' ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
@@ -480,16 +470,17 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
             </>
           )}
           {/* Botón 'Cargar más' como fallback */}
-          {displayedProducts.length < filteredAndSortedProducts.length && (
+          {displayedProducts.length < catalog.total && (
             <div className="flex justify-center mt-10">
               <button
-                onClick={() => setPage((p) => p + 1)}
+                onClick={loadMore}
+                disabled={isLoadingMore}
                 className="min-h-11 px-6 py-3 rounded-xl bg-[#edf3ee] hover:bg-[#dfeae7] text-[#123f3d] dark:bg-[#1a3534] dark:hover:bg-[#244341] dark:text-[#e7c77c] font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] flex items-center gap-2"
               >
                 <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                 </svg>
-                Cargar más productos
+                {isLoadingMore ? 'Cargando…' : 'Cargar más productos'}
               </button>
             </div>
           )}

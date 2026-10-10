@@ -6,8 +6,10 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
+import Link from 'next/link'
 import { formatPrice } from '@/lib/formatPrice'
 import { getProductBasePrice, getProductFinalPrice } from '@/lib/productPricing'
+import { productPath } from '@/lib/productSlug'
 import { useToast } from './ui/ToastContainer'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
@@ -257,13 +259,12 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#123f3d]/75 dark:text-[#e7c77c]">
             {producto.categoria}
           </p>
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
+          <Link
+            href={productPath(producto.id, producto.nombre)}
             className="mb-auto line-clamp-2 text-left text-base font-black leading-snug tracking-[-0.02em] text-[#173b39] transition-colors hover:text-[#123f3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:text-white dark:hover:text-[#e7c77c] sm:text-lg lg:text-[1.1rem]"
           >
             {producto.nombre}
-          </button>
+          </Link>
           
           <div className="mt-5 flex justify-between items-end gap-3">
             <div className="flex min-w-0 flex-col">
