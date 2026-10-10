@@ -16,6 +16,7 @@ import SizeGuideModal from './SizeGuideModal'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from './ui/ToastContainer'
 import { useMounted } from '../hooks/useMounted'
+import { trackStorefrontMetric } from '@/lib/storefrontMetrics'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
@@ -40,6 +41,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const [openLightbox, setOpenLightbox] = useState(false)
   const [showSizeGuide, setShowSizeGuide] = useState(false)
   const modalRef = useRef<HTMLDivElement | null>(null)
+  const trackedProductViewRef = useRef<string | null>(null)
   const [open, setOpen] = useState(true)
   const mounted = useMounted()
   const handleClose = useCallback(() => {
@@ -91,6 +93,12 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
     }
   }, [handleClose, openLightbox, showSizeGuide])
 
+  useEffect(() => {
+    if (trackedProductViewRef.current === productoActivo.id) return
+    trackedProductViewRef.current = productoActivo.id
+    trackStorefrontMetric('product_view')
+  }, [productoActivo.id])
+
   // Obtener tallas y colegios únicos disponibles
   const tallasDisponibles = [...new Set(productoActivo.variantes.filter(v => v.stock > 0).map(v => v.talla))]
     .sort((a, b) => {
@@ -113,6 +121,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const preciosVariantes = productoActivo.variantes
     .filter(variante => variante.stock > 0)
     .map(variante => variante.precio ?? productoActivo.precio)
+  const tienePreciosDiferentes = new Set(preciosVariantes).size > 1
   const precioActual = varianteSeleccionada
     ? varianteSeleccionada.precio ?? productoActivo.precio
     : preciosVariantes.length > 0 ? Math.min(...preciosVariantes) : productoActivo.precio
@@ -199,9 +208,10 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       alt={`${productoActivo.nombre} - Imagen ${currentImageIndex + 1}`}
                       width={800}
                       height={800}
-                      className="w-full h-full object-cover"
+                      fallbackLabel="Foto temporalmente no disponible"
+                      className="w-full h-full object-contain"
                       priority
-                      style={{ objectFit: 'cover' }}
+                      style={{ objectFit: 'contain' }}
                     />
                     
                     {/* Navegación de imágenes */}
@@ -241,10 +251,11 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,#fbf6ed_0%,#e9eee8_70%)] px-4 text-center text-[#52716a] dark:bg-[radial-gradient(circle_at_top,#294341_0%,#172d2c_70%)] dark:text-[#c6d8d3]">
                     <svg className="w-32 h-32 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
+                    <span className="text-sm font-semibold">Foto en preparación</span>
                   </div>
                 )}
                 {productoActivo.stock_total === 0 && (
@@ -322,6 +333,11 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     </span>
                   )}
                 </div>
+                {tienePreciosDiferentes && (
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    El precio varía según la talla o el colegio; selecciona una opción para ver su valor.
+                  </p>
+                )}
               </div>
 
               {/* Descripción */}
@@ -357,6 +373,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                         aria-pressed={colegioEfectivo === colegio}
                         onClick={() => {
                           const nextColegio = colegioEfectivo === colegio ? '' : colegio
+                          if (nextColegio) trackStorefrontMetric('variant_selected')
                           setSelectedColegio(nextColegio)
                           if (
                             selectedTalla &&
@@ -418,8 +435,14 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       return (
                         <button type="button"
                           key={talla}
+                          aria-label={`${talla}${disponible ? '' : ', agotada para la selección actual'}`}
                           aria-pressed={tallaEfectiva === talla}
-                          onClick={() => disponible && setSelectedTalla(tallaEfectiva === talla ? '' : talla)}
+                          onClick={() => {
+                            if (!disponible) return
+                            const nextTalla = tallaEfectiva === talla ? '' : talla
+                            if (nextTalla) trackStorefrontMetric('variant_selected')
+                            setSelectedTalla(nextTalla)
+                          }}
                           disabled={!disponible}
                           className={`aspect-square h-12 w-12 flex items-center justify-center rounded-xl border-2 font-black text-lg transition-all ${
                             tallaEfectiva === talla
@@ -483,18 +506,20 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {relatedProducts.filter(relProduct => relProduct.id !== productoActivo.id).map((relProduct) => (
                       <button key={relProduct.id} type="button" onClick={() => selectRelatedProduct(relProduct)} aria-label={`Ver detalles de ${relProduct.nombre}`} className="block w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-left transition-colors hover:border-[#123f3d]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:border-gray-600 dark:bg-gray-700/50 dark:hover:border-[#e7c77c]/50 dark:focus-visible:ring-[#e7c77c]">
-                        <div className="relative aspect-square">
+                        <div className="relative aspect-square bg-[#f7f4ee] dark:bg-gray-800">
                           {relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes.length > 0) ? (
                             <LazyImage 
                               src={relProduct.imagen_url || (relProduct.imagenes && relProduct.imagenes[0]) || ''} 
                               alt={relProduct.nombre}
+                              fallbackLabel="Foto no disponible"
                               width={200}
                               height={200}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                              className="w-full h-full object-contain p-2 transition-transform"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-600">
-                              <span className="text-xs text-gray-500">Sin foto</span>
+                            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#52716a] dark:text-[#c6d8d3]">
+                              <span className="text-2xl" aria-hidden="true">◇</span>
+                              <span className="text-xs font-semibold">Foto en preparación</span>
                             </div>
                           )}
                         </div>
@@ -539,6 +564,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       stock_disponible: stockDisponible
                     })
                     if (added === 'added') {
+                      trackStorefrontMetric('added_to_order')
                       toast.success('¡Añadido a tu pedido!')
                       handleClose()
                     } else if (added === 'stock-limit') {
@@ -562,6 +588,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackStorefrontMetric('whatsapp_opened')}
                     className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#128C7E] px-4 py-3.5 font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#0d7065] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"
                     title="Comprar sólo este producto"
                   >

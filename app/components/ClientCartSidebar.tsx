@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useCart } from '../contexts/CartContext'
 import { formatPrice } from '@/lib/formatPrice'
 import { crearSolicitudPublicaAction } from '@/app/actions/solicitudes-publicas'
+import { trackStorefrontMetric } from '@/lib/storefrontMetrics'
 
 export default function ClientCartSidebar() {
   const { cart, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount } = useCart()
@@ -77,6 +78,7 @@ export default function ClientCartSidebar() {
   const handleCheckout = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (cart.length === 0) return
+    trackStorefrontMetric('request_started')
     if (cartExceedsLimit) {
       setCheckoutError('El pedido admite hasta 20 variantes y 99 prendas en total. Ajusta las cantidades antes de continuar.')
       return
@@ -142,6 +144,7 @@ export default function ClientCartSidebar() {
       }
 
       const { data } = response
+      trackStorefrontMetric('request_registered')
       let text = `Hola, registré la solicitud de pedido ${data.id.slice(0, 8)} a nombre de ${nombre.trim()}:\n\n`
       data.items.forEach((item, index) => {
         text += `${index + 1}. *${item.nombre}*\n`
@@ -213,7 +216,13 @@ export default function ClientCartSidebar() {
                   Aún no se reserva el stock. Confirma los detalles por WhatsApp.
                 </p>
               </div>
-              <a href={orderLink} target="_blank" rel="noopener noreferrer" className="rounded-xl bg-[#128C7E] px-5 py-3 text-sm font-bold text-white">
+              <a
+                href={orderLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackStorefrontMetric('whatsapp_opened')}
+                className="rounded-xl bg-[#128C7E] px-5 py-3 text-sm font-bold text-white"
+              >
                 Continuar por WhatsApp
               </a>
             </div>
@@ -335,6 +344,9 @@ export default function ClientCartSidebar() {
             {checkoutError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">{checkoutError}</p>}
             <p className="text-xs text-gray-500 dark:text-gray-400">
               La solicitud no reserva productos. El stock y el precio se verifican al enviarla; el pago y la entrega se coordinan por WhatsApp.
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Medimos el uso de la tienda de forma agregada; no guardamos lo que escribes en la búsqueda ni tus datos de contacto en estas métricas.
             </p>
 
             <button 

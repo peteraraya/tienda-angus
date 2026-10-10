@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
 import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
 import { getProductFinalPrice } from '@/lib/productPricing'
+import { matchesSearchText } from '@/lib/normalizeSearchText'
+import { trackStorefrontMetric } from '@/lib/storefrontMetrics'
 // Hook para favoritos
 function readFavorites() {
   try {
@@ -54,6 +56,19 @@ interface Producto extends Pick<DBProducto, 'id' | 'nombre' | 'descripcion' | 'p
   stock_total: number
 }
 
+function matchesProductSearch(producto: Producto, query: string): boolean {
+  if (!query.trim()) return true
+  const productText = [
+    producto.nombre,
+    producto.descripcion,
+    producto.categoria,
+    ...producto.variantes
+      .filter(variante => variante.stock > 0)
+      .map(variante => `talla ${variante.talla} colegio ${variante.colegio}`)
+  ].join(' ')
+  return matchesSearchText(productText, query)
+}
+
 interface ColegioData {
   nombre: string
   insignia_url?: string
@@ -75,6 +90,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
   const [showOnlyOffers, setShowOnlyOffers] = useState(false)
   const favorites = useFavorites();
+  const noResultsKeyRef = useRef('')
   // Renderizar resultados progresivamente para mantener la lista manejable.
   const PAGE_SIZE = 12
   const [page, setPage] = useState(1)
@@ -86,12 +102,10 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   // Filtros dinámicos de tallas y colegios según productos filtrados
   const filteredProductsForFilters = useMemo(() => {
     return productos.filter(producto => {
-      const matchesSearch = searchTerm === '' || 
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch = matchesProductSearch(producto, searchTerm)
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
       const matchesSchool = selectedColegio === '' ||
-        producto.variantes.some(variante => variante.colegio === selectedColegio)
+        producto.variantes.some(variante => variante.stock > 0 && variante.colegio === selectedColegio)
       return matchesSearch && matchesCategory && matchesSchool
     })
   }, [productos, searchTerm, selectedCategory, selectedColegio])
@@ -112,9 +126,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = productos.filter(producto => {
-      const matchesSearch = searchTerm === '' || 
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch = matchesProductSearch(producto, searchTerm)
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
       const matchesVariant = (selectedTalla === '' && selectedColegio === '') ||
         producto.variantes.some(v =>
@@ -161,9 +173,49 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
     return () => clearTimeout(t)
   }, [searchTerm, selectedCategory, selectedSort, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers, favorites])
 
+  useEffect(() => {
+    const hasFilters = Boolean(
+      searchTerm.trim() ||
+      selectedCategory ||
+      selectedTalla ||
+      selectedColegio ||
+      showOnlyFavorites ||
+      showOnlyOffers
+    )
+    if (filteredAndSortedProducts.length > 0 || !hasFilters) {
+      noResultsKeyRef.current = ''
+      return
+    }
+
+    const key = JSON.stringify([
+      searchTerm.trim(),
+      selectedCategory,
+      selectedTalla,
+      selectedColegio,
+      showOnlyFavorites,
+      showOnlyOffers
+    ])
+    const timeout = window.setTimeout(() => {
+      if (noResultsKeyRef.current !== key) {
+        noResultsKeyRef.current = key
+        trackStorefrontMetric('no_results')
+      }
+    }, 600)
+    return () => window.clearTimeout(timeout)
+  }, [filteredAndSortedProducts.length, searchTerm, selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers])
+
   const displayedProducts = useMemo(() => {
     return filteredAndSortedProducts.slice(0, page * PAGE_SIZE)
   }, [filteredAndSortedProducts, page])
+
+  const activeFilterChips = [
+    ...(searchTerm.trim() ? [{ label: `Búsqueda: ${searchTerm.trim()}`, clear: () => setSearchTerm('') }] : []),
+    ...(selectedColegio ? [{ label: `Colegio: ${selectedColegio}`, clear: () => setSelectedColegio('') }] : []),
+    ...(selectedCategory ? [{ label: `Prenda: ${selectedCategory}`, clear: () => setSelectedCategory('') }] : []),
+    ...(selectedTalla ? [{ label: `Talla: ${selectedTalla}`, clear: () => setSelectedTalla('') }] : []),
+    ...(showOnlyFavorites ? [{ label: 'Favoritos', clear: () => setShowOnlyFavorites(false) }] : []),
+    ...(showOnlyOffers ? [{ label: 'En oferta', clear: () => setShowOnlyOffers(false) }] : [])
+  ]
 
   // CountDisplayClient es un componente cliente que monta y muestra el conteo
 
@@ -451,13 +503,52 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               selectedSort={selectedSort}
               onViewChange={setCurrentView}
               currentView={currentView}
-              productos={productos.map(p => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion }))}
+              productos={productos.map(p => ({
+                id: p.id,
+                nombre: p.nombre,
+                descripcion: p.descripcion,
+                categoria: p.categoria,
+                variantes: p.variantes
+              }))}
               showOnlyFavorites={showOnlyFavorites}
               onShowOnlyFavoritesChange={setShowOnlyFavorites}
               showOnlyOffers={showOnlyOffers}
               onShowOnlyOffersChange={setShowOnlyOffers}
             />
           </div>
+
+          {activeFilterChips.length > 0 && (
+            <div className="mb-5 flex flex-wrap items-center gap-2" aria-label="Filtros activos">
+              {activeFilterChips.map(({ label, clear }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={clear}
+                  aria-label={`Quitar filtro ${label}`}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#123f3d]/15 bg-[#edf3ee] px-3 py-1.5 text-xs font-semibold text-[#123f3d] transition-colors hover:bg-[#dfeae7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:border-white/15 dark:bg-[#1a3534] dark:text-[#e7c77c] dark:hover:bg-[#244341] dark:focus-visible:ring-[#e7c77c]"
+                >
+                  {label}
+                  <span aria-hidden="true" className="text-sm">×</span>
+                </button>
+              ))}
+              {activeFilterChips.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedColegio('')
+                    setSelectedCategory('')
+                    setSelectedTalla('')
+                    setShowOnlyFavorites(false)
+                    setShowOnlyOffers(false)
+                  }}
+                  className="min-h-10 px-2 text-xs font-semibold text-[#4f6967] underline underline-offset-2 hover:text-[#123f3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#bfd4d0] dark:hover:text-white dark:focus-visible:ring-[#e7c77c]"
+                >
+                  Limpiar todo
+                </button>
+              )}
+            </div>
+          )}
           
 
       {filteredAndSortedProducts.length === 0 ? (
@@ -469,7 +560,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
           </div>
           <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">No encontramos resultados</h3>
           <p className="text-gray-500 dark:text-gray-400 text-base font-medium max-w-sm mb-8">
-            Lo sentimos, no hay productos que coincidan con tus filtros actuales.
+            No encontramos productos con esta combinación. Puedes quitar un filtro o consultarnos por WhatsApp para revisar otras opciones.
           </p>
           <button
             onClick={() => {
@@ -484,6 +575,15 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
           >
             Limpiar todos los filtros
           </button>
+          <a
+            href="https://wa.me/56983852967?text=Hola%2C%20no%20encuentro%20una%20prenda%20o%20talla%20en%20el%20cat%C3%A1logo.%20%C2%BFMe%20pueden%20ayudar%3F"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackStorefrontMetric('whatsapp_opened')}
+            className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl border border-[#128C7E] px-5 py-3 font-bold text-[#128C7E] transition-colors hover:bg-[#128C7E]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E]"
+          >
+            Consultar por WhatsApp
+          </a>
         </div>
       ) : (
         <div className="space-y-6 lg:space-y-8">

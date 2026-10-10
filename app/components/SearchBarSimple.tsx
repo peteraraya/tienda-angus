@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { matchesSearchText } from '@/lib/normalizeSearchText'
+import { trackStorefrontMetric } from '@/lib/storefrontMetrics'
 
 interface SearchBarSimpleProps {
   value: string
@@ -13,7 +15,13 @@ interface SearchBarSimpleProps {
   onShowOnlyFavoritesChange: (value: boolean) => void
   showOnlyOffers: boolean
   onShowOnlyOffersChange: (value: boolean) => void
-  productos?: Array<{ id: string; nombre: string; descripcion: string }>
+  productos?: Array<{
+    id: string
+    nombre: string
+    descripcion: string
+    categoria?: string
+    variantes?: Array<{ talla: string; colegio: string; stock: number }>
+  }>
 }
 
 export default function SearchBarSimple({
@@ -35,23 +43,47 @@ export default function SearchBarSimple({
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
+  const lastTrackedSearch = useRef('')
   const hasActiveFilters = showOnlyFavorites || showOnlyOffers
 
   // Generar sugerencias basadas en los productos
   const suggestions = useMemo(() => {
     if (!value || value.length < 2) return []
     
-    const searchLower = value.toLowerCase()
     const matches = new Set<string>()
     
     productos.forEach(producto => {
-      if (producto.nombre.toLowerCase().includes(searchLower)) {
+      const searchableText = [
+        producto.nombre,
+        producto.descripcion,
+        producto.categoria ?? '',
+        ...(producto.variantes ?? [])
+          .filter(variante => variante.stock > 0)
+          .map(variante => `talla ${variante.talla} colegio ${variante.colegio}`)
+      ].join(' ')
+      if (matchesSearchText(searchableText, value)) {
         matches.add(producto.nombre)
       }
     })
     
     return Array.from(matches).slice(0, 5)
   }, [value, productos])
+
+  useEffect(() => {
+    const query = value.trim()
+    if (query.length < 2) {
+      lastTrackedSearch.current = ''
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (lastTrackedSearch.current !== query) {
+        lastTrackedSearch.current = query
+        trackStorefrontMetric('search')
+      }
+    }, 700)
+    return () => window.clearTimeout(timeout)
+  }, [value])
 
   // Cerrar sugerencias al hacer click fuera
   useEffect(() => {

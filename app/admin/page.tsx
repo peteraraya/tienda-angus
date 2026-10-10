@@ -8,6 +8,7 @@ import DashboardSummary from './components/DashboardSummary'
 
 import KeyboardShortcuts from './components/KeyboardShortcuts'
 import { DashboardMetrics } from './components/DashboardMetrics'
+import { StorefrontFunnelMetrics } from './components/StorefrontFunnelMetrics'
 
 import { useAdminProductos } from '@/app/hooks/useAdminProductos'
 import AdminFilters from './components/AdminFilters'
@@ -189,6 +190,7 @@ export default function AdminPage() {
 
       {/* Dashboard de Métricas - NUEVO */}
       <DashboardMetrics />
+      <StorefrontFunnelMetrics />
 
       {/* Dashboard Summary */}
       <DashboardSummary summary={inventorySummary} />
