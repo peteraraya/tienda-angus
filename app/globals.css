@@ -124,8 +124,37 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-* {
-  @apply transition-colors duration-200;
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2147483647;
+  transform: translateY(calc(-100% - 1.5rem));
+  border: 2px solid var(--brand-secondary-strong);
+  border-radius: 0.75rem;
+  background: var(--surface-elevated);
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition-duration: 0.01ms;
+  }
 }
 
 .brand-shell {
@@ -227,7 +256,7 @@ body {
 
 .hero-cta-primary {
   background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 100%);
-  color: var(--background);
+  color: #fffdf9;
   box-shadow: 0 12px 22px rgba(18,63,61,0.18);
 }
 
@@ -258,10 +287,10 @@ body {
   background: var(--brand-secondary-soft);
   border: 1px solid rgba(211,169,84,0.35);
   color: var(--brand-primary);
-  font-size: 0.75rem;
+  font-size: max(0.875rem, 14px);
+  line-height: 1.4;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .dark .brand-showcase {
@@ -305,10 +334,7 @@ body {
 .dark .brand-card div,
 .dark .section-title,
 .dark .brand-logo-wordmark,
-.dark .brand-logo-text span,
-.dark .hero-cta-secondary,
-.dark .hero-cta-primary,
-.dark .accent-chip {
+.dark .brand-logo-text span {
   color: inherit;
 }
 
@@ -355,10 +381,22 @@ input[type=number] {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  background: linear-gradient(135deg, #123f3d 0%, #79551e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.dark .gradient-text {
+  background-image: linear-gradient(135deg, #edf6f4 0%, #e7c77c 100%);
+}
+
+.brand-showcase,
+.brand-card,
+.hero-cta-primary,
+.hero-cta-secondary,
+.accent-chip {
+  transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
 
 @keyframes fadeIn {

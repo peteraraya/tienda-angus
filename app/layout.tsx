@@ -93,6 +93,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
         <QueryProvider>
         {/* Schema.org JSON-LD para LocalBusiness */}
         <script
@@ -132,7 +133,9 @@ export default function RootLayout({
         />
         <CartProvider>
           <ToastProvider>
-            <div className="min-h-screen">{children}</div>
+            <div id="main-content" tabIndex={-1} className="min-h-screen">
+              {children}
+            </div>
             <FloatingSocialButtons />
             <ClientCartSidebar />
             <ScrollToTop />

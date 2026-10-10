@@ -144,9 +144,9 @@ export default async function Home() {
         />
       )}
 
-      <div className="bg-[#123f3d] text-[#f8f3e9] text-xs sm:text-sm font-semibold py-2.5 px-4 text-center shadow-[0_10px_25px_rgba(18,63,61,0.18)] relative z-50 flex items-center justify-center gap-2 dark:bg-[#0d1a1a] dark:text-[#edf5f2]">
+      <div className="relative z-50 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-[#123f3d] px-4 py-2.5 text-center text-[14px] font-semibold text-[#f8f3e9] shadow-[0_10px_25px_rgba(18,63,61,0.18)] dark:bg-[#0d1a1a] dark:text-[#edf5f2]">
         <span>Uniformes escolares y reparaciones en Quillota</span>
-        <span aria-hidden="true">·</span>
+        <span className="hidden sm:inline" aria-hidden="true">·</span>
         <a href="https://wa.me/56983852967?text=Hola%2C%20quiero%20consultar%20por%20uniformes%20escolares" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#e7c77c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e7c77c]">
           Atención por WhatsApp
         </a>
@@ -155,7 +155,7 @@ export default async function Home() {
       <header className="sticky top-0 z-40 border-b border-[#123f3d]/10 bg-[#f4efe7]/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(18,63,61,0.04)] dark:border-[#d7b972]/10 dark:bg-[#122827]/90 dark:shadow-[0_8px_24px_rgba(3,7,7,0.24)]">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
           <div className="flex items-center justify-between gap-4">
-            <a href="#" className="brand-logo-lockup group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] rounded-2xl p-1">
+            <a href="#inicio" className="brand-logo-lockup group rounded-2xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 dark:focus-visible:ring-[#e7c77c] dark:focus-visible:ring-offset-[#122827]">
 
               <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
               
@@ -165,70 +165,60 @@ export default async function Home() {
               </div>
             </a>
 
-            <nav aria-label="Navegación principal" className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <MobileNavigation />
-              <div className="hidden md:flex items-center gap-6 text-sm mr-2">
-                <a href="#productos" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
-                <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
-                <a href="#contacto" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
-              </div>
+              <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-base sm:text-sm md:flex mr-2">
+                <a href="#productos" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
+                <a href="#reparaciones" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
+                <a href="#contacto" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
+              </nav>
               <ClientCartIcon />
               <ThemeToggle />
-            </nav>
+            </div>
           </div>
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20" id="inicio">
-        <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr] rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-4 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-6 lg:p-8 dark:border-[#d7b972]/10 dark:bg-[#112827]/85 dark:shadow-[0_18px_45px_rgba(3,7,7,0.25)]">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-12 lg:py-16 scroll-mt-28" id="inicio">
+        <div className="grid items-center gap-5 rounded-[2rem] border border-[#123f3d]/8 bg-white/30 p-3 shadow-[0_18px_45px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:gap-8 sm:p-6 md:grid-cols-[1.06fr_0.94fr] lg:p-8 dark:border-[#d7b972]/10 dark:bg-[#112827]/85 dark:shadow-[0_18px_45px_rgba(3,7,7,0.25)]">
           <div>
             <span className="accent-chip mb-5">Confección cuidada • materiales seleccionados • asesoría cercana</span>
             <h1 className="section-title leading-[0.95] tracking-[-0.06em] max-w-xl dark:text-[#edf5f2]">
               Bien hechos para <span className="gradient-text">acompañar</span> cada jornada.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-[#355c58] leading-relaxed dark:text-[#dfeae7]">
-              Encuentra uniformes escolares confeccionados con atención al detalle y materiales elegidos para el uso diario. Si tienes dudas de talla, calce o cuidado, te orientamos personalmente antes de solicitar.
+            <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-[#355c58] dark:text-[#dfeae7] sm:mt-5 sm:text-lg">
+              Uniformes escolares confeccionados con cuidado y materiales seleccionados. Te asesoramos con talla, calce y cuidados antes de solicitar.
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <a href="#productos" className="hero-cta-primary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold text-[#123f3d]">Encuentra tu uniforme</a>
-              <a href="https://wa.me/56983852967?text=Hola%2C%20necesito%20orientaci%C3%B3n%20para%20elegir%20un%20uniforme.%20%C2%BFMe%20pueden%20ayudar%20con%20la%20talla%2C%20el%20calce%20o%20el%20cuidado%3F" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex items-center justify-center rounded-2xl px-6 py-3 font-bold">Pedir asesoría</a>
+            <div className="mt-5 flex flex-col gap-3 min-[360px]:flex-row sm:mt-8">
+              <a href="#productos" className="hero-cta-primary inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl px-4 py-3 text-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 dark:focus-visible:ring-[#e7c77c] dark:focus-visible:ring-offset-[#122827]">Ver catálogo</a>
+              <a href="https://wa.me/56983852967?text=Hola%2C%20necesito%20orientaci%C3%B3n%20para%20elegir%20un%20uniforme.%20%C2%BFMe%20pueden%20ayudar%20con%20la%20talla%2C%20el%20calce%20o%20el%20cuidado%3F" target="_blank" rel="noopener noreferrer" className="hero-cta-secondary inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl px-4 py-3 text-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 dark:focus-visible:ring-[#e7c77c] dark:focus-visible:ring-offset-[#122827]">Pedir asesoría</a>
             </div>
 
-            <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
-              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">{productosDisponibles}</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">productos disponibles</p>
-              </div>
-              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">{colegios.length}</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">colegios</p>
-              </div>
-              <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">WhatsApp</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">atención directa</p>
-              </div>
-            </div>
+            <p className="mt-4 text-base leading-5 text-[#4d6d5f] dark:text-[#cfe0dd] sm:mt-6 sm:text-sm">
+              <span className="font-bold">{productosDisponibles}</span> productos disponibles
+              <span aria-hidden="true"> · </span>
+              <span className="font-bold">{colegios.length}</span> colegios
+              <span aria-hidden="true"> · </span>
+              Asesoría directa
+            </p>
           </div>
 
           <div className="brand-showcase p-3 sm:p-4">
-            <div className={`relative overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534] ${tieneImagenDestacada ? 'aspect-[4/3]' : 'min-h-[360px] sm:aspect-[4/3]'}`}>
+            <div className={`relative overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534] ${tieneImagenDestacada ? 'aspect-[4/3]' : 'min-h-[200px] sm:aspect-[4/3]'}`}>
               {productoDestacado?.imagen_url || productoDestacado?.imagenes?.[0] ? (
                 <Image
                   src={productoDestacado.imagen_url || productoDestacado.imagenes?.[0] || ''}
                   alt={productoDestacado.nombre}
                   fill
                   priority
-                  unoptimized
                   sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover transition-transform duration-700 hover:scale-[1.03]"
+                  className="object-contain p-4 transition-transform duration-500 hover:scale-[1.02]"
                 />
               ) : (
-                <div className="flex h-full min-h-[360px] flex-col items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] px-6 text-center text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2] sm:min-h-0">
-                  <Image src="/logo_ig.png" alt="Confecciones Angus" width={112} height={112} className="mb-4 h-20 w-20 object-contain opacity-90" />
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#8a6f3d] dark:text-[#e7c77c]">Confecciones Angus</span>
-                  <p className="mt-3 max-w-sm text-2xl font-black tracking-tight sm:text-3xl">Una buena elección comienza con una buena orientación.</p>
-                  <p className="mt-3 max-w-sm text-sm leading-6 text-[#355c58] dark:text-[#cfe0dd]">Cuéntanos qué prenda y talla buscas; te ayudaremos a revisar las opciones disponibles.</p>
+                <div className="flex h-full min-h-[200px] flex-col items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] px-6 text-center text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2] sm:min-h-0">
+                  <Image src="/logo_ig.png" alt="Confecciones Angus" width={112} height={112} className="h-16 w-16 object-contain opacity-90 sm:h-20 sm:w-20" />
+                  <span className="mt-2 text-sm font-bold tracking-wide text-[#79551e] dark:text-[#e7c77c]">Confección y asesoría en Quillota</span>
                 </div>
               )}
               {tieneImagenDestacada && (
@@ -241,7 +231,7 @@ export default async function Home() {
             {tieneImagenDestacada ? (
               <div className="flex flex-col gap-4 px-2 pb-2 pt-5 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">
+                  <p className="text-[14px] font-bold uppercase tracking-[0.12em] text-[#73501b] dark:text-[#e7c77c]">
                     {productoDestacado?.categoria ?? 'Catálogo Angus'}
                   </p>
                   <h2 className="mt-1 line-clamp-2 text-xl font-black tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
@@ -268,7 +258,7 @@ export default async function Home() {
 
             <a
               href="#productos"
-              className="mt-2 flex min-h-12 items-center justify-between rounded-xl bg-[#123f3d] px-4 font-bold text-white transition-colors hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:focus-visible:ring-offset-[#142b2a]"
+              className="mt-2 flex min-h-12 items-center justify-between rounded-xl bg-[#123f3d] px-4 font-bold text-white transition-colors hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:focus-visible:ring-[#123f3d] dark:focus-visible:ring-offset-[#142b2a]"
             >
               Explorar prendas y tallas
               <span aria-hidden="true">→</span>
@@ -288,19 +278,19 @@ export default async function Home() {
         <section id="productos" aria-labelledby="catalog-title" className="max-w-6xl mx-auto px-4 pb-14 sm:pb-18 scroll-mt-28">
           <div className="rounded-[2rem] border border-[#123f3d]/10 bg-white/35 p-3 shadow-[0_18px_40px_rgba(17,31,30,0.04)] backdrop-blur-sm sm:p-5 lg:p-6">
             <div className="mb-4 px-1 sm:px-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6f3d]">Catálogo</p>
+              <p className="text-[14px] font-semibold uppercase tracking-[0.12em] text-[#73501b] dark:text-[#e7c77c]">Catálogo</p>
               <h2 id="catalog-title" className="mt-1 text-2xl font-bold tracking-tight text-[#123f3d] dark:text-[#edf5f2]">Uniformes escolares</h2>
-              <p className="mt-1 text-sm text-[#4f6967] dark:text-[#bfd4d0]">Elige colegio, prenda y talla para revisar disponibilidad.</p>
+              <p className="mt-1 text-base text-[#4f6967] dark:text-[#bfd4d0] sm:text-sm">Elige colegio, prenda y talla para revisar disponibilidad.</p>
             </div>
             <ClientProductList productos={productos} colegiosData={colegios} />
           </div>
         </section>
       )}
-      <section className="max-w-6xl mx-auto px-4 py-6 sm:py-10" id="diferencia">
+      <section className="max-w-6xl mx-auto px-4 py-6 scroll-mt-28 sm:py-10" id="diferencia">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8a6f3d]">Nuestra diferencia</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#123f3d] sm:text-4xl">Una buena prenda empieza en cómo se hace y cómo se elige.</h2>
+            <p className="text-[14px] font-black uppercase tracking-[0.16em] text-[#73501b] dark:text-[#e7c77c]">Nuestra diferencia</p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#123f3d] dark:text-[#edf5f2] sm:text-4xl">Una buena prenda empieza en cómo se hace y cómo se elige.</h2>
           </div>
           <div className="h-px flex-1 bg-gradient-to-r from-[#d3a954]/70 via-[#123f3d]/30 to-transparent hidden sm:block" />
         </div>
@@ -315,27 +305,27 @@ export default async function Home() {
             </div>
           </article>
 
-          <article className="group relative overflow-hidden rounded-[1.6rem] bg-[linear-gradient(135deg,#f9f3e7_0%,#f2e7cc_100%)] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)]">
+          <article className="group relative overflow-hidden rounded-[1.6rem] border border-[#123f3d]/10 bg-[linear-gradient(135deg,#f9f3e7_0%,#f2e7cc_100%)] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)] dark:border-white/10 dark:bg-[#1a3534] dark:shadow-[0_18px_35px_rgba(3,7,7,0.2)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(18,63,61,0.09),_transparent_45%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d3a954] text-xl text-[#123f3d] shadow-inner">✂</div>
-              <h3 className="text-xl font-black text-[#123f3d]">Materiales para el uso diario</h3>
-              <p className="mt-2 text-[#4c6865] leading-relaxed">Elegimos materiales pensando en comodidad y uso frecuente. Si necesitas conocer la composición o cómo cuidar una prenda, consúltanos antes de elegir.</p>
+              <h3 className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">Materiales para el uso diario</h3>
+              <p className="mt-2 leading-relaxed text-[#4c6865] dark:text-[#d6e3e0]">Elegimos materiales pensando en comodidad y uso frecuente. Si necesitas conocer la composición o cómo cuidar una prenda, consúltanos antes de elegir.</p>
             </div>
           </article>
 
-          <article className="group relative overflow-hidden rounded-[1.6rem] bg-[#eff6f2] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)]">
+          <article className="group relative overflow-hidden rounded-[1.6rem] border border-[#123f3d]/10 bg-[#eff6f2] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)] dark:border-white/10 dark:bg-[#142b2a] dark:shadow-[0_18px_35px_rgba(3,7,7,0.2)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(18,63,61,0.06),_transparent_45%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dfeae5] text-xl text-[#123f3d] shadow-inner">✓</div>
-              <h3 className="text-xl font-black text-[#123f3d]">Asesoría de persona a persona</h3>
-              <p className="mt-2 text-[#4c6865] leading-relaxed">Te orientamos con tallas, calce, disponibilidad y recomendaciones de cuidado para que elijas con más seguridad.</p>
+              <h3 className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">Asesoría de persona a persona</h3>
+              <p className="mt-2 leading-relaxed text-[#4c6865] dark:text-[#d6e3e0]">Te orientamos con tallas, calce, disponibilidad y recomendaciones de cuidado para que elijas con más seguridad.</p>
             </div>
           </article>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 py-8 sm:py-12" id="reparaciones">
+      <section className="max-w-6xl mx-auto px-4 py-8 scroll-mt-28 sm:py-12" id="reparaciones">
         <div className="relative overflow-hidden rounded-[2rem] bg-[#123f3d] px-6 py-8 text-[#f7f1e7] shadow-[0_22px_55px_rgba(18,63,61,0.18)] sm:px-10 lg:px-12">
           <div className="absolute right-[-40px] top-[-30px] h-40 w-40 rounded-full bg-[#d3a954]/20 blur-3xl" />
           <div className="absolute left-[-40px] bottom-[-30px] h-32 w-32 rounded-full bg-[#f1e7d1]/15 blur-3xl" />
@@ -369,7 +359,7 @@ export default async function Home() {
       </section>
 
 
-      <footer className="bg-[#123f3d] text-[#f7f1e7]" id="contacto">
+      <footer className="scroll-mt-28 bg-[#123f3d] text-[#f7f1e7]" id="contacto">
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="grid gap-8 md:grid-cols-3">
             <div className="flex items-center gap-4">
@@ -384,7 +374,7 @@ export default async function Home() {
               <h3 className="text-lg font-black">Contacto</h3>
               <div className="mt-3 space-y-2 text-sm text-[#edf3ee]">
                 <p>Pasaje Santa Olga 288, Quillota</p>
-                <p><a href="tel:+56983852967" className="text-[#d7b972] underline">+56 9 8385 2967</a></p>
+                <p><a href="tel:+56983852967" className="rounded text-[#d7b972] underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f3d]">+56 9 8385 2967</a></p>
                 <p><MapModalTrigger /></p>
               </div>
             </div>

@@ -28,7 +28,7 @@ export default function MobileNavigation() {
         aria-expanded={open}
         aria-controls="mobile-primary-navigation"
         onClick={() => setOpen(value => !value)}
-        className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c]"
+        className="inline-flex min-h-11 items-center rounded-xl px-3 text-base font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c]"
       >
         Menú
       </button>
@@ -43,7 +43,7 @@ export default function MobileNavigation() {
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#355c58] hover:bg-[#edf3f1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:text-[#d6e3e0] dark:hover:bg-white/5"
+              className="flex min-h-11 items-center rounded-lg px-3 text-base font-semibold text-[#355c58] hover:bg-[#edf3f1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#d6e3e0] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c]"
             >
               {link.label}
             </a>

@@ -85,17 +85,18 @@ export default function SizeGuideModal({ onClose, productName, school, size }: S
         </div>
 
         <div className="p-6 space-y-6">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-base leading-6 text-gray-600 dark:text-gray-300 sm:text-sm">
             Utiliza esta guía como referencia para elegir la talla correcta. Las medidas están en centímetros (cm) y pueden variar ligeramente (+/- 1 a 2 cm) dependiendo de la confección de cada prenda.
           </p>
-          <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+          <p className="text-base leading-6 text-gray-600 dark:text-gray-300 sm:text-sm">
             Compara estas medidas con una prenda similar que te quede cómoda. Las edades son solo referenciales; si tienes dudas sobre el calce o las medidas disponibles, consúltanos antes de solicitar.
           </p>
 
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">Poleras y Polerones</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-              <table className="w-full text-sm text-left">
+            <h3 className="mb-3 rounded-lg bg-gray-100 px-3 py-2 text-lg font-bold text-gray-900 dark:bg-gray-700 dark:text-white">Poleras y Polerones</h3>
+            <div role="region" aria-label="Medidas de poleras y polerones; usa desplazamiento horizontal para ver todas las columnas" tabIndex={0} className="overflow-x-auto rounded-xl border border-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:border-gray-700 dark:focus-visible:ring-[#e7c77c]">
+              <table className="w-full min-w-[480px] text-base text-left sm:text-sm">
+                <caption className="sr-only">Guía de tallas de poleras y polerones</caption>
                 <thead className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   <tr>
                     <th scope="col" className="px-4 py-3 font-semibold">Talla</th>
@@ -165,9 +166,10 @@ export default function SizeGuideModal({ onClose, productName, school, size }: S
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">Pantalones de Buzo y Shorts</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-              <table className="w-full text-sm text-left">
+            <h3 className="mb-3 rounded-lg bg-gray-100 px-3 py-2 text-lg font-bold text-gray-900 dark:bg-gray-700 dark:text-white">Pantalones de Buzo y Shorts</h3>
+            <div role="region" aria-label="Medidas de pantalones de buzo y shorts; usa desplazamiento horizontal para ver todas las columnas" tabIndex={0} className="overflow-x-auto rounded-xl border border-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:border-gray-700 dark:focus-visible:ring-[#e7c77c]">
+              <table className="w-full min-w-[400px] text-base text-left sm:text-sm">
+                <caption className="sr-only">Guía de tallas de pantalones de buzo y shorts</caption>
                 <thead className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   <tr>
                     <th scope="col" className="px-4 py-3 font-semibold">Talla</th>
@@ -225,21 +227,21 @@ export default function SizeGuideModal({ onClose, productName, school, size }: S
             <svg className="w-6 h-6 text-[#123f3d] dark:text-[#e7c77c] shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            <p className="text-sm text-[#123f3d] dark:text-[#edf5f2]">
+            <p className="text-base leading-6 text-[#123f3d] dark:text-[#edf5f2] sm:text-sm">
               <span className="font-bold">Tip de medición:</span> Toma una prenda de tu hijo(a) que le quede bien, ponla plana sobre una mesa y mide el ancho del pecho (de axila a axila) o el largo total. Compara esos centímetros con la tabla.
             </p>
           </div>
 
           <div className="rounded-xl border border-[#123f3d]/10 bg-white p-4 dark:border-white/10 dark:bg-gray-800">
             <h3 className="font-bold text-gray-900 dark:text-white">¿Aún tienes dudas?</h3>
-            <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-base leading-6 text-gray-600 dark:text-gray-300 sm:text-sm">
               Escríbenos con tus medidas y la prenda que estás buscando. Te ayudaremos a interpretar la guía y elegir con más confianza.
             </p>
             <a
               href={consultationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#128C7E] px-4 text-sm font-bold text-white transition-colors hover:bg-[#0d7065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#128C7E] px-4 text-base font-bold text-white transition-colors hover:bg-[#0d7065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
             >
               Pedir ayuda con mi talla
             </a>
