@@ -86,6 +86,11 @@ async function getProductos() {
 
 export default async function Home() {
   const [productos, colegios] = await Promise.all([getProductos(), getColegios()])
+  const productoDestacado = productos.find(producto => producto.imagen_url) ?? productos[0]
+  const precioDestacado = productoDestacado
+    ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
+      .format(productoDestacado.precio)
+    : null
 
   const jsonLdProducts = productos.map((p) => ({
     '@type': 'Product',
@@ -184,45 +189,55 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="brand-showcase p-5 sm:p-6">
-            <div className="relative mx-auto max-w-[430px] rounded-[1.6rem] bg-[#f7f1e7]/90 p-5 shadow-[inset_0_0_0_1px_rgba(18,63,61,0.02)]">
-              <div className="relative flex items-center justify-center gap-4 pb-4">
-                <div className="brand-badge">A</div>
-                <div className="text-left">
-                  <p className="text-[2.1rem] font-black leading-none tracking-[-0.08em] text-[#123f3d]">Angus</p>
-                  <p className="text-[0.72rem] font-black tracking-[0.36em] text-[#4d6d5f] pt-1">CONFECCIONES</p>
+          <div className="brand-showcase p-3 sm:p-4">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534]">
+              {productoDestacado?.imagen_url ? (
+                <Image
+                  src={productoDestacado.imagen_url}
+                  alt={productoDestacado.nombre}
+                  fill
+                  priority
+                  unoptimized
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover transition-transform duration-700 hover:scale-[1.03]"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2]">
+                  <Image src="/logo_ig.png" alt="" width={112} height={112} className="h-24 w-24 object-contain opacity-80" />
                 </div>
-              </div>
-
-              <div className="gold-divider my-3" />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[1.35rem] bg-[#0f2d2d] p-4 text-[#f3ebdf] shadow-[0_12px_24px_rgba(15,45,45,0.2)]">
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[0.68rem] uppercase tracking-[0.18em] text-[#d7b972]">Colegio</span>
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#d7b972]" />
-                  </div>
-                  <div className="rounded-xl bg-[#f5efe7] p-3 text-[#123f3d] font-black text-lg leading-tight">Simón Bolívar</div>
-                  <div className="mt-4 h-28 rounded-xl bg-[linear-gradient(135deg,#f3ebdc_0%,#e6d7b4_100%)] p-3 flex items-center justify-center text-[#123f3d] font-black text-lg text-center leading-tight">
-                    Uniforme escolar
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-[1.35rem] bg-[#f4efe7] p-4 border border-[#123f3d]/06 shadow-[0_8px_18px_rgba(18,63,61,0.04)]">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[0.68rem] uppercase tracking-[0.18em] text-[#123f3d]">Reparaciones</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#d7b972] ring-2 ring-[#d7b972]/30" />
-                    </div>
-                    <div className="rounded-xl bg-[#f9f6f0] p-3 text-[#123f3d] font-bold text-sm leading-relaxed">Ajustes, cierres, parches, retoques y mantenimiento de uniformes.</div>
-                  </div>
-
-                  <div className="rounded-[1.35rem] bg-[#123f3d] p-4 text-[#f7f1e7] shadow-[0_12px_24px_rgba(18,63,61,0.2)]">
-                    <div className="text-base font-black leading-snug">Calidad garantizada y atención directa.</div>
-                  </div>
-                </div>
-              </div>
+              )}
+              <span className="absolute left-4 top-4 rounded-full border border-white/30 bg-[#123f3d]/90 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur">
+                Hecho para el día a día
+              </span>
             </div>
+
+            <div className="flex flex-col gap-4 px-2 pb-2 pt-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">
+                  {productoDestacado?.categoria ?? 'Catálogo Angus'}
+                </p>
+                <h2 className="mt-1 line-clamp-2 text-xl font-black tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
+                  {productoDestacado?.nombre ?? 'Uniformes con identidad'}
+                </h2>
+                <p className="mt-1 text-sm text-[#4f6967] dark:text-[#bfd4d0]">
+                  {colegios.length > 0 ? `${colegios.length} colegios disponibles` : 'Explora la colección'}
+                </p>
+              </div>
+              {precioDestacado && (
+                <div className="shrink-0 sm:text-right">
+                  <span className="block text-xs text-[#5f7a73] dark:text-[#bfd4d0]">Precio base</span>
+                  <span className="text-lg font-black text-[#123f3d] dark:text-[#edf5f2]">{precioDestacado}</span>
+                </div>
+              )}
+            </div>
+
+            <a
+              href="#productos"
+              className="mt-2 flex min-h-12 items-center justify-between rounded-xl bg-[#123f3d] px-4 font-bold text-white transition-colors hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:focus-visible:ring-offset-[#142b2a]"
+            >
+              Explorar prendas y tallas
+              <span aria-hidden="true">→</span>
+            </a>
           </div>
         </div>
       </section>

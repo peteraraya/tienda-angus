@@ -90,9 +90,11 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
         producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
-      return matchesSearch && matchesCategory
+      const matchesSchool = selectedColegio === '' ||
+        producto.variantes.some(variante => variante.colegio === selectedColegio)
+      return matchesSearch && matchesCategory && matchesSchool
     })
-  }, [productos, searchTerm, selectedCategory])
+  }, [productos, searchTerm, selectedCategory, selectedColegio])
 
   const tallas = useMemo(() => {
     const allTallas = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.talla) || [])
@@ -193,42 +195,161 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
   return (
     <div>
-      {/* Selector Rápido de Colegios */}
-      {colegios.length > 0 && (
-        <div className="mb-8 overflow-x-auto pb-4 hide-scrollbar lg:hidden">
-          <div className="flex gap-3 min-w-max px-1">
-            <button
-              onClick={() => setSelectedColegio('')}
-              className={`px-5 py-3 rounded-2xl font-bold transition-all shadow-sm ${
-                selectedColegio === ''
-                  ? 'bg-blue-600 text-white shadow-md scale-105'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              Todos los Colegios
-            </button>
-            {colegios.map(colegio => {
-              const colegioInfo = colegiosData?.find(c => c.nombre === colegio)
-              return (
-                <button
-                  key={colegio}
-                  onClick={() => setSelectedColegio(colegio)}
-                  className={`px-5 py-3 rounded-2xl font-bold transition-all shadow-sm flex items-center justify-center gap-2 ${
-                    selectedColegio === colegio
-                      ? 'bg-blue-600 text-white shadow-md scale-105'
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  {colegioInfo?.insignia_url && (
-                    <Image src={colegioInfo.insignia_url} alt={colegio} width={24} height={24} unoptimized className="h-6 w-6 object-contain" />
-                  )}
-                  {colegio}
-                </button>
-              )
-            })}
+      <section
+        aria-labelledby="guided-selection-title"
+        className="mb-6 rounded-2xl border border-[#123f3d]/10 bg-[#fffdf9] p-4 shadow-[0_12px_28px_rgba(17,31,30,0.05)] sm:p-5 dark:border-white/10 dark:bg-[#142b2a]"
+      >
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">Selección guiada</p>
+            <h3 id="guided-selection-title" className="mt-1 text-lg font-bold tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
+              Encuentra el uniforme que necesitas
+            </h3>
           </div>
+          {(selectedColegio || selectedCategory || selectedTalla) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedColegio('')
+                setSelectedCategory('')
+                setSelectedTalla('')
+              }}
+              className="mt-2 min-h-11 self-start rounded-lg px-3 text-sm font-semibold text-[#355c58] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#d6e3e0] dark:focus-visible:ring-[#e7c77c] sm:mt-0 sm:self-auto"
+            >
+              Limpiar selección
+            </button>
+          )}
         </div>
-      )}
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-3">
+          {[
+            { step: '01', label: 'Colegio', value: selectedColegio || 'Todos' },
+            { step: '02', label: 'Tipo de prenda', value: selectedCategory || 'Todas' },
+            { step: '03', label: 'Talla', value: selectedTalla || 'Cualquiera' }
+          ].map(({ step, label, value }) => (
+            <div key={step} className="min-w-0">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#123f3d] text-[0.65rem] font-bold text-[#f7f1e7] dark:bg-[#e7c77c] dark:text-[#123f3d]">
+                  {step}
+                </span>
+                <span className="text-sm font-bold text-[#173b39] dark:text-[#edf5f2]">{label}</span>
+                <span className="ml-auto truncate text-xs text-[#5f7a73] dark:text-[#bfd4d0]">{value}</span>
+              </div>
+
+              {step === '01' ? (
+                <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Filtrar por colegio">
+                  <button
+                    type="button"
+                    aria-pressed={!selectedColegio}
+                    onClick={() => setSelectedColegio('')}
+                    className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                      !selectedColegio
+                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {colegios.map(colegio => {
+                    const insigniaUrl = colegiosData.find(item => item.nombre === colegio)?.insignia_url
+                    return (
+                      <button
+                        key={colegio}
+                        type="button"
+                        aria-pressed={selectedColegio === colegio}
+                        onClick={() => setSelectedColegio(colegio)}
+                        className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                          selectedColegio === colegio
+                            ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                            : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                        }`}
+                      >
+                        {insigniaUrl && (
+                          <Image
+                            src={insigniaUrl}
+                            alt=""
+                            width={20}
+                            height={20}
+                            unoptimized
+                            className="h-5 w-5 object-contain"
+                          />
+                        )}
+                        {colegio}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : step === '02' ? (
+                <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de prenda">
+                  <button
+                    type="button"
+                    aria-pressed={!selectedCategory}
+                    onClick={() => setSelectedCategory('')}
+                    className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                      !selectedCategory
+                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  {categories.map(category => (
+                    <button
+                      key={category}
+                      type="button"
+                      aria-pressed={selectedCategory === category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                        selectedCategory === category
+                          ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                          : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2" aria-label="Filtrar por talla">
+                  <button
+                    type="button"
+                    aria-pressed={!selectedTalla}
+                    onClick={() => setSelectedTalla('')}
+                    className={`min-h-11 min-w-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                      !selectedTalla
+                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  {tallas.map(talla => (
+                    <button
+                      key={talla}
+                      type="button"
+                      aria-pressed={selectedTalla === talla}
+                      onClick={() => setSelectedTalla(selectedTalla === talla ? '' : talla)}
+                      className={`min-h-11 min-w-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
+                        selectedTalla === talla
+                          ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                          : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
+                      }`}
+                    >
+                      {talla}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p aria-live="polite" className="mt-4 border-t border-[#123f3d]/10 pt-3 text-sm text-[#4f6967] dark:border-white/10 dark:text-[#bfd4d0]">
+          {filteredAndSortedProducts.length > 0
+            ? `${filteredAndSortedProducts.length} ${filteredAndSortedProducts.length === 1 ? 'producto coincide' : 'productos coinciden'}${selectedColegio ? ` para ${selectedColegio}` : ''}${selectedCategory ? ` · ${selectedCategory}` : ''}${selectedTalla ? ` · talla ${selectedTalla}` : ''}.`
+            : 'No hay opciones con esta combinación. Prueba cambiar uno de los filtros.'}
+        </p>
+      </section>
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters (Desktop) */}
@@ -243,7 +364,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                     name="colegio"
                     checked={selectedColegio === ''}
                     onChange={() => setSelectedColegio('')}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-[#123f3d] bg-gray-100 border-gray-300 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <span className={`text-sm ${selectedColegio === '' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>Todos los Colegios</span>
                 </label>
@@ -254,7 +375,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                       name="colegio"
                       checked={selectedColegio === colegio}
                       onChange={() => setSelectedColegio(colegio)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 text-[#123f3d] bg-gray-100 border-gray-300 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
                     />
                     <span className={`text-sm ${selectedColegio === colegio ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>{colegio}</span>
                   </label>
@@ -271,7 +392,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                     name="categoria"
                     checked={selectedCategory === ''}
                     onChange={() => setSelectedCategory('')}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-[#123f3d] bg-gray-100 border-gray-300 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <span className={`text-sm ${selectedCategory === '' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>Todas las Categorías</span>
                 </label>
@@ -282,7 +403,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                       name="categoria"
                       checked={selectedCategory === cat}
                       onChange={() => setSelectedCategory(cat)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 text-[#123f3d] bg-gray-100 border-gray-300 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
                     />
                     <span className={`text-sm ${selectedCategory === cat ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>{cat}</span>
                   </label>
@@ -298,9 +419,9 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                     <button
                       key={talla}
                       onClick={() => setSelectedTalla(selectedTalla === talla ? '' : talla)}
-                      className={`min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] flex items-center justify-center rounded-xl text-sm font-bold transition-all border-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800 ${
+                      className={`min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] flex items-center justify-center rounded-xl text-sm font-bold transition-all border-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 dark:focus-visible:ring-[#e7c77c] dark:focus-visible:ring-offset-gray-800 ${
                         selectedTalla === talla 
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                          ? 'bg-[#123f3d] border-[#123f3d] text-white shadow-md dark:bg-[#e7c77c] dark:border-[#e7c77c] dark:text-[#123f3d]'
                           : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-400'
                       }`}
                     >
@@ -316,10 +437,10 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               <div className="space-y-2">
                 <button
                   onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
+                  className={`w-full min-h-11 text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
                     showOnlyFavorites 
-                      ? 'bg-pink-600 text-white shadow-md' 
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                      ? 'bg-[#123f3d] text-white shadow-md dark:bg-[#e7c77c] dark:text-[#123f3d]'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-[#edf3ee] dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                   }`}
                 >
                   <svg className="w-5 h-5" fill={showOnlyFavorites ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -329,13 +450,15 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                 </button>
                 <button
                   onClick={() => setShowOnlyOffers(!showOnlyOffers)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
+                  className={`w-full min-h-11 text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:focus-visible:ring-[#e7c77c] ${
                     showOnlyOffers 
-                      ? 'bg-orange-500 text-white shadow-md' 
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                      ? 'bg-[#d3a954] text-[#123f3d] shadow-md dark:bg-[#e7c77c]'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-[#f6efdf] dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                   }`}
                 >
-                  <span className="text-lg leading-none mb-0.5">🔥</span>
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8.5h18M5 4.5h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2v-11a2 2 0 012-2zM7 15h4" />
+                  </svg>
                   En Oferta
                 </button>
               </div>
@@ -361,7 +484,6 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               tallas={tallas}
               selectedTalla={selectedTalla}
               onTallaChange={setSelectedTalla}
-              colegios={colegios}
               selectedColegio={selectedColegio}
               onColegioChange={setSelectedColegio}
               showOnlyFavorites={showOnlyFavorites}
@@ -385,7 +507,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar productos..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -405,13 +527,17 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                 <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
                   <button
                     onClick={() => setCurrentView('grid')}
-                    className={`p-2 rounded-lg transition-all ${currentView === 'grid' ? 'bg-white dark:bg-gray-800 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500'}`}
+                    className={`min-h-11 min-w-11 rounded-lg transition-all ${currentView === 'grid' ? 'bg-white dark:bg-gray-800 shadow-sm text-[#123f3d] dark:text-[#e7c77c]' : 'text-gray-500'}`}
+                    aria-label="Vista en cuadrícula"
+                    aria-pressed={currentView === 'grid'}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                   </button>
                   <button
                     onClick={() => setCurrentView('list')}
-                    className={`p-2 rounded-lg transition-all ${currentView === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500'}`}
+                    className={`min-h-11 min-w-11 rounded-lg transition-all ${currentView === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm text-[#123f3d] dark:text-[#e7c77c]' : 'text-gray-500'}`}
+                    aria-label="Vista en lista"
+                    aria-pressed={currentView === 'list'}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
                   </button>
@@ -422,8 +548,8 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
       {filteredAndSortedProducts.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-gray-800 rounded-full mb-6">
-            <svg className="w-12 h-12 text-blue-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-[#edf3ee] dark:bg-gray-800 rounded-full mb-6">
+            <svg className="w-12 h-12 text-[#4d6d5f] dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -440,7 +566,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
               setShowOnlyFavorites(false)
               setShowOnlyOffers(false)
             }}
-            className="px-6 py-3 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 rounded-xl font-bold transition-all shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
+            className="min-h-11 px-6 py-3 bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:hover:bg-[#f3d79a] text-white dark:text-[#123f3d] rounded-xl font-bold transition-all shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
             Limpiar todos los filtros
           </button>
@@ -484,7 +610,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
             <div className="flex justify-center mt-10">
               <button
                 onClick={() => setPage((p) => p + 1)}
-                className="px-6 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 font-bold transition-colors focus:outline-none flex items-center gap-2"
+                className="min-h-11 px-6 py-3 rounded-xl bg-[#edf3ee] hover:bg-[#dfeae7] text-[#123f3d] dark:bg-[#1a3534] dark:hover:bg-[#244341] dark:text-[#e7c77c] font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] flex items-center gap-2"
               >
                 <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />

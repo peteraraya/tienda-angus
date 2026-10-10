@@ -15,7 +15,6 @@ interface SearchBarSimpleProps {
   tallas: string[]
   selectedTalla: string
   onTallaChange: (value: string) => void
-  colegios: string[]
   selectedColegio: string
   onColegioChange: (value: string) => void
   showOnlyFavorites: boolean
@@ -38,7 +37,6 @@ export default function SearchBarSimple({
   tallas,
   selectedTalla,
   onTallaChange,
-  colegios,
   selectedColegio,
   onColegioChange,
   showOnlyFavorites,
@@ -131,7 +129,7 @@ export default function SearchBarSimple({
             onKeyDown={handleKeyDown}
             onFocus={() => value.length >= 2 && setShowSuggestions(true)}
             placeholder="Buscar productos..."
-            className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500 shadow-sm dark:shadow-none transition-all"
+            className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500 shadow-sm dark:shadow-none transition-all"
           />
           {value && (
             <button
@@ -183,7 +181,7 @@ export default function SearchBarSimple({
             onClick={() => setShowFilters(!showFilters)}
             className={`px-4 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm ${
               showFilters || hasActiveFilters
-                ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-600/30'
+                ? 'bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:hover:bg-[#f3d79a] text-white dark:text-[#123f3d] shadow-lg shadow-[#123f3d]/15'
                 : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
@@ -192,7 +190,7 @@ export default function SearchBarSimple({
             </svg>
             <span className="hidden sm:inline">Filtros</span>
             {hasActiveFilters && (
-              <span className="bg-white dark:bg-blue-500 text-blue-600 dark:text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-white/15 dark:bg-[#123f3d]/10 text-white dark:text-[#123f3d] text-xs font-bold px-2 py-0.5 rounded-full">
                 {[selectedCategory, selectedTalla, selectedColegio, showOnlyFavorites, showOnlyOffers].filter(Boolean).length}
               </span>
             )}
@@ -202,7 +200,7 @@ export default function SearchBarSimple({
           <div className="flex gap-1 border border-gray-300 dark:border-gray-700 rounded-xl p-1 bg-white dark:bg-gray-900 shadow-sm">
             <button
               onClick={() => onViewChange('grid')}
-              className={`p-2 rounded-lg transition-all ${currentView === 'grid' ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              className={`p-2 rounded-lg transition-all ${currentView === 'grid' ? 'bg-[#123f3d] dark:bg-[#e7c77c] text-white dark:text-[#123f3d] shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
               title="Vista en cuadrícula"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +209,7 @@ export default function SearchBarSimple({
             </button>
             <button
               onClick={() => onViewChange('list')}
-              className={`p-2 rounded-lg transition-all ${currentView === 'list' ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              className={`p-2 rounded-lg transition-all ${currentView === 'list' ? 'bg-[#123f3d] dark:bg-[#e7c77c] text-white dark:text-[#123f3d] shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
               title="Vista en lista"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +228,7 @@ export default function SearchBarSimple({
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent shadow-sm dark:shadow-none transition-all"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] focus:border-transparent shadow-sm dark:shadow-none transition-all"
             >
               <option value="">Todas las categorías</option>
               {categories.map(cat => (
@@ -243,7 +241,7 @@ export default function SearchBarSimple({
               <select
                 value={selectedTalla}
                 onChange={(e) => onTallaChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent shadow-sm dark:shadow-none transition-all"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] focus:border-transparent shadow-sm dark:shadow-none transition-all"
               >
                 <option value="">Todas las tallas</option>
                 {tallas.map(talla => (
@@ -257,7 +255,7 @@ export default function SearchBarSimple({
             <select
               value={selectedSort}
               onChange={(e) => onSortChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent shadow-sm dark:shadow-none transition-all"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] focus:border-transparent shadow-sm dark:shadow-none transition-all"
             >
               <option value="newest">Más recientes</option>
               <option value="price-asc">Precio: menor a mayor</option>
@@ -272,7 +270,7 @@ export default function SearchBarSimple({
               onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm ${
                 showOnlyFavorites 
-                  ? 'bg-pink-600 hover:bg-pink-700 dark:bg-pink-600 dark:hover:bg-pink-700 text-white shadow-pink-500/30 dark:shadow-pink-600/30' 
+                  ? 'bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:hover:bg-[#f3d79a] text-white dark:text-[#123f3d] shadow-[#123f3d]/15'
                   : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -287,11 +285,13 @@ export default function SearchBarSimple({
               onClick={() => onShowOnlyOffersChange(!showOnlyOffers)}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm ${
                 showOnlyOffers 
-                  ? 'bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white shadow-orange-500/30 dark:shadow-orange-600/30' 
+                  ? 'bg-[#d3a954] hover:bg-[#b98a2f] dark:bg-[#e7c77c] dark:hover:bg-[#f3d79a] text-[#123f3d] shadow-[#d3a954]/20'
                   : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
-              <span className="text-lg leading-none mb-0.5">🔥</span>
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8.5h18M5 4.5h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2v-11a2 2 0 012-2zM7 15h4" />
+              </svg>
               <span className="hidden sm:inline font-bold">Ofertas</span>
             </button>
 
