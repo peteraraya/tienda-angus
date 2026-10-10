@@ -11,7 +11,7 @@ export default function MapModalTrigger() {
   return (
     <button 
       onClick={handleClick}
-      className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer focus:outline-none text-left"
+      className="inline-flex min-h-11 items-center rounded py-2 text-left underline transition-colors hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:hover:text-blue-400"
     >
       Ver en Google Maps
     </button>

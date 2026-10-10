@@ -269,16 +269,16 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             <div className="flex min-w-0 flex-col">
               {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                 <>
-                  <span className="text-[11px] text-gray-400 dark:text-gray-500 line-through">
+                  <span className="text-xs text-gray-600 dark:text-[#bfd4d0] line-through">
                     {tienePreciosDiferentes ? 'Desde ' : ''}{formatPrice(precioMinimo)}
                   </span>
                   <span className="mt-1 text-xl font-black leading-none tracking-[-0.04em] text-[#123f3d] dark:text-white sm:text-2xl">
-                    {tienePreciosDiferentes ? <span className="text-[11px] font-bold text-gray-500 mr-1.5 align-middle">Desde</span> : ''}{formatPrice(precioFinal)}
+                    {tienePreciosDiferentes ? <span className="mr-1.5 align-middle text-xs font-bold text-[#4f6967] dark:text-[#bfd4d0]">Desde</span> : ''}{formatPrice(precioFinal)}
                   </span>
                 </>
               ) : (
                 <span className="text-xl font-black leading-none tracking-[-0.04em] text-[#123f3d] dark:text-white sm:text-2xl">
-                  {tienePreciosDiferentes ? <span className="text-[11px] font-bold text-gray-500 mr-1.5 align-middle">Desde</span> : ''}{formatPrice(precioMinimo)}
+                  {tienePreciosDiferentes ? <span className="mr-1.5 align-middle text-xs font-bold text-[#4f6967] dark:text-[#bfd4d0]">Desde</span> : ''}{formatPrice(precioMinimo)}
                 </span>
               )}
               {tienePreciosDiferentes && (

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useCart } from '../contexts/CartContext'
 import { formatPrice } from '@/lib/formatPrice'
 import { crearSolicitudPublicaAction } from '@/app/actions/solicitudes-publicas'
@@ -325,11 +326,11 @@ export default function ClientCartSidebar() {
             <div className="grid gap-2 sm:grid-cols-2">
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                 Nombre
-                <input required minLength={2} maxLength={100} autoComplete="name" value={nombre} onChange={event => setNombre(event.target.value)} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal dark:border-gray-700 dark:bg-gray-900" />
+                <input required minLength={2} maxLength={100} autoComplete="name" value={nombre} onChange={event => setNombre(event.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal dark:border-gray-700 dark:bg-gray-900" />
               </label>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                 Teléfono de contacto
-                <input required type="tel" inputMode="tel" autoComplete="tel" minLength={8} maxLength={24} pattern="[0-9+() -]{8,24}" value={telefono} onChange={event => setTelefono(event.target.value)} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal dark:border-gray-700 dark:bg-gray-900" />
+                <input required type="tel" inputMode="tel" autoComplete="tel" minLength={8} maxLength={24} pattern="[0-9+() -]{8,24}" value={telefono} onChange={event => setTelefono(event.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal dark:border-gray-700 dark:bg-gray-900" />
               </label>
             </div>
             <label aria-hidden="true" className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden">
@@ -338,7 +339,7 @@ export default function ClientCartSidebar() {
             </label>
             <label className="flex items-start gap-2 text-xs leading-5 text-gray-600 dark:text-gray-400">
               <input required type="checkbox" checked={consentimiento} onChange={event => setConsentimiento(event.target.checked)} className="mt-1 size-4 shrink-0 accent-[#123f3d]" />
-              Autorizo el uso de mi nombre y teléfono para registrar esta solicitud y coordinar el pedido conmigo.
+              <span>Autorizo el uso de mi nombre, teléfono y datos del pedido para registrar esta solicitud y coordinarla conmigo. <Link href="/privacidad" className="font-semibold underline underline-offset-2">Lee la Política de privacidad</Link>.</span>
             </label>
             {cartExceedsLimit && <p role="alert" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">El pedido admite hasta 20 variantes y 99 prendas en total. Ajusta las cantidades antes de continuar.</p>}
             {checkoutError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">{checkoutError}</p>}

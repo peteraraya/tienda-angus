@@ -7,6 +7,7 @@ import MobileNavigation from './components/MobileNavigation'
 import { getProductFinalPrice } from '@/lib/productPricing'
 import type { Colegio, Producto, Variante } from '@/types/database'
 import Image from 'next/image';
+import Link from 'next/link'
 export const revalidate = 0
 
 interface ProductoConVariantes extends Producto {
@@ -168,9 +169,9 @@ export default async function Home() {
             <div className="flex items-center gap-2 sm:gap-4">
               <MobileNavigation />
               <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-base sm:text-sm md:flex mr-2">
-                <a href="#productos" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
-                <a href="#reparaciones" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
-                <a href="#contacto" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
+                <a href="#productos" className="inline-flex min-h-11 items-center rounded px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
+                <a href="#reparaciones" className="inline-flex min-h-11 items-center rounded px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
+                <a href="#contacto" className="inline-flex min-h-11 items-center rounded px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Contacto</a>
               </nav>
               <ClientCartIcon />
               <ThemeToggle />
@@ -390,6 +391,10 @@ export default async function Home() {
 
           <div className="mt-8 border-t border-white/10 pt-6 text-center text-sm text-[#edf3ee]/80">
             © {new Date().getFullYear()} Angus Confecciones. Todos los derechos reservados.
+            <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1">
+              <Link href="/privacidad" className="inline-flex min-h-11 items-center rounded underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Privacidad y almacenamiento</Link>
+              <Link href="/condiciones" className="inline-flex min-h-11 items-center rounded underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Condiciones de solicitudes</Link>
+            </div>
           </div>
         </div>
       </footer>

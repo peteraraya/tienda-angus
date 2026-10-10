@@ -8,7 +8,7 @@ const phonePattern = /^[0-9+() -]{8,24}$/
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export default function RepairRequestForm() {
-  const requestRef = useRef<{ fingerprint: string; key: string; trackingToken: string } | null>(null)
+  const requestRef = useRef<{ fingerprint: string; key: string; trackingToken: string; createdAt: number } | null>(null)
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [prenda, setPrenda] = useState('')
@@ -55,16 +55,26 @@ export default function RepairRequestForm() {
           UUID_PATTERN.test(parsed.key) &&
           'trackingToken' in parsed &&
           typeof parsed.trackingToken === 'string' &&
-          /^[a-f0-9]{64}$/i.test(parsed.trackingToken)
+          /^[a-f0-9]{64}$/i.test(parsed.trackingToken) &&
+          'createdAt' in parsed &&
+          typeof parsed.createdAt === 'number' &&
+          Number.isFinite(parsed.createdAt) &&
+          Date.now() >= parsed.createdAt &&
+          Date.now() - parsed.createdAt < 24 * 60 * 60 * 1000
         ) {
-          requestRef.current = { fingerprint, key: parsed.key, trackingToken: parsed.trackingToken }
+          requestRef.current = {
+            fingerprint,
+            key: parsed.key,
+            trackingToken: parsed.trackingToken,
+            createdAt: parsed.createdAt
+          }
         }
       }
 
       if (!requestRef.current || requestRef.current.fingerprint !== fingerprint) {
         const tokenBytes = crypto.getRandomValues(new Uint8Array(32))
         const token = Array.from(tokenBytes, byte => byte.toString(16).padStart(2, '0')).join('')
-        requestRef.current = { fingerprint, key: crypto.randomUUID(), trackingToken: token }
+        requestRef.current = { fingerprint, key: crypto.randomUUID(), trackingToken: token, createdAt: Date.now() }
       }
       localStorage.setItem('repair_request_pending', JSON.stringify(requestRef.current))
 
@@ -175,7 +185,7 @@ export default function RepairRequestForm() {
       </p>
       <label className="flex items-start gap-2 text-xs leading-5 text-[#5f7a73] dark:text-[#bfd4d0]">
         <input required type="checkbox" checked={consentimiento} onChange={event => setConsentimiento(event.target.checked)} className="mt-1 size-4 shrink-0 accent-[#123f3d]" />
-        Autorizo el uso de mi nombre y teléfono para gestionar esta solicitud y coordinar el arreglo.
+        <span>        Autorizo el uso de mi nombre, teléfono y datos del arreglo para gestionar esta solicitud y coordinar el servicio. <Link href="/privacidad" className="font-semibold underline underline-offset-2">Lee la Política de privacidad</Link>.</span>
       </label>
       {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">{error}</p>}
       <button type="submit" disabled={isSubmitting} className="min-h-12 w-full rounded-lg bg-[#123f3d] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#0d302e] disabled:cursor-wait disabled:opacity-60 sm:w-auto">

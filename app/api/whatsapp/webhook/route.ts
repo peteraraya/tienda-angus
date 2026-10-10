@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: 'no message' }, { status: 200 })
     }
 
-    console.log('Received WhatsApp message:', message)
+    console.info('Received WhatsApp message')
 
     // Guardar primero para que una reentrega no repita efectos de procesamiento.
     const isNewMessage = await saveMessageToDatabase(message)
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: 'ok' }, { status: 200 })
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    console.error('Error processing WhatsApp webhook:', error instanceof Error ? error.name : 'Unknown error')
     return NextResponse.json({ status: 'error' }, { status: 500 })
   }
 }
