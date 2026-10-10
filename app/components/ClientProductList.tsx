@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
-import Image from 'next/image'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
+import GuidedProductFilters from './GuidedProductFilters'
 import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
 import { getProductFinalPrice } from '@/lib/productPricing'
@@ -221,161 +221,24 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
   return (
     <div>
-      <section
-        aria-labelledby="guided-selection-title"
-        className="mb-6 rounded-2xl border border-[#123f3d]/10 bg-[#fffdf9] p-4 shadow-[0_12px_28px_rgba(17,31,30,0.05)] sm:p-5 dark:border-white/10 dark:bg-[#142b2a]"
-      >
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a6f3d] dark:text-[#e7c77c]">Selección guiada</p>
-            <h3 id="guided-selection-title" className="mt-1 text-lg font-bold tracking-tight text-[#123f3d] dark:text-[#edf5f2]">
-              Encuentra el uniforme que necesitas
-            </h3>
-          </div>
-          {(selectedColegio || selectedCategory || selectedTalla) && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedColegio('')
-                setSelectedCategory('')
-                setSelectedTalla('')
-              }}
-              className="mt-2 min-h-11 self-start rounded-lg px-3 text-sm font-semibold text-[#355c58] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#d6e3e0] dark:focus-visible:ring-[#e7c77c] sm:mt-0 sm:self-auto"
-            >
-              Limpiar selección
-            </button>
-          )}
-        </div>
-
-        <div className="mt-5 grid gap-5 lg:grid-cols-3">
-          {[
-            { step: '01', label: 'Colegio', value: selectedColegio || 'Todos' },
-            { step: '02', label: 'Tipo de prenda', value: selectedCategory || 'Todas' },
-            { step: '03', label: 'Talla', value: selectedTalla || 'Cualquiera' }
-          ].map(({ step, label, value }) => (
-            <div key={step} className="min-w-0">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#123f3d] text-[0.65rem] font-bold text-[#f7f1e7] dark:bg-[#e7c77c] dark:text-[#123f3d]">
-                  {step}
-                </span>
-                <span className="text-sm font-bold text-[#173b39] dark:text-[#edf5f2]">{label}</span>
-                <span className="ml-auto truncate text-xs text-[#5f7a73] dark:text-[#bfd4d0]">{value}</span>
-              </div>
-
-              {step === '01' ? (
-                <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Filtrar por colegio">
-                  <button
-                    type="button"
-                    aria-pressed={!selectedColegio}
-                    onClick={() => setSelectedColegio('')}
-                    className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                      !selectedColegio
-                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                    }`}
-                  >
-                    Todos
-                  </button>
-                  {colegios.map(colegio => {
-                    const insigniaUrl = colegiosData.find(item => item.nombre === colegio)?.insignia_url
-                    return (
-                      <button
-                        key={colegio}
-                        type="button"
-                        aria-pressed={selectedColegio === colegio}
-                        onClick={() => setSelectedColegio(colegio)}
-                        className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                          selectedColegio === colegio
-                            ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                            : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                        }`}
-                      >
-                        {insigniaUrl && (
-                          <Image
-                            src={insigniaUrl}
-                            alt=""
-                            width={20}
-                            height={20}
-                            unoptimized
-                            className="h-5 w-5 object-contain"
-                          />
-                        )}
-                        {colegio}
-                      </button>
-                    )
-                  })}
-                </div>
-              ) : step === '02' ? (
-                <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de prenda">
-                  <button
-                    type="button"
-                    aria-pressed={!selectedCategory}
-                    onClick={() => setSelectedCategory('')}
-                    className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                      !selectedCategory
-                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                    }`}
-                  >
-                    Todas
-                  </button>
-                  {categories.map(category => (
-                    <button
-                      key={category}
-                      type="button"
-                      aria-pressed={selectedCategory === category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                        selectedCategory === category
-                          ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                          : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2" aria-label="Filtrar por talla">
-                  <button
-                    type="button"
-                    aria-pressed={!selectedTalla}
-                    onClick={() => setSelectedTalla('')}
-                    className={`min-h-11 min-w-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                      !selectedTalla
-                        ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                        : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                    }`}
-                  >
-                    Todas
-                  </button>
-                  {tallas.map(talla => (
-                    <button
-                      key={talla}
-                      type="button"
-                      aria-pressed={selectedTalla === talla}
-                      onClick={() => setSelectedTalla(selectedTalla === talla ? '' : talla)}
-                      className={`min-h-11 min-w-11 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] ${
-                        selectedTalla === talla
-                          ? 'border-[#123f3d] bg-[#123f3d] text-white dark:border-[#e7c77c] dark:bg-[#e7c77c] dark:text-[#123f3d]'
-                          : 'border-[#123f3d]/15 bg-white text-[#355c58] hover:border-[#123f3d]/40 dark:border-white/15 dark:bg-[#1a3534] dark:text-[#d6e3e0] dark:hover:border-[#e7c77c]/50'
-                      }`}
-                    >
-                      {talla}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <p aria-live="polite" className="mt-4 border-t border-[#123f3d]/10 pt-3 text-sm text-[#4f6967] dark:border-white/10 dark:text-[#bfd4d0]">
-          {filteredAndSortedProducts.length > 0
-            ? `${filteredAndSortedProducts.length} ${filteredAndSortedProducts.length === 1 ? 'producto coincide' : 'productos coinciden'}${selectedColegio ? ` para ${selectedColegio}` : ''}${selectedCategory ? ` · ${selectedCategory}` : ''}${selectedTalla ? ` · talla ${selectedTalla}` : ''}.`
-            : 'No hay opciones con esta combinación. Prueba cambiar uno de los filtros.'}
-        </p>
-      </section>
+      <GuidedProductFilters
+        categories={categories}
+        tallas={tallas}
+        colegios={colegios}
+        colegiosData={colegiosData}
+        selectedCategory={selectedCategory}
+        selectedTalla={selectedTalla}
+        selectedColegio={selectedColegio}
+        resultCount={filteredAndSortedProducts.length}
+        onCategoryChange={setSelectedCategory}
+        onTallaChange={setSelectedTalla}
+        onColegioChange={setSelectedColegio}
+        onClear={() => {
+          setSelectedColegio('')
+          setSelectedCategory('')
+          setSelectedTalla('')
+        }}
+      />
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters (Desktop) */}
