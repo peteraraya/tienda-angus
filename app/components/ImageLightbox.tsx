@@ -19,8 +19,30 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    const previousActive = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const initialFocus = window.setTimeout(() => containerRef.current?.focus(), 0)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose && onClose()
+      if (e.key === 'Escape') {
+        onClose?.()
+        return
+      }
+      if (e.key === 'Tab' && containerRef.current) {
+        const focusable = Array.from(containerRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        ))
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (!first || !last) {
+          e.preventDefault()
+          containerRef.current.focus()
+        } else if (e.shiftKey && (document.activeElement === first || !containerRef.current.contains(document.activeElement))) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && (document.activeElement === last || !containerRef.current.contains(document.activeElement))) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
       if (e.key === 'ArrowRight') {
         setIndex(i => {
           const next = Math.min(i + 1, images.length - 1)
@@ -39,7 +61,11 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(initialFocus)
+      window.removeEventListener('keydown', onKey)
+      previousActive?.focus()
+    }
   }, [images.length, onClose])
 
   const wheelZoom = (e: React.WheelEvent) => {
@@ -77,8 +103,17 @@ export default function ImageLightbox({ images, startIndex = 0, onClose }: Props
   if (!images || images.length === 0) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => onClose && onClose()}>
-      <div className="relative max-w-[95vw] max-h-[95vh] w-full" onClick={e => e.stopPropagation()} ref={containerRef} onWheel={wheelZoom}>
+    <div className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/80 p-4" onClick={() => onClose && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Visor de imágenes del producto"
+        tabIndex={-1}
+        className="relative max-w-[95vw] max-h-[95vh] w-full"
+        onClick={e => e.stopPropagation()}
+        ref={containerRef}
+        onWheel={wheelZoom}
+      >
         <div className="relative w-full flex items-center justify-center">
           <LazyImage
             src={images[index]}

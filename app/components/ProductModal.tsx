@@ -11,6 +11,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { LazyImage } from './ui'
 import ImageLightbox from './ImageLightbox'
 import { formatPrice } from '@/lib/formatPrice'
+import { getProductFinalPrice } from '@/lib/productPricing'
 import SizeGuideModal from './SizeGuideModal'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from './ui/ToastContainer'
@@ -47,9 +48,10 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   }, [onClose])
   
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = previousOverflow
     }
   }, [])
 
@@ -58,7 +60,10 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
     const prevActive = document.activeElement as HTMLElement | null
     const initialFocus = window.setTimeout(() => modalRef.current?.focus(), 0)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose()
+      if (e.key === 'Escape') {
+        if (!openLightbox && !showSizeGuide) handleClose()
+        return
+      }
       if (e.key !== 'Tab' || !modalRef.current || openLightbox || showSizeGuide) return
 
       const focusableElements = Array.from(modalRef.current.querySelectorAll<HTMLElement>(
@@ -111,9 +116,9 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   const precioActual = varianteSeleccionada
     ? varianteSeleccionada.precio ?? productoActivo.precio
     : preciosVariantes.length > 0 ? Math.min(...preciosVariantes) : productoActivo.precio
-  const precioFinal = productoActivo.descuento_porcentaje && productoActivo.descuento_porcentaje > 0
-    ? precioActual - (precioActual * productoActivo.descuento_porcentaje / 100)
-    : precioActual;
+  const precioFinal = varianteSeleccionada
+    ? Math.round(precioActual * (1 - Math.min(100, Math.max(0, productoActivo.descuento_porcentaje ?? 0)) / 100))
+    : getProductFinalPrice(productoActivo)
   const requiereSeleccionColegio = colegiosDisponibles.length > 1 ||
     (colegiosDisponibles.length === 1 && colegiosDisponibles[0] !== 'General')
   const requiereSeleccionTalla = tallasDisponibles.length > 1 ||
@@ -204,12 +209,14 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       <>
                         <button type="button"
                           onClick={prevImage}
+                          aria-label={`Imagen anterior de ${productoActivo.nombre}`}
                           className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10 focus:outline-none focus:ring-2 focus:ring-white"
                         >
                           <ChevronLeftIcon className="w-6 h-6" />
                         </button>
                         <button type="button"
                           onClick={nextImage}
+                          aria-label={`Imagen siguiente de ${productoActivo.nombre}`}
                           className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-10 focus:outline-none focus:ring-2 focus:ring-white"
                         >
                           <ChevronRightIcon className="w-6 h-6" />
@@ -225,6 +232,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                     {imagenes.length > 0 && (
                       <button type="button"
                         onClick={(e) => { e.stopPropagation(); setOpenLightbox(true) }}
+                        aria-label={`Ampliar imagen de ${productoActivo.nombre}`}
                         className="absolute bottom-4 right-4 rounded-full bg-white/90 p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-[#123f3d] dark:bg-gray-800/90 dark:focus:ring-[#e7c77c]"
                         title="Ver imagen"
                       >
@@ -519,7 +527,7 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       toast.error('La variante seleccionada ya no está disponible.')
                       return
                     }
-                    addToCart({
+                    const added = addToCart({
                       producto_id: productoActivo.id,
                       variante_id: varianteSeleccionada.id,
                       nombre: productoActivo.nombre,
@@ -530,7 +538,14 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
                       imagen_url: imagenes[0] || undefined,
                       stock_disponible: stockDisponible
                     })
-                    toast.success('¡Añadido a tu pedido!')
+                    if (added === 'added') {
+                      toast.success('¡Añadido a tu pedido!')
+                      handleClose()
+                    } else if (added === 'stock-limit') {
+                      toast.error('Ya alcanzaste el stock disponible de esta variante.')
+                    } else {
+                      toast.error('El pedido alcanzó el máximo permitido de 20 variantes o 99 prendas.')
+                    }
                   }}
                   disabled={!seleccionCompleta || !varianteSeleccionada || varianteSeleccionada.stock <= 0}
                   className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#123f3d] px-4 py-3.5 font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#0d2f2d] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:translate-y-0 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:disabled:bg-gray-700 dark:disabled:text-gray-400 dark:focus-visible:ring-offset-gray-900 text-sm sm:text-base"

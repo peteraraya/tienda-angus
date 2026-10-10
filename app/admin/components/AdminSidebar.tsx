@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -22,6 +22,8 @@ const modules = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const [openForPathname, setOpenForPathname] = useState<string | null>(null)
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null)
+  const mobileDialogRef = useRef<HTMLDivElement>(null)
   const activeModule = modules.find(module =>
     module.href === '/admin'
       ? pathname === module.href
@@ -31,11 +33,39 @@ export default function AdminSidebar() {
 
   useEffect(() => {
     if (!mobileMenuOpen) return
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpenForPathname(null)
+    const mobileTrigger = mobileTriggerRef.current
+    const previousActive = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const initialFocus = window.setTimeout(() => {
+      mobileDialogRef.current?.querySelector<HTMLElement>('a[href], button:not([disabled])')?.focus()
+    }, 0)
+    function manageKeyboard(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpenForPathname(null)
+        return
+      }
+      if (event.key !== 'Tab' || !mobileDialogRef.current) return
+      const focusable = Array.from(mobileDialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled])'
+      ))
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (!first || !last) {
+        event.preventDefault()
+        mobileDialogRef.current.focus()
+      } else if (event.shiftKey && (document.activeElement === first || !mobileDialogRef.current.contains(document.activeElement))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (document.activeElement === last || !mobileDialogRef.current.contains(document.activeElement))) {
+        event.preventDefault()
+        first.focus()
+      }
     }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    window.addEventListener('keydown', manageKeyboard)
+    return () => {
+      window.clearTimeout(initialFocus)
+      window.removeEventListener('keydown', manageKeyboard)
+      if (previousActive && mobileTrigger?.isConnected) mobileTrigger.focus()
+    }
   }, [mobileMenuOpen])
 
   function isActive(path: string) {
@@ -47,6 +77,7 @@ export default function AdminSidebar() {
   return (
     <div className="relative w-full min-w-0 md:sticky md:top-20 md:w-56 md:flex-shrink-0">
       <button
+        ref={mobileTriggerRef}
         type="button"
         aria-expanded={mobileMenuOpen}
         aria-controls="admin-mobile-modules"
@@ -60,17 +91,20 @@ export default function AdminSidebar() {
         <div className="fixed inset-0 z-50 flex items-end bg-slate-950/45 md:hidden" onClick={() => setOpenForPathname(null)}>
           <div
             id="admin-mobile-modules"
+            ref={mobileDialogRef}
             role="dialog"
             aria-modal="true"
+            aria-labelledby="admin-mobile-title"
+            tabIndex={-1}
             className="max-h-[82dvh] w-full overflow-y-auto rounded-t-2xl border border-[#123f3d]/10 bg-[#fffdf9] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl dark:border-white/10 dark:bg-[#142b2a]"
             onClick={event => event.stopPropagation()}
           >
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-[#173b39] dark:text-[#edf5f2]">Módulos</h2>
+                <h2 id="admin-mobile-title" className="text-base font-bold text-[#173b39] dark:text-[#edf5f2]">Módulos</h2>
                 <p className="text-xs text-[#5f7a73] dark:text-[#bfd4d0]">Administración</p>
               </div>
-              <button type="button" onClick={() => setOpenForPathname(null)} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-[#4f6967] hover:bg-[#edf3f1] dark:text-[#d6e3e0] dark:hover:bg-white/5">
+              <button type="button" aria-label="Cerrar menú de módulos" onClick={() => setOpenForPathname(null)} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-[#4f6967] hover:bg-[#edf3f1] dark:text-[#d6e3e0] dark:hover:bg-white/5">
                 Cerrar
               </button>
             </div>

@@ -17,7 +17,7 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[]
-  addToCart: (item: Omit<CartItem, 'id'>) => void
+  addToCart: (item: Omit<CartItem, 'id'>) => 'added' | 'stock-limit' | 'request-limit'
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, cantidad: number) => void
   clearCart: () => void
@@ -88,6 +88,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, cartLoaded])
 
   const addToCart = (newItem: Omit<CartItem, 'id'>) => {
+    const existingItem = cart.find(item => item.variante_id === newItem.variante_id)
+    const cartQuantity = cart.reduce((total, item) => total + item.cantidad, 0)
+    if (existingItem) {
+      const quantityWithoutItem = cartQuantity - existingItem.cantidad
+      if (existingItem.cantidad + newItem.cantidad > newItem.stock_disponible) return 'stock-limit'
+      if (quantityWithoutItem + existingItem.cantidad + newItem.cantidad > 99) return 'request-limit'
+    } else {
+      if (newItem.cantidad > newItem.stock_disponible) return 'stock-limit'
+      if (cart.length >= 20 || cartQuantity + newItem.cantidad > 99 || newItem.cantidad > 99) return 'request-limit'
+    }
+
     setCart(prev => {
       // Check if the exact same inventory variant already exists.
       const existingItemIndex = prev.findIndex(
@@ -98,14 +109,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const updatedCart = [...prev]
         const currentItem = updatedCart[existingItemIndex]
         // No exceder stock disponible
-        const newQuantity = Math.min(currentItem.cantidad + newItem.cantidad, currentItem.stock_disponible)
-        updatedCart[existingItemIndex] = { ...currentItem, cantidad: newQuantity }
+        const otherQuantity = prev.reduce((total, item, index) =>
+          index === existingItemIndex ? total : total + item.cantidad, 0)
+        const maxQuantity = Math.min(newItem.stock_disponible, 99 - otherQuantity, 99)
+        const newQuantity = Math.min(currentItem.cantidad + newItem.cantidad, maxQuantity)
+        if (newQuantity <= currentItem.cantidad) return prev
+        updatedCart[existingItemIndex] = {
+          ...currentItem,
+          ...newItem,
+          id: currentItem.id,
+          cantidad: newQuantity
+        }
         return updatedCart
       }
+
+      const currentQuantity = prev.reduce((total, item) => total + item.cantidad, 0)
+      if (
+        prev.length >= 20 ||
+        newItem.cantidad > 99 ||
+        currentQuantity + newItem.cantidad > 99
+      ) return prev
 
       return [...prev, { ...newItem, id: crypto.randomUUID() }]
     })
     setIsCartOpen(true) // Abrir el carrito al agregar
+    return 'added'
   }
 
   const removeFromCart = (id: string) => {
@@ -118,9 +146,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    const currentItem = cart.find(item => item.id === id)
+    if (!currentItem) return
+    const otherQuantity = cart.reduce((total, item) => item.id === id ? total : total + item.cantidad, 0)
+    const maxQuantity = Math.max(1, Math.min(currentItem.stock_disponible, 99 - otherQuantity, 99))
+
     setCart(prev => prev.map(item => {
       if (item.id === id) {
-        return { ...item, cantidad: Math.min(cantidad, item.stock_disponible) }
+        return { ...item, cantidad: Math.min(cantidad, maxQuantity) }
       }
       return item
     }))

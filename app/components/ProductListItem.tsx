@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
+import { getProductBasePrice, getProductFinalPrice } from '@/lib/productPricing'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
@@ -25,13 +26,11 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
   const colegiosDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.colegio))].filter(c => c !== 'General')
   
   // Determinar si hay diferentes precios entre las variantes
-  const preciosVariantes = producto.variantes.map(v => v.precio).filter(p => p !== null && p !== undefined) as number[];
+  const variantesDisponibles = producto.variantes.filter(variante => variante.stock > 0)
+  const preciosVariantes = variantesDisponibles.map(variante => variante.precio ?? producto.precio)
   const tienePreciosDiferentes = preciosVariantes.length > 0 && preciosVariantes.some(p => p !== producto.precio);
-  const precioMinimo = preciosVariantes.length > 0 ? Math.min(producto.precio, ...preciosVariantes) : producto.precio;
-
-  const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
-    ? precioMinimo - (precioMinimo * producto.descuento_porcentaje / 100)
-    : precioMinimo
+  const precioMinimo = getProductBasePrice({ ...producto, variantes: variantesDisponibles })
+  const precioFinal = getProductFinalPrice({ ...producto, variantes: variantesDisponibles })
 
   const [isHovered, setIsHovered] = useState(false)
 
@@ -56,7 +55,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
             setShowModal(true);
           }
         }}
-        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 hover:scale-105"
+        className="group bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 hover:scale-105"
         onClick={() => setShowModal(true)}
       >
         <div className="flex flex-col sm:flex-row">
@@ -84,7 +83,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
                 )}
               </>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20">
+              <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-[#f4efe7] to-[#e2ebe5] dark:from-[#1a3534] dark:to-[#0f2423]">
                 <svg className="w-16 h-16 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -119,7 +118,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
               <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                 {producto.categoria}
               </p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-[#123f3d] dark:group-hover:text-[#e7c77c] transition-colors tracking-tight">
                 {producto.nombre}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 leading-relaxed">
@@ -155,7 +154,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
                       {colegiosDisponibles.slice(0, 5).map(colegio => (
                         <span 
                           key={colegio} 
-                          className="bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded"
+                          className="bg-[#edf3ee] dark:bg-[#244341] border border-[#123f3d]/20 dark:border-white/10 text-[#123f3d] dark:text-[#e7c77c] text-xs font-semibold px-2 py-1 rounded"
                         >
                           {colegio}
                         </span>
@@ -173,7 +172,7 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
 
             <div className="flex justify-between items-end pt-5 mt-4 border-t border-gray-100 dark:border-gray-700/50">
               <div className="flex flex-col">
-                <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-1.5 uppercase font-bold tracking-widest">Precio Final</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5 uppercase font-bold tracking-widest">Precio referencial</p>
                 {producto.descuento_porcentaje && producto.descuento_porcentaje > 0 ? (
                   <>
                     <span className="text-lg text-gray-400 dark:text-gray-500 line-through decoration-red-500/50">
@@ -196,21 +195,21 @@ export default function ProductListItem({ producto, relatedProducts = [] }: Prod
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider">¡Quedan {producto.stock_total}!</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Quedan {producto.stock_total}</span>
                   </div>
                 )}
                 {producto.stock_total > 5 ? (
                   <div className="flex items-center gap-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-md">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span className="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">En stock disponible</span>
+                    <span className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">En stock disponible</span>
                   </div>
                 ) : producto.stock_total === 0 ? (
                   <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
                     <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Agotado Temporalmente</span>
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Agotado temporalmente</span>
                   </div>
                 ) : null}
-                <button className="bg-gray-900 hover:bg-blue-600 dark:bg-white dark:text-gray-900 dark:hover:bg-blue-500 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-1 flex items-center gap-2">
+                <button type="button" className="bg-[#123f3d] hover:bg-[#0d2f2d] dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-1 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

@@ -93,6 +93,27 @@ html {
   scroll-behavior: smooth;
 }
 
+@keyframes cart-bump {
+  0% { transform: translate(25%, -25%) scale(0.8); }
+  60% { transform: translate(25%, -25%) scale(1.15); }
+  100% { transform: translate(25%, -25%) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

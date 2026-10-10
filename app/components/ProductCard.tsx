@@ -7,6 +7,8 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { LazyImage } from './ui'
 import ProductModal from './ProductModal'
 import { formatPrice } from '@/lib/formatPrice'
+import { getProductBasePrice, getProductFinalPrice } from '@/lib/productPricing'
+import { useToast } from './ui/ToastContainer'
 
 import type { Producto as DBProducto, Variante as DBVariante } from '@/types/database'
 
@@ -26,6 +28,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
   const [showModal, setShowModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isMounted = useMounted()
+  const toast = useToast()
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window === 'undefined') return false
     try {
@@ -55,35 +58,29 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const favs = JSON.parse(localStorage.getItem('favoritos') || '[]')
-    let newFavs
-    if (favs.includes(producto.id)) {
-      newFavs = favs.filter((id: string) => id !== producto.id)
-      setIsFavorite(false)
-    } else {
-      newFavs = [...favs, producto.id]
-      setIsFavorite(true)
-    }
-    localStorage.setItem('favoritos', JSON.stringify(newFavs))
     try {
-      // Notificar otras partes de la app en la misma pestaña
+      const saved: unknown = JSON.parse(localStorage.getItem('favoritos') || '[]')
+      const favs = Array.isArray(saved) && saved.every(id => typeof id === 'string') ? saved : []
+      const newFavs = favs.includes(producto.id)
+        ? favs.filter((id: string) => id !== producto.id)
+        : [...favs, producto.id]
+      localStorage.setItem('favoritos', JSON.stringify(newFavs))
+      setIsFavorite(newFavs.includes(producto.id))
       window.dispatchEvent(new CustomEvent('favoritos-changed', { detail: newFavs }))
-    } catch {
-      // no-op en entornos donde window no está disponible
+    } catch (error) {
+      console.error('No se pudo actualizar el favorito:', error)
+      toast.error('No se pudo actualizar el favorito. Revisa el almacenamiento del navegador.')
     }
   }
   const tallasDisponibles = [...new Set(producto.variantes.filter(v => v.stock > 0).map(v => v.talla))].filter(t => t !== 'Única')
   
-  // Determinar si hay diferentes precios entre las variantes
+  const variantesDisponibles = producto.variantes.filter(variante => variante.stock > 0)
   const preciosDisponibles = producto.variantes
     .filter(variante => variante.stock > 0)
     .map(variante => variante.precio ?? producto.precio)
-  const tienePreciosDiferentes = preciosDisponibles.some(precio => precio !== preciosDisponibles[0]);
-  const precioMinimo = preciosDisponibles.length > 0 ? Math.min(...preciosDisponibles) : producto.precio;
-
-  const precioFinal = producto.descuento_porcentaje && producto.descuento_porcentaje > 0
-    ? precioMinimo - (precioMinimo * producto.descuento_porcentaje / 100)
-    : precioMinimo
+  const tienePreciosDiferentes = preciosDisponibles.some(precio => precio !== preciosDisponibles[0])
+  const precioMinimo = getProductBasePrice({ ...producto, variantes: variantesDisponibles })
+  const precioFinal = getProductFinalPrice({ ...producto, variantes: variantesDisponibles })
 
   // Obtener array de imágenes (priorizar imagenes, luego imagen_url)
   const imagenes = producto.imagenes && producto.imagenes.length > 0 
@@ -140,7 +137,6 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                 fill
                 sizes="(max-width: 768px) 100vw, 400px"
                 className="w-full h-full object-contain p-2 transition-transform duration-700 ease-in-out group-hover:scale-110"
-                priority={currentImageIndex === 0}
               />
               
               {/* Navegación de imágenes */}
@@ -220,7 +216,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           )}
 
           {/* Botón Ver Detalles y Vista Previa de Tallas en Hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent transition-all duration-300 flex flex-col justify-end opacity-0 group-hover:opacity-100 z-10 pointer-events-none p-4">
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent transition-all duration-300 flex flex-col justify-end opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 z-10 pointer-events-none p-4">
             
             {/* Tallas disponibles preview */}
             {tallasDisponibles.length > 0 && (
@@ -259,9 +255,13 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#123f3d]/75 dark:text-[#e7c77c]">
             {producto.categoria}
           </p>
-          <h2 className="mb-auto line-clamp-2 text-base font-black leading-snug tracking-[-0.02em] text-[#173b39] transition-colors group-hover:text-[#123f3d] dark:text-white dark:group-hover:text-[#e7c77c] sm:text-lg lg:text-[1.1rem]">
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="mb-auto line-clamp-2 text-left text-base font-black leading-snug tracking-[-0.02em] text-[#173b39] transition-colors hover:text-[#123f3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:text-white dark:hover:text-[#e7c77c] sm:text-lg lg:text-[1.1rem]"
+          >
             {producto.nombre}
-          </h2>
+          </button>
           
           <div className="mt-5 flex justify-between items-end gap-3">
             <div className="flex flex-col">

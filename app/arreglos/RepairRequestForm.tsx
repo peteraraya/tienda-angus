@@ -91,7 +91,7 @@ export default function RepairRequestForm() {
     const whatsappUrl = `https://wa.me/56983852967?text=${encodeURIComponent(text)}`
 
     return (
-      <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
+      <div role="status" aria-live="polite" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
         <h2 className="font-bold text-emerald-900 dark:text-emerald-200">Solicitud registrada</h2>
         <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">Código de referencia: {requestId.slice(0, 8)}. Aún no se ha confirmado precio ni fecha de entrega.</p>
         <div className="mt-4 flex flex-wrap gap-3">

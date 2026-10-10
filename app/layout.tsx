@@ -58,7 +58,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#123f3d",
 };
 
 export default function RootLayout({
@@ -132,7 +132,7 @@ export default function RootLayout({
         />
         <CartProvider>
           <ToastProvider>
-            <main className="min-h-screen">{children}</main>
+            <div className="min-h-screen">{children}</div>
             <FloatingSocialButtons />
             <ClientCartSidebar />
             <ScrollToTop />

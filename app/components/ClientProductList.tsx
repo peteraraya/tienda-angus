@@ -6,6 +6,7 @@ import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
 import SearchBarSimple from './SearchBarSimple'
 import CountDisplayClient from './CountDisplayClient'
+import { getProductFinalPrice } from '@/lib/productPricing'
 // Hook para favoritos
 function readFavorites() {
   try {
@@ -117,6 +118,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       const matchesCategory = selectedCategory === '' || producto.categoria === selectedCategory
       const matchesVariant = (selectedTalla === '' && selectedColegio === '') ||
         producto.variantes.some(v =>
+          v.stock > 0 &&
           (selectedTalla === '' || v.talla === selectedTalla) &&
           (selectedColegio === '' || v.colegio === selectedColegio)
         )
@@ -129,24 +131,12 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       filtered = filtered.filter(producto => producto.en_oferta || (producto.descuento_porcentaje && producto.descuento_porcentaje > 0));
     }
     // Ordenar
-    const getEffectivePrice = (producto: Producto) => {
-      const variantPrices = producto.variantes
-        .map(variante => variante.precio)
-        .filter((price): price is number => price !== null && price !== undefined && price > 0)
-      const basePrice = variantPrices.length > 0
-        ? Math.min(producto.precio, ...variantPrices)
-        : producto.precio
-      return producto.descuento_porcentaje
-        ? basePrice * (1 - producto.descuento_porcentaje / 100)
-        : basePrice
-    }
-
     switch (selectedSort) {
       case 'price-asc':
-        filtered.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b))
+        filtered.sort((a, b) => getProductFinalPrice(a) - getProductFinalPrice(b))
         break
       case 'price-desc':
-        filtered.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a))
+        filtered.sort((a, b) => getProductFinalPrice(b) - getProductFinalPrice(a))
         break
       case 'name-asc':
         filtered.sort((a, b) => a.nombre.localeCompare(b.nombre))
@@ -337,7 +327,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters (Desktop) */}
-        <div className="hidden lg:block w-64 flex-shrink-0">
+        <div className="hidden">
           <div className="sticky top-28 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Colegios</h3>
@@ -453,23 +443,15 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
 
         {/* Contenido Principal */}
         <div className="flex-1 min-w-0">
-          <div className="lg:hidden">
-            <SearchBarSimple 
+          <div>
+            <SearchBarSimple
               value={searchTerm}
               onChange={setSearchTerm}
-              onCategoryChange={setSelectedCategory}
-              selectedCategory={selectedCategory}
-              categories={categories}
               onSortChange={setSelectedSort}
               selectedSort={selectedSort}
               onViewChange={setCurrentView}
               currentView={currentView}
               productos={productos.map(p => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion }))}
-              tallas={tallas}
-              selectedTalla={selectedTalla}
-              onTallaChange={setSelectedTalla}
-              selectedColegio={selectedColegio}
-              onColegioChange={setSelectedColegio}
               showOnlyFavorites={showOnlyFavorites}
               onShowOnlyFavoritesChange={setShowOnlyFavorites}
               showOnlyOffers={showOnlyOffers}
@@ -477,58 +459,6 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
             />
           </div>
           
-          <div className="hidden lg:block mb-6">
-            {/* Version desktop simplificada de la barra superior (sólo búsqueda y vista) */}
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="relative w-96">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar productos..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#123f3d] dark:focus:ring-[#e7c77c] bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-sm font-medium"
-                >
-                  <option value="newest">Más recientes</option>
-                  <option value="price-asc">Precio: menor a mayor</option>
-                  <option value="price-desc">Precio: mayor a menor</option>
-                  <option value="name-asc">Nombre: A-Z</option>
-                  <option value="name-desc">Nombre: Z-A</option>
-                </select>
-
-                <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
-                  <button
-                    onClick={() => setCurrentView('grid')}
-                    className={`min-h-11 min-w-11 rounded-lg transition-all ${currentView === 'grid' ? 'bg-white dark:bg-gray-800 shadow-sm text-[#123f3d] dark:text-[#e7c77c]' : 'text-gray-500'}`}
-                    aria-label="Vista en cuadrícula"
-                    aria-pressed={currentView === 'grid'}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                  </button>
-                  <button
-                    onClick={() => setCurrentView('list')}
-                    className={`min-h-11 min-w-11 rounded-lg transition-all ${currentView === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm text-[#123f3d] dark:text-[#e7c77c]' : 'text-gray-500'}`}
-                    aria-label="Vista en lista"
-                    aria-pressed={currentView === 'list'}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
 
       {filteredAndSortedProducts.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
@@ -558,7 +488,7 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
       ) : (
         <div className="space-y-6 lg:space-y-8">
           <div className="flex justify-between items-center pt-1">
-            <p suppressHydrationWarning className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <p aria-live="polite" aria-atomic="true" suppressHydrationWarning className="text-sm font-medium text-gray-600 dark:text-gray-400">
               <CountDisplayClient displayed={displayedProducts.length} total={filteredAndSortedProducts.length} />
             </p>
           </div>

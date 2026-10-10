@@ -19,6 +19,7 @@ export default function ClientCartSidebar() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
   const [orderLink, setOrderLink] = useState('')
+  const cartExceedsLimit = cart.length > 20 || cartCount > 99 || cart.some(item => item.cantidad > 99)
 
   // Cerrar al presionar Escape
   useEffect(() => {
@@ -64,12 +65,11 @@ export default function ClientCartSidebar() {
 
   // Evitar scroll del body cuando el carrito está abierto
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow
     if (isCartOpen) {
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
     }
-    return () => { document.body.style.overflow = 'unset' }
+    return () => { document.body.style.overflow = previousOverflow }
   }, [isCartOpen])
 
   if (!isCartOpen) return null
@@ -77,6 +77,10 @@ export default function ClientCartSidebar() {
   const handleCheckout = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (cart.length === 0) return
+    if (cartExceedsLimit) {
+      setCheckoutError('El pedido admite hasta 20 variantes y 99 prendas en total. Ajusta las cantidades antes de continuar.')
+      return
+    }
 
     setCheckoutError('')
     setIsSubmitting(true)
@@ -262,7 +266,7 @@ export default function ClientCartSidebar() {
                         <span className="w-6 text-center text-sm font-semibold text-gray-900 dark:text-white">{item.cantidad}</span>
                         <button 
                           onClick={() => updateQuantity(item.id, item.cantidad + 1)}
-                          disabled={item.cantidad >= item.stock_disponible}
+                          disabled={item.cantidad >= item.stock_disponible || cartCount >= 99}
                           aria-label={`Aumentar cantidad de ${item.nombre}`}
                           className="min-h-11 min-w-11 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-[#123f3d] dark:hover:text-[#e7c77c] font-bold disabled:opacity-50 disabled:hover:text-gray-600"
                         >
@@ -327,6 +331,7 @@ export default function ClientCartSidebar() {
               <input required type="checkbox" checked={consentimiento} onChange={event => setConsentimiento(event.target.checked)} className="mt-1 size-4 shrink-0 accent-[#123f3d]" />
               Autorizo el uso de mi nombre y teléfono para registrar esta solicitud y coordinar el pedido conmigo.
             </label>
+            {cartExceedsLimit && <p role="alert" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">El pedido admite hasta 20 variantes y 99 prendas en total. Ajusta las cantidades antes de continuar.</p>}
             {checkoutError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">{checkoutError}</p>}
             <p className="text-xs text-gray-500 dark:text-gray-400">
               La solicitud no reserva productos. El stock y el precio se verifican al enviarla; el pago y la entrega se coordinan por WhatsApp.
@@ -334,7 +339,7 @@ export default function ClientCartSidebar() {
 
             <button 
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || cartExceedsLimit}
               className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#128C7E] px-4 py-3 font-bold text-white transition-colors hover:bg-[#0d7065] disabled:cursor-wait disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

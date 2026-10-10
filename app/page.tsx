@@ -3,6 +3,8 @@ import ClientProductList from './components/ClientProductList'
 import ThemeToggle from './components/ThemeToggle'
 import ClientCartIcon from './components/ClientCartIcon'
 import MapModalTrigger from './components/MapModalTrigger'
+import MobileNavigation from './components/MobileNavigation'
+import { getProductFinalPrice } from '@/lib/productPricing'
 import type { Colegio, Producto, Variante } from '@/types/database'
 import Image from 'next/image';
 export const revalidate = 0
@@ -92,13 +94,11 @@ export default async function Home() {
   const preciosVariantesDestacado = productoDestacado?.variantes
     .filter(variante => variante.stock > 0)
     .map(variante => variante.precio ?? productoDestacado.precio) ?? []
+  const precioFinalDestacado = productoDestacado ? getProductFinalPrice(productoDestacado) : null
   const precioBaseDestacado = productoDestacado
     ? preciosVariantesDestacado.length > 0
       ? Math.min(...preciosVariantesDestacado)
       : productoDestacado.precio
-    : null
-  const precioFinalDestacado = precioBaseDestacado !== null && productoDestacado
-    ? precioBaseDestacado * (1 - (productoDestacado.descuento_porcentaje ?? 0) / 100)
     : null
   const precioDestacado = productoDestacado
     && precioFinalDestacado !== null
@@ -108,13 +108,7 @@ export default async function Home() {
   const productosDisponibles = productos.filter(producto => producto.stock_total > 0).length
 
   const jsonLdProducts = productos.map((p) => {
-    const preciosDisponibles = p.variantes
-      .filter(variante => variante.stock > 0)
-      .map(variante => variante.precio ?? p.precio)
-    const precioBase = preciosDisponibles.length > 0
-      ? Math.min(...preciosDisponibles)
-      : p.precio
-    const precioFinal = precioBase * (1 - (p.descuento_porcentaje ?? 0) / 100)
+    const precioFinal = getProductFinalPrice(p)
     return {
     '@type': 'Product',
     name: p.nombre,
@@ -171,9 +165,7 @@ export default async function Home() {
             </a>
 
             <nav aria-label="Navegación principal" className="flex items-center gap-2 sm:gap-4">
-              <a href="#productos" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c] md:hidden">
-                Catálogo
-              </a>
+              <MobileNavigation />
               <div className="hidden md:flex items-center gap-6 text-sm mr-2">
                 <a href="#productos" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
                 <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
