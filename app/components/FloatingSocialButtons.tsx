@@ -5,7 +5,6 @@ import { Modal } from "./ui";
 
 
 const whatsappUrl = "https://wa.me/56983852967";
-const instagramUrl = "https://www.instagram.com/confecciones_angus/";
 const phoneUrl = "tel:+56983852967";
 const mapUrl = "https://www.google.com/maps/place/Sta.+Olga+288,+2261750+Quillota,+Valpara%C3%ADso/@-32.8955437,-71.2514322,17z/data=!3m1!4b1!4m6!3m5!1s0x9689d27982a49069:0xd98d7b61b01591da!8m2!3d-32.8955437!4d-71.2488519!16s%2Fg%2F11kf9qzf_h?entry=ttu&g_ep=EgoyMDI2MDcyNy4wIKXMDSoASAFQAw%3D%3D";
 
@@ -27,14 +26,15 @@ export default function FloatingSocialButtons() {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 sm:bottom-6 sm:right-6">
             {/* WhatsApp */}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="WhatsApp"
-              className="bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center w-12 h-12 md:w-14 md:h-14 transition-all duration-200"
+              aria-label="Consultar por WhatsApp"
+              title="Consultar por WhatsApp"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-[#128C7E] text-white shadow-lg transition-all duration-200 hover:bg-[#0d7065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 sm:min-h-14 sm:min-w-14"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-8 md:h-8">
                 <path d="M12 2C6.477 2 2 6.477 2 12c0 2.042.613 3.938 1.664 5.527L2 22l4.473-1.664A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.657 0-3.22-.507-4.527-1.373l-.32-.21-2.66.988.988-2.66-.21-.32A7.963 7.963 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8zm3.807-6.093c-.197-.099-1.167-.577-1.348-.643-.181-.066-.313-.099-.445.099-.132.198-.511.643-.627.775-.116.132-.231.148-.428.05-.197-.099-.832-.307-1.584-.98-.586-.522-.98-1.165-1.095-1.362-.116-.198-.013-.304.086-.403.088-.088.197-.231.296-.347.099-.116.132-.198.198-.33.066-.132.033-.247-.016-.346-.049-.099-.445-1.075-.609-1.473-.16-.384-.324-.332-.445-.338-.116-.006-.247-.008-.379-.008-.132 0-.346.049-.527.247-.181.198-.693.677-.693 1.653s.71 1.936.81 2.073c.099.132 1.397 2.137 3.393 2.899.475.164.845.262 1.135.338.476.121.91.104 1.254.063.382-.047 1.167-.478 1.333-.941.165-.462.165-.858.116-.957-.049-.099-.181-.148-.378-.247z" />
@@ -43,8 +43,9 @@ export default function FloatingSocialButtons() {
             {/* Teléfono */}
             <a
               href={phoneUrl}
-              aria-label="Llamar"
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center w-12 h-12 md:w-14 md:h-14 transition-all duration-200"
+              aria-label="Llamar a Confecciones Angus"
+              title="Llamar a Confecciones Angus"
+              className="hidden min-h-11 min-w-11 items-center justify-center rounded-full bg-[#123f3d] text-white shadow-lg transition-all duration-200 hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 sm:flex sm:min-h-14 sm:min-w-14"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-8 md:h-8">
                 <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C7.61 21 3 16.39 3 11a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
@@ -55,7 +56,8 @@ export default function FloatingSocialButtons() {
             <button
               type="button"
               aria-label="Ver ubicación en Google Maps"
-              className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg flex items-center justify-center w-12 h-12 md:w-14 md:h-14 transition-all duration-200"
+              title="Ver ubicación en Google Maps"
+              className="hidden min-h-11 min-w-11 items-center justify-center rounded-full bg-[#d3a954] text-[#123f3d] shadow-lg transition-all duration-200 hover:bg-[#b98a2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 sm:flex sm:min-h-14 sm:min-w-14"
               onClick={() => setMapOpen(true)}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-8 md:h-8">

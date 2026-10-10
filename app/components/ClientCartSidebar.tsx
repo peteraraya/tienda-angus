@@ -26,10 +26,41 @@ export default function ClientCartSidebar() {
       if (e.key === 'Escape' && isCartOpen) {
         setIsCartOpen(false)
       }
+      if (e.key !== 'Tab' || !isCartOpen || !sidebarRef.current) return
+
+      const focusableElements = Array.from(sidebarRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ))
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (!firstElement || !lastElement) {
+        e.preventDefault()
+        sidebarRef.current.focus()
+      } else if (e.shiftKey && (document.activeElement === firstElement || !sidebarRef.current.contains(document.activeElement))) {
+        e.preventDefault()
+        lastElement.focus()
+      } else if (!e.shiftKey && (document.activeElement === lastElement || !sidebarRef.current.contains(document.activeElement))) {
+        e.preventDefault()
+        firstElement.focus()
+      }
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [isCartOpen, setIsCartOpen])
+
+  useEffect(() => {
+    if (!isCartOpen) return
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const focusTimer = window.setTimeout(() => {
+      sidebarRef.current?.querySelector<HTMLElement>('button')?.focus()
+    }, 0)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+      previouslyFocused?.focus()
+    }
+  }, [isCartOpen])
 
   // Evitar scroll del body cuando el carrito está abierto
   useEffect(() => {
@@ -141,19 +172,25 @@ export default function ClientCartSidebar() {
       {/* Sidebar */}
       <div 
         ref={sidebarRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-sidebar-title"
+        tabIndex={-1}
         className="relative w-full max-w-md bg-white dark:bg-gray-900 h-full shadow-2xl flex flex-col animate-slideInRight"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 id="cart-sidebar-title" className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg className="w-6 h-6 text-[#123f3d] dark:text-[#e7c77c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             Mi Pedido
           </h2>
           <button 
+            type="button"
             onClick={() => setIsCartOpen(false)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            aria-label="Cerrar pedido"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:hover:bg-gray-800 dark:focus-visible:ring-[#e7c77c]"
           >
             <CloseIcon className="text-gray-600 dark:text-gray-400" />
           </button>
@@ -184,7 +221,7 @@ export default function ClientCartSidebar() {
               <p className="text-lg font-medium">Tu pedido está vacío</p>
               <button 
                 onClick={() => setIsCartOpen(false)}
-                className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                className="min-h-11 text-[#123f3d] dark:text-[#e7c77c] font-bold hover:underline"
               >
                 Seguir comprando
               </button>
@@ -217,7 +254,8 @@ export default function ClientCartSidebar() {
                       <div className="flex items-center bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                         <button 
                           onClick={() => updateQuantity(item.id, item.cantidad - 1)}
-                          className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold"
+                          aria-label={`Reducir cantidad de ${item.nombre}`}
+                          className="min-h-11 min-w-11 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-[#123f3d] dark:hover:text-[#e7c77c] font-bold"
                         >
                           -
                         </button>
@@ -225,13 +263,14 @@ export default function ClientCartSidebar() {
                         <button 
                           onClick={() => updateQuantity(item.id, item.cantidad + 1)}
                           disabled={item.cantidad >= item.stock_disponible}
-                          className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold disabled:opacity-50 disabled:hover:text-gray-600"
+                          aria-label={`Aumentar cantidad de ${item.nombre}`}
+                          className="min-h-11 min-w-11 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-[#123f3d] dark:hover:text-[#e7c77c] font-bold disabled:opacity-50 disabled:hover:text-gray-600"
                         >
                           +
                         </button>
                       </div>
                       <div className="text-right">
-                        <span className="block font-bold text-blue-600 dark:text-blue-400 text-sm">
+                        <span className="block text-sm font-bold text-[#123f3d] dark:text-[#e7c77c]">
                           {formatPrice(item.precio * item.cantidad)}
                         </span>
                       </div>
@@ -239,8 +278,10 @@ export default function ClientCartSidebar() {
                   </div>
 
                   <button 
+                    type="button"
                     onClick={() => removeFromCart(item.id)}
-                    className="self-start p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label={`Eliminar ${item.nombre} del pedido`}
+                    className="flex min-h-11 min-w-11 items-center justify-center self-start text-gray-400 transition-colors hover:text-red-500"
                     title="Eliminar del pedido"
                   >
                     <DeleteOutlineIcon fontSize="small" />

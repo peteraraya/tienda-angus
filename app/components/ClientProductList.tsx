@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import ProductCard from './ProductCard'
 import ProductListItem from './ProductListItem'
@@ -74,10 +74,9 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
   const [showOnlyOffers, setShowOnlyOffers] = useState(false)
   const favorites = useFavorites();
-  // Paginación / carga infinita
+  // Renderizar resultados progresivamente para mantener la lista manejable.
   const PAGE_SIZE = 12
   const [page, setPage] = useState(1)
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   const categories = useMemo(() => {
     return [...new Set(productos.map(p => p.categoria))].sort()
@@ -97,12 +96,16 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   }, [productos, searchTerm, selectedCategory, selectedColegio])
 
   const tallas = useMemo(() => {
-    const allTallas = filteredProductsForFilters.flatMap(p => p.variantes?.map(v => v.talla) || [])
+    const allTallas = filteredProductsForFilters.flatMap(p =>
+      p.variantes?.filter(variante => variante.stock > 0).map(variante => variante.talla) || []
+    )
     return [...new Set(allTallas)].filter(t => t !== 'Única').sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   }, [filteredProductsForFilters])
 
   const colegios = useMemo(() => {
-    const allColegios = productos.flatMap(p => p.variantes?.map(v => v.colegio) || [])
+    const allColegios = productos.flatMap(p =>
+      p.variantes?.filter(variante => variante.stock > 0).map(variante => variante.colegio) || []
+    )
     return [...new Set(allColegios)].filter(Boolean).filter(c => c !== 'General').sort()
   }, [productos])
 
@@ -171,25 +174,6 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
   const displayedProducts = useMemo(() => {
     return filteredAndSortedProducts.slice(0, page * PAGE_SIZE)
   }, [filteredAndSortedProducts, page])
-
-  // IntersectionObserver para carga infinita
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // cargar más si hay más productos
-          if (displayedProducts.length < filteredAndSortedProducts.length) {
-            setPage((p) => p + 1)
-          }
-        }
-      })
-    }, { root: null, rootMargin: '200px', threshold: 0.1 })
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [displayedProducts.length, filteredAndSortedProducts.length])
 
   // CountDisplayClient es un componente cliente que monta y muestra el conteo
 
@@ -589,8 +573,6 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                   return <ProductCard key={producto.id} producto={producto} relatedProducts={relacionados} />;
                 })}
               </div>
-              {/* Sentinel para carga infinita */}
-              <div ref={sentinelRef} />
             </>
           ) : (
             <>
@@ -602,7 +584,6 @@ export default function ClientProductList({ productos, colegiosData = [] }: Clie
                   return <ProductListItem key={producto.id} producto={producto} relatedProducts={relacionados} />;
                 })}
               </div>
-              <div ref={sentinelRef} />
             </>
           )}
           {/* Botón 'Cargar más' como fallback */}

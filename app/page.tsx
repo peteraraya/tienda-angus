@@ -86,25 +86,49 @@ async function getProductos() {
 
 export default async function Home() {
   const [productos, colegios] = await Promise.all([getProductos(), getColegios()])
-  const productoDestacado = productos.find(producto => producto.imagen_url) ?? productos[0]
-  const precioDestacado = productoDestacado
-    ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
-      .format(productoDestacado.precio)
+  const productoDestacado = productos.find(producto =>
+    producto.stock_total > 0 && (producto.imagen_url || producto.imagenes?.length)
+  ) ?? productos.find(producto => producto.stock_total > 0) ?? productos[0]
+  const preciosVariantesDestacado = productoDestacado?.variantes
+    .filter(variante => variante.stock > 0)
+    .map(variante => variante.precio ?? productoDestacado.precio) ?? []
+  const precioBaseDestacado = productoDestacado
+    ? preciosVariantesDestacado.length > 0
+      ? Math.min(...preciosVariantesDestacado)
+      : productoDestacado.precio
     : null
+  const precioFinalDestacado = precioBaseDestacado !== null && productoDestacado
+    ? precioBaseDestacado * (1 - (productoDestacado.descuento_porcentaje ?? 0) / 100)
+    : null
+  const precioDestacado = productoDestacado
+    && precioFinalDestacado !== null
+    ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
+      .format(precioFinalDestacado)
+    : null
+  const productosDisponibles = productos.filter(producto => producto.stock_total > 0).length
 
-  const jsonLdProducts = productos.map((p) => ({
+  const jsonLdProducts = productos.map((p) => {
+    const preciosDisponibles = p.variantes
+      .filter(variante => variante.stock > 0)
+      .map(variante => variante.precio ?? p.precio)
+    const precioBase = preciosDisponibles.length > 0
+      ? Math.min(...preciosDisponibles)
+      : p.precio
+    const precioFinal = precioBase * (1 - (p.descuento_porcentaje ?? 0) / 100)
+    return {
     '@type': 'Product',
     name: p.nombre,
     description: p.descripcion,
-    image: p.imagen_url || 'https://www.confeccionesangus.cl/logo_ig.png',
+    image: p.imagen_url || p.imagenes?.[0] || 'https://www.confeccionesangus.cl/logo_ig.png',
     offers: {
       '@type': 'Offer',
       priceCurrency: 'CLP',
-      price: p.precio,
+      price: Math.round(precioFinal),
       availability: p.stock_total > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: 'https://www.confeccionesangus.cl#productos'
     }
-  }))
+    }
+  })
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(211,169,84,0.15),_transparent_28%),linear-gradient(180deg,#f7f2ea_0%,#f3eee4_42%,#efe6d8_100%)] text-[#173b39] dark:bg-[radial-gradient(circle_at_top,_rgba(231,199,124,0.08),_transparent_24%),linear-gradient(180deg,#0d1a1a_0%,#122827_35%,#142b2a_100%)] dark:text-[#edf5f2]">
@@ -126,9 +150,11 @@ export default async function Home() {
       )}
 
       <div className="bg-[#123f3d] text-[#f8f3e9] text-xs sm:text-sm font-semibold py-2.5 px-4 text-center shadow-[0_10px_25px_rgba(18,63,61,0.18)] relative z-50 flex items-center justify-center gap-2 dark:bg-[#0d1a1a] dark:text-[#edf5f2]">
-        <span aria-hidden="true">🎉</span>
-        <span>Preparando la nueva temporada escolar con entregas y atención directa por WhatsApp</span>
-        <span aria-hidden="true">🚚</span>
+        <span>Uniformes escolares y reparaciones en Quillota</span>
+        <span aria-hidden="true">·</span>
+        <a href="https://wa.me/56983852967?text=Hola%2C%20quiero%20consultar%20por%20uniformes%20escolares" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#e7c77c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e7c77c]">
+          Atención por WhatsApp
+        </a>
       </div>
 
       <header className="sticky top-0 z-40 border-b border-[#123f3d]/10 bg-[#f4efe7]/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(18,63,61,0.04)] dark:border-[#d7b972]/10 dark:bg-[#122827]/90 dark:shadow-[0_8px_24px_rgba(3,7,7,0.24)]">
@@ -139,12 +165,15 @@ export default async function Home() {
               <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
               
               <div className="brand-logo-text">
-                <h1>ANGUS</h1>
+                <p className="brand-logo-wordmark">ANGUS</p>
                 <span>CONFECCIONES</span>
               </div>
             </a>
 
             <nav aria-label="Navegación principal" className="flex items-center gap-2 sm:gap-4">
+              <a href="#productos" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c] md:hidden">
+                Catálogo
+              </a>
               <div className="hidden md:flex items-center gap-6 text-sm mr-2">
                 <a href="#productos" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
                 <a href="#reparaciones" className="text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Reparaciones</a>
@@ -175,25 +204,25 @@ export default async function Home() {
 
             <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">+100</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">prendas</p>
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">{productosDisponibles}</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">productos disponibles</p>
               </div>
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">6+</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">años</p>
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">{colegios.length}</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">colegios</p>
               </div>
               <div className="brand-card p-3 text-center dark:text-[#edf5f2]">
-                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">100%</p>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">personal</p>
+                <p className="text-xl font-black text-[#123f3d] dark:text-[#edf5f2]">WhatsApp</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#4d6d5f] dark:text-[#cfe0dd]">atención directa</p>
               </div>
             </div>
           </div>
 
           <div className="brand-showcase p-3 sm:p-4">
             <div className="relative aspect-[4/3] overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534]">
-              {productoDestacado?.imagen_url ? (
+              {productoDestacado?.imagen_url || productoDestacado?.imagenes?.[0] ? (
                 <Image
-                  src={productoDestacado.imagen_url}
+                  src={productoDestacado.imagen_url || productoDestacado.imagenes?.[0] || ''}
                   alt={productoDestacado.nombre}
                   fill
                   priority
@@ -225,7 +254,9 @@ export default async function Home() {
               </div>
               {precioDestacado && (
                 <div className="shrink-0 sm:text-right">
-                  <span className="block text-xs text-[#5f7a73] dark:text-[#bfd4d0]">Precio base</span>
+                  <span className="block text-xs text-[#5f7a73] dark:text-[#bfd4d0]">
+                    {preciosVariantesDestacado.some(precio => precio !== precioBaseDestacado) ? 'Desde' : 'Precio referencial'}
+                  </span>
                   <span className="text-lg font-black text-[#123f3d] dark:text-[#edf5f2]">{precioDestacado}</span>
                 </div>
               )}

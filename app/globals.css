@@ -156,7 +156,7 @@ body {
   line-height: 0.92;
 }
 
-.brand-logo-text h1 {
+.brand-logo-wordmark {
   font-size: clamp(1.1rem, 1.5vw, 1.7rem);
   letter-spacing: -0.08em;
   font-weight: 900;
@@ -283,7 +283,7 @@ body {
 .dark .brand-card span,
 .dark .brand-card div,
 .dark .section-title,
-.dark .brand-logo-text h1,
+.dark .brand-logo-wordmark,
 .dark .brand-logo-text span,
 .dark .hero-cta-secondary,
 .dark .hero-cta-primary,
