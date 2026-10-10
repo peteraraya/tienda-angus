@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useToast } from '@/app/components/ui/ToastContainer'
-import { Button, Pagination, usePagination } from '../components/ui'
+import { Button, Pagination } from '../components/ui'
 import ProductListNotebook from './components/ProductListNotebook'
 import DashboardSummary from './components/DashboardSummary'
 
@@ -12,8 +12,11 @@ import { DashboardMetrics } from './components/DashboardMetrics'
 import { useAdminProductos } from '@/app/hooks/useAdminProductos'
 import AdminFilters from './components/AdminFilters'
 import { useAdminFilters } from '@/app/hooks/useAdminFilters'
+import { exportProductosAction } from '@/app/actions/productos'
 
 export default function AdminPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isExporting, setIsExporting] = useState(false)
   const [variantSearchTerm, setVariantSearchTerm] = useState('')
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
   const [editingVariant, setEditingVariant] = useState<string | null>(null)
@@ -22,24 +25,6 @@ export default function AdminPage() {
   const [editingProductNotas, setEditingProductNotas] = useState<string | null>(null)
   
   const toast = useToast()
-
-  const { 
-    productos, 
-    isLoadingProductos,
-    isErrorProductos,
-    errorProductos,
-    deleteProducto, 
-    toggleOferta,
-    toggleActivoProducto,
-    updateDescuento, 
-    duplicateProduct,
-    updateVarianteStockMutation,
-    updateProductNameMutation,
-    updateProductPriceMutation,
-    updateProductNotasMutation,
-    ConfirmDialog,
-    refetchProductos
-  } = useAdminProductos()
 
   const {
     searchTerm,
@@ -55,12 +40,32 @@ export default function AdminPage() {
     selectedStatusFilter,
     setSelectedStatusFilter,
     searchInputRef,
-    categories,
-    colegios,
-    tallas,
-    filteredProducts,
-    stockEspecifico
-  } = useAdminFilters(productos)
+    filters
+  } = useAdminFilters(() => setCurrentPage(1))
+
+  const {
+    productos,
+    totalProductosFiltrados,
+    inventorySummary,
+    inventoryFacets,
+    stockEspecifico,
+    isLoadingProductos,
+    isErrorProductos,
+    errorProductos,
+    deleteProducto,
+    toggleOferta,
+    toggleActivoProducto,
+    updateDescuento,
+    duplicateProduct,
+    updateVarianteStockMutation,
+    updateProductNameMutation,
+    updateProductPriceMutation,
+    updateProductNotasMutation,
+    ConfirmDialog,
+    refetchProductos
+  } = useAdminProductos(filters, currentPage)
+  const totalPages = Math.ceil(totalProductosFiltrados / 20)
+  const displayedPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1
 
   function updateVarianteStock(varianteId: string, expectedStock: number, newStock: number) {
     if (newStock < 0) {
@@ -102,20 +107,6 @@ export default function AdminPage() {
     setEditingProductNotas(null)
   }
 
-  // Paginación
-  const { 
-    currentPage, 
-    totalPages, 
-    startIndex, 
-    endIndex, 
-    goToPage 
-  } = usePagination(filteredProducts.length, 20)
-
-  // Productos paginados
-  const paginatedProducts = useMemo(() => {
-    return filteredProducts.slice(startIndex, endIndex)
-  }, [filteredProducts, startIndex, endIndex])
-
   if (isLoadingProductos) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -137,33 +128,45 @@ export default function AdminPage() {
     )
   }
 
-  function handleExportCsv() {
-    const headers = ['ID', 'Nombre', 'Categoria', 'Precio Original', 'Descuento %', 'Precio Final', 'Stock Total', 'En Oferta', 'Notas']
-    const csvRows = filteredProducts.map(p => {
-      const precioFinal = p.descuento_porcentaje ? p.precio - (p.precio * p.descuento_porcentaje / 100) : p.precio
-      return [
-        p.id,
-        `"${p.nombre.replace(/"/g, '""')}"`,
-        `"${p.categoria}"`,
-        p.precio,
-        p.descuento_porcentaje || 0,
-        precioFinal,
-        p.stock_total || 0,
-        p.en_oferta ? 'Si' : 'No',
-        `"${p.notas?.replace(/"/g, '""') || ''}"`
-      ].join(',')
-    })
-    
-    const csvContent = [headers.join(','), ...csvRows].join('\n')
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `inventario_angus_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success('Inventario exportado a CSV')
+  async function handleExportCsv() {
+    setIsExporting(true)
+    try {
+      const filteredProducts = await exportProductosAction({
+        ...filters,
+        searchTerm: searchTerm.trim()
+      })
+      const headers = ['ID', 'Nombre', 'Categoria', 'Precio Original', 'Descuento %', 'Precio Final', 'Stock Total', 'En Oferta', 'Notas']
+      const csvRows = filteredProducts.map(p => {
+        const precioFinal = p.descuento_porcentaje ? p.precio - (p.precio * p.descuento_porcentaje / 100) : p.precio
+        return [
+          p.id,
+          `"${p.nombre.replace(/"/g, '""')}"`,
+          `"${p.categoria.replace(/"/g, '""')}"`,
+          p.precio,
+          p.descuento_porcentaje || 0,
+          precioFinal,
+          p.stock_total || 0,
+          p.en_oferta ? 'Si' : 'No',
+          `"${p.notas?.replace(/"/g, '""') || ''}"`
+        ].join(',')
+      })
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n')
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `inventario_angus_${new Date().toISOString().split('T')[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      toast.success('Inventario exportado a CSV')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo exportar el inventario')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   return (
@@ -172,14 +175,15 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Inventario General</h2>
         <Button
-          onClick={handleExportCsv}
+          onClick={() => void handleExportCsv()}
+          disabled={isExporting}
           className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl font-bold transition-all text-sm flex items-center gap-2 shadow-sm"
           title="Exportar a Excel/CSV"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span className="hidden lg:inline">Exportar</span>
+          <span className="hidden lg:inline">{isExporting ? 'Exportando…' : 'Exportar'}</span>
         </Button>
       </div>
 
@@ -187,7 +191,7 @@ export default function AdminPage() {
       <DashboardMetrics />
 
       {/* Dashboard Summary */}
-      <DashboardSummary productos={productos} />
+      <DashboardSummary summary={inventorySummary} />
 
       <AdminFilters
         searchTerm={searchTerm}
@@ -203,15 +207,15 @@ export default function AdminPage() {
         selectedStatusFilter={selectedStatusFilter}
         setSelectedStatusFilter={setSelectedStatusFilter}
         searchInputRef={searchInputRef}
-        categories={categories}
-        colegios={colegios}
-        tallas={tallas}
-        filteredProductsLength={filteredProducts.length}
+        categories={inventoryFacets.categories}
+        colegios={inventoryFacets.schools}
+        tallas={inventoryFacets.sizes}
+        filteredProductsLength={totalProductosFiltrados}
         stockEspecifico={stockEspecifico}
       />
 
       <ProductListNotebook
-        productos={paginatedProducts}
+        productos={productos}
         expandedProduct={expandedProduct}
         editingVariant={editingVariant}
         editingProductName={editingProductName}
@@ -238,14 +242,14 @@ export default function AdminPage() {
       />
 
       {/* Paginación */}
-      {filteredProducts.length > 20 && (
+      {totalProductosFiltrados > 20 && (
         <div className="mt-8">
           <Pagination
-            currentPage={currentPage}
+            currentPage={displayedPage}
             totalPages={totalPages}
-            onPageChange={goToPage}
+            onPageChange={setCurrentPage}
             itemsPerPage={20}
-            totalItems={filteredProducts.length}
+            totalItems={totalProductosFiltrados}
           />
         </div>
       )}

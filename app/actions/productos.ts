@@ -19,58 +19,275 @@ export type ProductoData = Partial<Omit<DBProducto, 'imagen_url' | 'imagenes'>> 
   imagenes?: string[] | null
 }
 
-export async function fetchProductosAction(): Promise<Producto[]> {
+export interface AdminInventoryFilters {
+  searchTerm: string
+  category: string
+  school: string
+  size: string
+  stockFilter: string
+  statusFilter: string
+}
+
+export interface AdminInventorySummary {
+  totalProductos: number
+  totalVariantes: number
+  unidadesDisponibles: number
+  unidadesStockBajo: number
+  variantesAgotadas: number
+  valorInventario: number
+}
+
+export interface AdminInventoryFacets {
+  categories: string[]
+  schools: string[]
+  sizes: string[]
+}
+
+export interface AdminProductPage {
+  items: Producto[]
+  total: number
+  facets: AdminInventoryFacets
+  summary: AdminInventorySummary
+  stockEspecifico: { totalStock: number; variantesEncontradas: number } | null
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+function parseFiniteNumber(record: Record<string, unknown>, field: string): number {
+  const value = record[field]
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`La respuesta del inventario contiene un valor inválido en ${field}`)
+  }
+  return value
+}
+
+function parseStringArray(value: unknown, field: string): string[] {
+  if (!Array.isArray(value)) throw new Error(`La respuesta del inventario contiene una lista inválida en ${field}`)
+  return value.map(item => {
+    if (typeof item !== 'string') {
+      throw new Error(`La respuesta del inventario contiene un valor inválido en ${field}`)
+    }
+    return item
+  })
+}
+
+function parseAdminProductPage(value: unknown): AdminProductPage {
+  if (!isRecord(value) || !Array.isArray(value.items) || !isRecord(value.facets) || !isRecord(value.summary)) {
+    throw new Error('La respuesta del inventario tiene un formato inválido')
+  }
+
+  const productos = value.items.map(item => {
+    if (
+      !isRecord(item) ||
+      typeof item.id !== 'string' ||
+      typeof item.nombre !== 'string' ||
+      typeof item.descripcion !== 'string' ||
+      typeof item.precio !== 'number' ||
+      typeof item.categoria !== 'string' ||
+      typeof item.activo !== 'boolean' ||
+      typeof item.created_at !== 'string' ||
+      typeof item.stock_total !== 'number' ||
+      typeof item.variantes_count !== 'number' ||
+      !Array.isArray(item.variantes)
+    ) {
+      throw new Error('La respuesta contiene un producto con formato inválido')
+    }
+
+    const variantes = item.variantes.map(variante => {
+      if (
+        !isRecord(variante) ||
+        typeof variante.id !== 'string' ||
+        typeof variante.producto_id !== 'string' ||
+        typeof variante.talla !== 'string' ||
+        typeof variante.colegio !== 'string' ||
+        typeof variante.stock !== 'number' ||
+        typeof variante.created_at !== 'string' ||
+        (variante.precio !== null && typeof variante.precio !== 'number') ||
+        (variante.insignia_url !== null && typeof variante.insignia_url !== 'string')
+      ) {
+        throw new Error('La respuesta contiene una variante con formato inválido')
+      }
+      return {
+        id: variante.id,
+        producto_id: variante.producto_id,
+        talla: variante.talla,
+        colegio: variante.colegio,
+        stock: variante.stock,
+        precio: variante.precio,
+        created_at: variante.created_at,
+        insignia_url: variante.insignia_url ?? undefined
+      }
+    })
+
+    if (
+      (item.imagen_url !== null && item.imagen_url !== undefined && typeof item.imagen_url !== 'string') ||
+      (item.imagenes !== null && item.imagenes !== undefined &&
+        (!Array.isArray(item.imagenes) || !item.imagenes.every(image => typeof image === 'string'))) ||
+      (item.descuento_porcentaje !== null && item.descuento_porcentaje !== undefined &&
+        typeof item.descuento_porcentaje !== 'number') ||
+      (item.en_oferta !== null && item.en_oferta !== undefined && typeof item.en_oferta !== 'boolean') ||
+      (item.notas !== null && item.notas !== undefined && typeof item.notas !== 'string')
+    ) {
+      throw new Error('La respuesta contiene datos de producto con formato inválido')
+    }
+
+    return {
+      id: item.id,
+      nombre: item.nombre,
+      descripcion: item.descripcion,
+      precio: item.precio,
+      categoria: item.categoria,
+      imagen_url: typeof item.imagen_url === 'string' ? item.imagen_url : undefined,
+      imagenes: Array.isArray(item.imagenes) ? item.imagenes : undefined,
+      activo: item.activo,
+      created_at: item.created_at,
+      descuento_porcentaje: typeof item.descuento_porcentaje === 'number' ? item.descuento_porcentaje : undefined,
+      en_oferta: typeof item.en_oferta === 'boolean' ? item.en_oferta : undefined,
+      notas: typeof item.notas === 'string' ? item.notas : undefined,
+      stock_total: item.stock_total,
+      variantes_count: item.variantes_count,
+      variantes
+    }
+  })
+
+  const summary = value.summary
+  const parsedSummary: AdminInventorySummary = {
+    totalProductos: parseFiniteNumber(summary, 'totalProductos'),
+    totalVariantes: parseFiniteNumber(summary, 'totalVariantes'),
+    unidadesDisponibles: parseFiniteNumber(summary, 'unidadesDisponibles'),
+    unidadesStockBajo: parseFiniteNumber(summary, 'unidadesStockBajo'),
+    variantesAgotadas: parseFiniteNumber(summary, 'variantesAgotadas'),
+    valorInventario: parseFiniteNumber(summary, 'valorInventario')
+  }
+
+  const stockEspecifico = value.stockEspecifico
+  let parsedStockEspecifico: AdminProductPage['stockEspecifico'] = null
+  if (stockEspecifico !== null) {
+    if (!isRecord(stockEspecifico)) throw new Error('El resumen de stock filtrado tiene un formato inválido')
+    parsedStockEspecifico = {
+      totalStock: parseFiniteNumber(stockEspecifico, 'totalStock'),
+      variantesEncontradas: parseFiniteNumber(stockEspecifico, 'variantesEncontradas')
+    }
+  }
+
+  if (typeof value.total !== 'number' || !Number.isInteger(value.total) || value.total < 0) {
+    throw new Error('El total de productos filtrados tiene un formato inválido')
+  }
+
+  return {
+    items: productos,
+    total: value.total,
+    facets: {
+      categories: parseStringArray(value.facets.categories, 'categories'),
+      schools: parseStringArray(value.facets.schools, 'schools'),
+      sizes: parseStringArray(value.facets.sizes, 'sizes')
+    },
+    summary: parsedSummary,
+    stockEspecifico: parsedStockEspecifico
+  }
+}
+
+async function getAdminProductPage(
+  filters: AdminInventoryFilters,
+  offset: number,
+  limit: number
+): Promise<AdminProductPage> {
   const supabase = await createClient()
+  const { data, error } = await supabase.rpc('get_admin_product_page', {
+    p_search: filters.searchTerm,
+    p_category: filters.category,
+    p_school: filters.school,
+    p_size: filters.size,
+    p_stock_filter: filters.stockFilter,
+    p_status_filter: filters.statusFilter,
+    p_offset: offset,
+    p_limit: limit
+  })
 
-  const productosData: DBProducto[] = []
-  let productoOffset = 0
+  if (error) throw new Error(`No se pudo cargar el inventario: ${error.message}`)
+  return parseAdminProductPage(data)
+}
+
+const EMPTY_ADMIN_FILTERS: AdminInventoryFilters = {
+  searchTerm: '',
+  category: '',
+  school: '',
+  size: '',
+  stockFilter: '',
+  statusFilter: ''
+}
+
+export async function fetchProductosAction(
+  filters: AdminInventoryFilters = EMPTY_ADMIN_FILTERS,
+  page = 1,
+  pageSize = 20
+): Promise<AdminProductPage> {
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new Error('La página solicitada no es válida')
+  }
+  return getAdminProductPage(filters, (page - 1) * pageSize, pageSize)
+}
+
+export async function exportProductosAction(filters: AdminInventoryFilters): Promise<Producto[]> {
+  const items: Producto[] = []
+  let offset = 0
+  const pageSize = 100
+  let total = 0
+
+  do {
+    const result = await getAdminProductPage(filters, offset, pageSize)
+    items.push(...result.items)
+    total = result.total
+    offset += result.items.length
+    if (result.items.length === 0 && offset < total) {
+      throw new Error('La exportación no pudo avanzar por los resultados del inventario')
+    }
+  } while (offset < total)
+
+  return items
+}
+
+export async function fetchAllProductosAction(): Promise<Producto[]> {
+  const supabase = await createClient()
   const pageSize = 500
+  const productosData: DBProducto[] = []
+  const variantesData: DBVariante[] = []
 
-  while (true) {
+  for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase
       .from('productos')
       .select('*')
       .order('created_at', { ascending: false })
-      .range(productoOffset, productoOffset + pageSize - 1)
-
-    if (error) throw new Error(error.message)
+      .order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+    if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`)
     productosData.push(...(data ?? []))
     if (!data || data.length < pageSize) break
-    productoOffset += pageSize
   }
 
-  const variantesData: DBVariante[] = []
-  let varianteOffset = 0
-  while (true) {
+  for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase
       .from('variantes')
       .select('*')
       .order('created_at', { ascending: true })
-      .range(varianteOffset, varianteOffset + pageSize - 1)
-
-    if (error) throw new Error(error.message)
+      .order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+    if (error) throw new Error(`No se pudieron cargar las variantes: ${error.message}`)
     variantesData.push(...(data ?? []))
     if (!data || data.length < pageSize) break
-    varianteOffset += pageSize
   }
 
   const { data: colegiosData, error: colegiosError } = await supabase
     .from('colegios')
     .select('nombre, insignia_url')
+  if (colegiosError) throw new Error(`No se pudieron cargar las insignias: ${colegiosError.message}`)
 
-  if (colegiosError) throw new Error(colegiosError.message)
-
-  const colegiosMap = new Map(
-    colegiosData?.map(c => [c.nombre.trim(), c.insignia_url]) ?? []
-  )
-
+  const colegiosMap = new Map(colegiosData?.map(colegio => [colegio.nombre.trim(), colegio.insignia_url]) ?? [])
   const variantesPorProducto = new Map<string, Variante[]>()
   for (const variante of variantesData) {
     const variantes = variantesPorProducto.get(variante.producto_id) ?? []
-    variantes.push({
-      ...variante,
-      insignia_url: colegiosMap.get(variante.colegio.trim())
-    })
+    variantes.push({ ...variante, insignia_url: colegiosMap.get(variante.colegio.trim()) })
     variantesPorProducto.set(variante.producto_id, variantes)
   }
 
@@ -78,6 +295,7 @@ export async function fetchProductosAction(): Promise<Producto[]> {
     const variantes = variantesPorProducto.get(producto.id) ?? []
     return {
       ...producto,
+      activo: producto.activo !== false,
       stock_total: variantes.reduce((sum, variante) => sum + variante.stock, 0),
       variantes_count: variantes.length,
       variantes

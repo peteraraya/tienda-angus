@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   outputFileTracingRoot: __dirname,
+  deploymentId:
+    process.env.NEXT_DEPLOYMENT_ID ??
+    process.env.VERCEL_DEPLOYMENT_ID ??
+    process.env.GITHUB_SHA,
   experimental: {},
   images: {
     remotePatterns: [

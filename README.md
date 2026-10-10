@@ -33,6 +33,10 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000)
 
+## Despliegues
+
+Next.js usa el identificador del despliegue para detectar cuando una pestaña conserva código de una versión anterior y recargarla antes de enviar una Server Action. En plataformas distintas de Vercel, configura `NEXT_DEPLOYMENT_ID` con un valor único por build (por ejemplo, el SHA del commit) y asegúrate de que todas las instancias de ese build usen el mismo valor.
+
 ## Estructura
 
 - `/` - Catálogo público de productos

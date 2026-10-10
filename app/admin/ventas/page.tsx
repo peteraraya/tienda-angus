@@ -9,7 +9,7 @@ import { useConfirm } from '@/app/hooks/useConfirm'
 import { Button, Input } from '@/app/components/ui'
 import ClienteAutocomplete from '../components/ClienteAutocomplete'
 import type { Producto as DBProducto, Variante as DBVariante, Cliente } from '@/types/database'
-import { fetchProductosAction, type Producto as ProductoAction } from '@/app/actions/productos'
+import { fetchAllProductosAction, type Producto as ProductoAction } from '@/app/actions/productos'
 import { crearVentaAction } from '@/app/actions/ventas'
 
 interface Variante extends DBVariante {
@@ -69,7 +69,7 @@ export default function VentasPage() {
 
   const { data: productosData = [], isLoading: loading } = useQuery({
     queryKey: ['adminVentasProductos'],
-    queryFn: fetchProductosAction,
+    queryFn: () => fetchAllProductosAction(),
     staleTime: 60 * 1000,
   })
 

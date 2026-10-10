@@ -16,8 +16,11 @@ import {
   updateProductNameAction,
   updateProductPriceAction,
   updateProductNotasAction,
+  type AdminInventoryFilters,
   type Producto,
-  type Variante
+  type Variante,
+  type AdminInventorySummary,
+  type AdminInventoryFacets
 } from '@/app/actions/productos'
 
 export type { Producto, Variante }
@@ -29,7 +32,17 @@ export type { Producto, Variante }
  * 
  * @returns {Object} Product state, loading status, and action methods
  */
-export function useAdminProductos() {
+const EMPTY_SUMMARY: AdminInventorySummary = {
+  totalProductos: 0,
+  totalVariantes: 0,
+  unidadesDisponibles: 0,
+  unidadesStockBajo: 0,
+  variantesAgotadas: 0,
+  valorInventario: 0
+}
+const EMPTY_FACETS: AdminInventoryFacets = { categories: [], schools: [], sizes: [] }
+
+export function useAdminProductos(filters: AdminInventoryFilters, page: number) {
   const toast = useToast()
   const { confirm, ConfirmDialog } = useConfirm()
   const queryClient = useQueryClient()
@@ -40,15 +53,16 @@ export function useAdminProductos() {
    * Also maps school badges (insignias) to the corresponding variants.
    */
   const {
-    data: productos = [],
+    data: inventoryPage,
     isLoading: isLoadingProductos,
     isError: isErrorProductos,
     error: errorProductos,
     refetch: refetchProductos
   } = useQuery({
-    queryKey: ['adminProductos'],
-    queryFn: fetchProductosAction,
+    queryKey: ['adminProductos', filters, page],
+    queryFn: () => fetchProductosAction(filters, page)
   })
+  const productos = inventoryPage?.items ?? []
 
   // Mutaciones para operaciones de escritura que invalidan el caché al terminar
   const deleteMutation = useMutation({
@@ -272,6 +286,10 @@ export function useAdminProductos() {
 
   return {
     productos,
+    totalProductosFiltrados: inventoryPage?.total ?? 0,
+    inventorySummary: inventoryPage?.summary ?? EMPTY_SUMMARY,
+    inventoryFacets: inventoryPage?.facets ?? EMPTY_FACETS,
+    stockEspecifico: inventoryPage?.stockEspecifico ?? null,
     isLoadingProductos,
     isErrorProductos,
     errorProductos,

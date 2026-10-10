@@ -43,7 +43,7 @@ No asumir Vite, TanStack Router, NestJS, TypeORM, Prisma, una API propia indepen
 - Las solicitudes de arreglo iniciales no adjuntan fotos; se coordinan por el canal humano existente.
 - Comprobar siempre el `error` de Supabase; mostrar fallos recuperables, no éxitos falsos ni valores por defecto que oculten errores.
 - Crear migraciones rerunnables y ordenadas. Para una base existente, aplicar solo las migraciones pendientes; no ejecutar el esquema consolidado sobre una base con datos.
-- El orden de instalación vigente está documentado en `supabase/README.md`. La cadena actual de migraciones de instalación parte de la 34 y llega a la 39.
+- El orden de instalación vigente está documentado en `supabase/README.md`. La cadena actual de migraciones de instalación parte de la 34 y llega a la 40.
 - No enviar claves service-role ni secretos al navegador ni registrarlos en código/versionado.
 
 ## 5. Guía visual y UX
