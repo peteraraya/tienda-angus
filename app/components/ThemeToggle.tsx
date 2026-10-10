@@ -10,8 +10,13 @@ export default function ThemeToggle() {
     // Defer state updates to avoid calling setState synchronously within the effect
     const id = setTimeout(() => {
       if (typeof window === 'undefined') return;
-      const theme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      let theme: string | null = null;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch {
+        // Fall back to the device preference when browser storage is unavailable.
+      }
       const initial = theme === 'dark' || (!theme && prefersDark);
       setIsDark(initial);
       setMounted(true);
@@ -28,10 +33,18 @@ export default function ThemeToggle() {
     if (!mounted) return;
     if (isDark) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      try {
+        localStorage.setItem('theme', 'dark');
+      } catch {
+        // The selected theme still applies for the current page.
+      }
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      try {
+        localStorage.setItem('theme', 'light');
+      } catch {
+        // The selected theme still applies for the current page.
+      }
     }
   }, [isDark, mounted]);
 

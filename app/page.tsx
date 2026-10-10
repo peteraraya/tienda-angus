@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import ClientProductList from './components/ClientProductList'
 import ThemeToggle from './components/ThemeToggle'
+import AccessibilityControls from './components/AccessibilityControls'
 import ClientCartIcon from './components/ClientCartIcon'
 import MapModalTrigger from './components/MapModalTrigger'
 import MobileNavigation from './components/MobileNavigation'
@@ -154,8 +155,8 @@ export default async function Home() {
       </div>
 
       <header className="sticky top-0 z-40 border-b border-[#123f3d]/10 bg-[#f4efe7]/80 backdrop-blur-xl shadow-[0_8px_24px_rgba(18,63,61,0.04)] dark:border-[#d7b972]/10 dark:bg-[#122827]/90 dark:shadow-[0_8px_24px_rgba(3,7,7,0.24)]">
-        <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
-          <div className="flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-5">
+          <div className="flex items-center justify-between gap-1 sm:gap-4">
             <a href="#inicio" className="brand-logo-lockup group rounded-2xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] focus-visible:ring-offset-2 dark:focus-visible:ring-[#e7c77c] dark:focus-visible:ring-offset-[#122827]">
 
               <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
@@ -166,7 +167,7 @@ export default async function Home() {
               </div>
             </a>
 
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-4">
               <MobileNavigation />
               <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-base sm:text-sm md:flex mr-2">
                 <a href="#productos" className="inline-flex min-h-11 items-center rounded px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c] text-[#173b39] hover:text-[#123f3d] transition-colors font-bold dark:text-[#edf5f2] dark:hover:text-[#e7c77c]">Catálogo</a>
@@ -175,6 +176,7 @@ export default async function Home() {
               </nav>
               <ClientCartIcon />
               <ThemeToggle />
+              <AccessibilityControls className="hidden md:block" />
             </div>
           </div>
         </div>

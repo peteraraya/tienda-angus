@@ -91,6 +91,104 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: calc(16px * var(--accessibility-font-scale, 1));
+}
+
+html[data-font-scale="112.5"] {
+  --accessibility-font-scale: 1.125;
+}
+
+html[data-font-scale="125"] {
+  --accessibility-font-scale: 1.25;
+}
+
+html[data-contrast="high"] {
+  --background: #ffffff;
+  --foreground: #111111;
+  --background-elevated: #ffffff;
+  --brand-primary: #123f3d;
+  --brand-primary-deep: #0b2927;
+  --brand-primary-soft: #e5efed;
+  --brand-secondary: #674600;
+  --brand-secondary-soft: #fff2cc;
+  --brand-secondary-strong: #674600;
+  --brand-muted: #344b48;
+  --surface: #ffffff;
+  --surface-alt: #f1f1f1;
+  --surface-elevated: #ffffff;
+  --surface-hover: #e5e5e5;
+  --surface-muted: #eeeeee;
+  --border: #595959;
+  --border-strong: #333333;
+  --text-muted: #333333;
+  --text-soft: #333333;
+}
+
+html.dark[data-contrast="high"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --background-elevated: #000000;
+  --brand-primary: #ffffff;
+  --brand-primary-deep: #f0f0f0;
+  --brand-primary-soft: #222222;
+  --brand-secondary: #ffe08a;
+  --brand-secondary-soft: #28210e;
+  --brand-secondary-strong: #ffe08a;
+  --brand-muted: #ffffff;
+  --surface: #080808;
+  --surface-alt: #161616;
+  --surface-elevated: #101010;
+  --surface-hover: #252525;
+  --surface-muted: #222222;
+  --border: #a6a6a6;
+  --border-strong: #dedede;
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --text-tertiary: #f0f0f0;
+  --text-muted: #f0f0f0;
+  --text-soft: #ffffff;
+}
+
+html[data-contrast="high"] body {
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+html[data-contrast="high"] #main-content {
+  background-color: var(--background) !important;
+  color: var(--foreground);
+}
+
+html[data-contrast="high"] #main-content main {
+  background-image: none !important;
+}
+
+html[data-contrast="high"] a:not([class*="bg-"]) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+html[data-contrast="high"] :where(button, input, select, textarea) {
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] :where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid currentColor !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--background);
+}
+
+.accessibility-preferences-panel {
+  width: min(21rem, calc(100vw - 2rem));
+}
+
+.accessibility-preferences-panel-mobile {
+  position: fixed;
+  right: 1rem;
+  left: auto;
+  margin-top: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @keyframes cart-bump {
@@ -102,6 +200,15 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  html[data-reduce-motion="true"] *,
+  html[data-reduce-motion="true"] *::before,
+  html[data-reduce-motion="true"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 
   *,
@@ -409,11 +516,11 @@ input[type=number] {
 }
 
 @media (max-width: 640px) {
-  html { font-size: 14px; }
+  html { font-size: calc(14px * var(--accessibility-font-scale, 1)); }
 }
 
 @media (min-width: 1024px) {
-  html { font-size: 16px; }
+  html { font-size: calc(16px * var(--accessibility-font-scale, 1)); }
 }
 
 /* Halo pulse for spotlight */

@@ -77,6 +77,9 @@ export default function RootLayout({
                 try {
                   var theme = localStorage.getItem('theme');
                   var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var fontScale = localStorage.getItem('accessibility-font-scale');
+                  var contrast = localStorage.getItem('accessibility-contrast');
+                  var reduceMotion = localStorage.getItem('accessibility-reduce-motion');
                   if (theme === 'dark' || (!theme && prefersDark)) {
                     document.documentElement.classList.add('dark');
                     try { document.body.classList.add('dark'); } catch(e){}
@@ -84,6 +87,10 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                     try { document.body.classList.remove('dark'); } catch(e){}
                   }
+                  document.documentElement.dataset.fontScale =
+                    fontScale === '112.5' || fontScale === '125' ? fontScale : '100';
+                  document.documentElement.dataset.contrast = contrast === 'high' ? 'high' : 'standard';
+                  document.documentElement.dataset.reduceMotion = reduceMotion === 'true' ? 'true' : 'false';
                 } catch (e) {}
               })();
             `,

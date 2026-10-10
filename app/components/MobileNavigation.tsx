@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import AccessibilityControls from './AccessibilityControls'
 
 const links = [
   { href: '#productos', label: 'Catálogo' },
@@ -11,11 +12,15 @@ const links = [
 export default function MobileNavigation() {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key !== 'Escape') return
+      if (event.target instanceof Element && event.target.closest('#accessibility-preferences')) return
+      setOpen(false)
+      triggerRef.current?.focus()
     }
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
@@ -24,13 +29,17 @@ export default function MobileNavigation() {
   return (
     <div className="relative md:hidden" ref={menuRef}>
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={open}
         aria-controls="mobile-primary-navigation"
         onClick={() => setOpen(value => !value)}
-        className="inline-flex min-h-11 items-center rounded-xl px-3 text-base font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c]"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl px-2 text-base font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c] sm:px-3"
       >
-        Menú
+        <svg aria-hidden="true" className="h-5 w-5 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span className="sr-only sm:not-sr-only">Menú</span>
       </button>
       {open && (
         <nav
@@ -48,6 +57,15 @@ export default function MobileNavigation() {
               {link.label}
             </a>
           ))}
+          <div className="border-t border-[#123f3d]/10 px-2 pt-2 dark:border-white/10">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-[#4f6967] dark:text-[#c5d9d6]">
+              Visualización
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Accesibilidad</span>
+              <AccessibilityControls mobilePanel />
+            </div>
+          </div>
         </nav>
       )}
     </div>
