@@ -305,7 +305,7 @@ export default async function Home() {
             </div>
           </article>
 
-          <article className="group relative overflow-hidden rounded-[1.6rem] border border-[#123f3d]/10 bg-[linear-gradient(135deg,#f9f3e7_0%,#f2e7cc_100%)] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)] dark:border-white/10 dark:bg-[#1a3534] dark:shadow-[0_18px_35px_rgba(3,7,7,0.2)]">
+          <article className="group relative overflow-hidden rounded-[1.6rem] border border-[#123f3d]/10 bg-[linear-gradient(135deg,#f9f3e7_0%,#f2e7cc_100%)] p-6 shadow-[0_18px_35px_rgba(18,63,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(18,63,61,0.12)] dark:border-white/10 dark:bg-none dark:bg-[#1a3534] dark:shadow-[0_18px_35px_rgba(3,7,7,0.2)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(18,63,61,0.09),_transparent_45%)]" />
             <div className="relative">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d3a954] text-xl text-[#123f3d] shadow-inner">✂</div>
