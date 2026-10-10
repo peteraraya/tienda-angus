@@ -8,7 +8,7 @@ const phonePattern = /^[0-9+() -]{8,24}$/
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export default function RepairRequestForm() {
-  const requestRef = useRef<{ fingerprint: string; key: string } | null>(null)
+  const requestRef = useRef<{ fingerprint: string; key: string; trackingToken: string } | null>(null)
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [prenda, setPrenda] = useState('')
@@ -19,6 +19,9 @@ export default function RepairRequestForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [requestId, setRequestId] = useState('')
+  const [trackingToken, setTrackingToken] = useState('')
+  const [trackingCodeCopied, setTrackingCodeCopied] = useState(false)
+  const [trackingCodeCopyError, setTrackingCodeCopyError] = useState('')
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,19 +52,25 @@ export default function RepairRequestForm() {
           parsed.fingerprint === fingerprint &&
           'key' in parsed &&
           typeof parsed.key === 'string' &&
-          UUID_PATTERN.test(parsed.key)
+          UUID_PATTERN.test(parsed.key) &&
+          'trackingToken' in parsed &&
+          typeof parsed.trackingToken === 'string' &&
+          /^[a-f0-9]{64}$/i.test(parsed.trackingToken)
         ) {
-          requestRef.current = { fingerprint, key: parsed.key }
+          requestRef.current = { fingerprint, key: parsed.key, trackingToken: parsed.trackingToken }
         }
       }
 
       if (!requestRef.current || requestRef.current.fingerprint !== fingerprint) {
-        requestRef.current = { fingerprint, key: crypto.randomUUID() }
+        const tokenBytes = crypto.getRandomValues(new Uint8Array(32))
+        const token = Array.from(tokenBytes, byte => byte.toString(16).padStart(2, '0')).join('')
+        requestRef.current = { fingerprint, key: crypto.randomUUID(), trackingToken: token }
       }
       localStorage.setItem('repair_request_pending', JSON.stringify(requestRef.current))
 
       const result = await crearSolicitudReparacionAction({
         requestKey: requestRef.current.key,
+        trackingToken: requestRef.current.trackingToken,
         nombre,
         telefono,
         prenda,
@@ -77,6 +86,7 @@ export default function RepairRequestForm() {
       }
 
       localStorage.removeItem('repair_request_pending')
+      setTrackingToken(requestRef.current.trackingToken)
       requestRef.current = null
       setRequestId(result.id)
     } catch (cause) {
@@ -93,7 +103,11 @@ export default function RepairRequestForm() {
     return (
       <div role="status" aria-live="polite" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
         <h2 className="font-bold text-emerald-900 dark:text-emerald-200">Solicitud registrada</h2>
-        <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">Código de referencia: {requestId.slice(0, 8)}. Aún no se ha confirmado precio ni fecha de entrega.</p>
+        <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">Código de referencia: {requestId.slice(0, 8)}.</p>
+        <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">Aún no se ha confirmado precio ni fecha de entrega.</p>
+        <p className="mt-3 text-sm font-semibold text-emerald-900 dark:text-emerald-200">Código privado para consultar el estado:</p>
+        <code className="mt-1 block break-all rounded-lg bg-white/70 p-3 text-xs text-emerald-950 dark:bg-black/20 dark:text-emerald-100">{trackingToken}</code>
+        <p className="mt-2 text-xs text-emerald-800 dark:text-emerald-300">Guárdalo en un lugar seguro. Permite consultar el estado y no se puede recuperar si lo pierdes.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-lg bg-[#128C7E] px-4 text-sm font-bold text-white">
             Coordinar por WhatsApp
@@ -101,7 +115,23 @@ export default function RepairRequestForm() {
           <Link href="/" className="inline-flex min-h-11 items-center rounded-lg border border-emerald-800/20 px-4 text-sm font-semibold text-emerald-900 dark:text-emerald-200">
             Volver al catálogo
           </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              setTrackingCodeCopyError('')
+              try {
+                await navigator.clipboard.writeText(trackingToken)
+                setTrackingCodeCopied(true)
+              } catch {
+                setTrackingCodeCopyError('No se pudo copiar el código. Selecciónalo y cópialo manualmente.')
+              }
+            }}
+            className="inline-flex min-h-11 items-center rounded-lg border border-emerald-800/20 px-4 text-sm font-semibold text-emerald-900 dark:text-emerald-200"
+          >
+            {trackingCodeCopied ? 'Código copiado' : 'Copiar código'}
+          </button>
         </div>
+        {trackingCodeCopyError && <p role="alert" className="mt-2 text-sm text-red-800 dark:text-red-200">{trackingCodeCopyError}</p>}
       </div>
     )
   }

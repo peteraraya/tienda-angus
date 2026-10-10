@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Archivo consolidado a partir de supabase/*.sql y supabase/migrations/*.sql.
 -- Para instalar desde cero, ejecutar este archivo y luego las migraciones
--- 34 a 41 en orden.
+-- 34 a 42 en orden.
 --
 -- Se ejecuta de forma idempotente sobre una base vacía (CREATE TABLE IF NOT
 -- EXISTS). Para bases existentes, usa los archivos numerados en orden.
@@ -219,6 +219,7 @@ CREATE TABLE IF NOT EXISTS solicitudes_reparacion (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   idempotency_key UUID NOT NULL UNIQUE,
   idempotency_payload TEXT NOT NULL,
+  tracking_token_hash TEXT,
   cliente_nombre TEXT NOT NULL,
   cliente_telefono TEXT NOT NULL,
   prenda TEXT NOT NULL,

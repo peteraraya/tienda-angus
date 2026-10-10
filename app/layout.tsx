@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FloatingSocialButtons from "./components/FloatingSocialButtons";
+import StoreAssistant from "./components/StoreAssistant";
 import { ToastProvider } from "./components/ui/ToastContainer";
 import { CartProvider } from "./contexts/CartContext";
 import ClientCartSidebar from "./components/ClientCartSidebar";
@@ -137,6 +138,7 @@ export default function RootLayout({
               {children}
             </div>
             <FloatingSocialButtons />
+            <StoreAssistant />
             <ClientCartSidebar />
             <ScrollToTop />
           </ToastProvider>

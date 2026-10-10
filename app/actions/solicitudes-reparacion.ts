@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 
 export interface SolicitudReparacionInput {
   requestKey: string
+  trackingToken: string
   nombre: string
   telefono: string
   prenda: string
@@ -20,6 +21,9 @@ export async function crearSolicitudReparacionAction(
 ): Promise<{ success: true; id: string } | { success: false; error: string }> {
   if (!input || typeof input !== 'object' || !UUID_PATTERN.test(input.requestKey)) {
     return { success: false, error: 'No se pudo identificar esta solicitud. Intenta nuevamente.' }
+  }
+  if (typeof input.trackingToken !== 'string' || !/^[a-f0-9]{64}$/i.test(input.trackingToken)) {
+    return { success: false, error: 'No se pudo generar el código de seguimiento. Intenta nuevamente.' }
   }
 
   if (
@@ -55,7 +59,8 @@ export async function crearSolicitudReparacionAction(
     p_descripcion: input.descripcion.trim(),
     p_fecha_deseada: fechaDeseada || null,
     p_consent: input.consentimiento,
-    p_website: input.website
+    p_website: input.website,
+    p_tracking_token: input.trackingToken
   })
 
   if (error) return { success: false, error: error.message }
