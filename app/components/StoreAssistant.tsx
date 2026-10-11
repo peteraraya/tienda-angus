@@ -203,7 +203,7 @@ export default function StoreAssistant() {
         aria-label={isOpen ? 'Cerrar asistente Angus' : 'Abrir asistente Angus'}
         aria-expanded={isOpen}
         onClick={() => setIsOpen(open => !open)}
-        className="fixed bottom-4 left-4 z-[60] flex min-h-12 items-center gap-2 rounded-full bg-[#123f3d] px-4 text-sm font-bold text-white shadow-lg transition-colors hover:bg-[#0d302e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#d3a954] dark:text-[#123f3d] dark:hover:bg-[#e7c77c] sm:bottom-6 sm:left-6"
+        className="fixed bottom-4 left-4 z-[60] flex min-h-[44px] items-center gap-2 rounded-full bg-[#123f3d] px-4 text-sm font-bold text-white shadow-lg transition-colors hover:bg-[#0d302e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#d3a954] dark:text-[#123f3d] dark:hover:bg-[#e7c77c] sm:bottom-6 sm:left-6"
       >
         <span aria-hidden="true">✦</span>
         {isOpen ? 'Cerrar' : 'Ayuda'}

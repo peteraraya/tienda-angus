@@ -10,7 +10,7 @@ export default function ClientCartIcon() {
       onClick={() => setIsCartOpen(true)}
       type="button"
       aria-label={`Abrir pedido${cartCount > 0 ? `, ${cartCount} prendas` : ''}`}
-      className="relative min-h-11 min-w-11 p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c]"
+      className="relative min-h-[44px] min-w-[44px] p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:focus-visible:ring-[#e7c77c]"
       title="Mi Pedido"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

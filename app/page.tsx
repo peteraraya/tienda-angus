@@ -148,7 +148,7 @@ export default async function Home() {
           </div>
 
           <div className="brand-showcase p-3 sm:p-4">
-            <div className={`relative overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534] ${tieneImagenDestacada ? 'aspect-[4/3]' : 'min-h-[200px] sm:aspect-[4/3]'}`}>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.6rem] bg-[#e9e1d3] dark:bg-[#1a3534]">
               {productoDestacado?.imagen_url || productoDestacado?.imagenes?.[0] ? (
                 <Image
                   src={productoDestacado.imagen_url || productoDestacado.imagenes?.[0] || ''}
@@ -159,9 +159,17 @@ export default async function Home() {
                   className="object-contain p-4 transition-transform duration-500 hover:scale-[1.02]"
                 />
               ) : (
-                <div className="flex h-full min-h-[200px] flex-col items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(211,169,84,0.32),transparent_40%),linear-gradient(145deg,#e9e1d3,#d6e0d9)] px-6 text-center text-[#123f3d] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(231,199,124,0.18),transparent_40%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2] sm:min-h-0">
-                  <Image src="/logo_ig.png" alt="Confecciones Angus" width={112} height={112} className="h-16 w-16 object-contain opacity-90 sm:h-20 sm:w-20" />
-                  <span className="mt-2 text-sm font-bold tracking-wide text-[#79551e] dark:text-[#e7c77c]">Confección y asesoría en Quillota</span>
+                <div className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_28%_20%,rgba(211,169,84,0.32),transparent_38%),linear-gradient(145deg,#f1eadf,#d6e0d9)] px-5 text-center text-[#123f3d] dark:bg-[radial-gradient(circle_at_28%_20%,rgba(231,199,124,0.18),transparent_38%),linear-gradient(145deg,#1a3534,#0f2423)] dark:text-[#edf5f2] sm:px-8">
+                  <div aria-hidden="true" className="absolute -right-14 -top-16 h-48 w-48 rounded-full border border-[#123f3d]/10 dark:border-white/10" />
+                  <div aria-hidden="true" className="absolute -bottom-24 -left-12 h-56 w-56 rounded-full border border-[#d3a954]/30 dark:border-[#e7c77c]/20" />
+                  <span className="absolute left-3 top-3 rounded-full border border-[#123f3d]/10 bg-white/65 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#73501b] shadow-sm backdrop-blur sm:left-5 sm:top-5 dark:border-white/10 dark:bg-white/5 dark:text-[#e7c77c]">
+                    Confección local
+                  </span>
+                  <div className="relative flex flex-col items-center rounded-[1.75rem] border border-white/70 bg-white/55 px-5 py-4 shadow-[0_18px_40px_rgba(17,31,30,0.10)] backdrop-blur-sm dark:border-white/10 dark:bg-[#142b2a]/55 sm:px-7 sm:py-5">
+                    <Image src="/logo-confecciones.png" alt="Angus Confecciones" width={160} height={160} className="h-24 w-24 object-contain drop-shadow-sm sm:h-32 sm:w-32" />
+                    <span className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-[#123f3d] dark:text-[#edf5f2] sm:text-sm">Uniformes y arreglos</span>
+                    <span className="mt-1 text-xs font-semibold text-[#73501b] dark:text-[#e7c77c]">Quillota, Chile</span>
+                  </div>
                 </div>
               )}
               {tieneImagenDestacada && (

@@ -43,7 +43,7 @@ export default function MobileNavigation() {
         aria-expanded={open}
         aria-controls="mobile-primary-navigation"
         onClick={() => setOpen(value => !value)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl px-2 text-base font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c] sm:px-3"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl px-2 text-base font-bold text-[#173b39] hover:bg-[#123f3d]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#123f3d] dark:text-[#edf5f2] dark:hover:bg-white/5 dark:focus-visible:ring-[#e7c77c] sm:px-3"
       >
         <svg aria-hidden="true" className="h-5 w-5 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />

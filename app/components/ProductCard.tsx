@@ -120,7 +120,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                     type="button"
                     aria-label={isFavorite ? `Quitar ${producto.nombre} de favoritos` : `Agregar ${producto.nombre} a favoritos`}
                     aria-pressed={isFavorite}
-                    className="absolute right-4 top-4 z-30 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-[#f6efdf] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:bg-gray-900/90 dark:hover:bg-gray-800"
+                    className="absolute right-4 top-4 z-30 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-[#f6efdf] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] dark:bg-gray-900/90 dark:hover:bg-gray-800"
                     title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                   >
                     {isFavorite ? (
@@ -149,7 +149,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                     onClick={prevImage}
                     type="button"
                     aria-label={`Imagen anterior de ${producto.nombre}`}
-                    className="absolute left-2 top-1/2 z-20 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-3 text-white transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
+                    className="absolute left-2 top-1/2 z-20 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-3 text-white transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -159,7 +159,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                     onClick={nextImage}
                     type="button"
                     aria-label={`Imagen siguiente de ${producto.nombre}`}
-                    className="absolute right-2 top-1/2 z-20 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-3 text-white transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
+                    className="absolute right-2 top-1/2 z-20 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-3 text-white transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -178,12 +178,15 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
                           e.stopPropagation()
                           setCurrentImageIndex(index)
                         }}
-                        className={`w-3 h-3 rounded-full transition-all ${
-                          index === currentImageIndex 
-                            ? 'bg-white w-6' 
-                            : 'bg-white/50 hover:bg-white/75'
-                        }`}
-                      />
+                        className="grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`h-3 rounded-full transition-all ${
+                            index === currentImageIndex ? 'w-6 bg-white' : 'w-3 bg-white/50 group-hover:bg-white/75'
+                          }`}
+                        />
+                      </button>
                     ))}
                   </div>
                 </>
@@ -314,7 +317,7 @@ export default function ProductCard({ producto, relatedProducts = [] }: ProductC
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#123f3d] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:focus-visible:ring-offset-[#142b2a]"
+              className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#123f3d] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0d2f2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d3a954] focus-visible:ring-offset-2 dark:bg-[#e7c77c] dark:text-[#123f3d] dark:hover:bg-[#f3d79a] dark:focus-visible:ring-offset-[#142b2a]"
             >
               Ver detalles y tallas
             </button>
