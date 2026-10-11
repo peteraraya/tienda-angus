@@ -302,41 +302,72 @@ export default async function Home() {
       </section>
 
 
-      <footer className="scroll-mt-28 bg-[#123f3d] text-[#f7f1e7]" id="contacto">
-        <div className="max-w-6xl mx-auto px-4 py-10">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="flex items-center gap-4">
-              <Image src="/logo_ig.png" alt="Confecciones Angus" width={56} height={56} className="brand-logo-image" />
-              <div>
-                <p className="text-xl font-black leading-none">ANGUS</p>
-                <p className="text-[0.72rem] tracking-[0.25em] text-[#d7b972]">CONFECCIONES</p>
+      <footer className="relative isolate scroll-mt-28 overflow-hidden bg-[#0d302e] text-[#f7f1e7]" id="contacto">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-32 -z-10 h-80 w-80 rounded-full bg-[#d3a954]/10 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 -left-24 -z-10 h-80 w-80 rounded-full bg-[#4d756e]/25 blur-3xl" />
+        <div className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 sm:pb-5 sm:pt-14">
+          <div className="grid gap-8 border-b border-white/15 pb-8 sm:gap-10 sm:pb-10 md:grid-cols-12">
+            <section aria-label="Confecciones Angus" className="min-w-0 md:col-span-5">
+              <div className="flex items-center gap-3">
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 p-1.5 shadow-lg sm:h-16 sm:w-16">
+                  <Image src="/logo_ig.png" alt="" width={56} height={56} className="h-full w-full rounded-xl object-contain" />
+                </div>
+                <div>
+                  <p className="text-xl font-black leading-none tracking-tight sm:text-2xl">ANGUS</p>
+                  <p className="mt-1 text-[0.68rem] font-bold tracking-[0.24em] text-[#e7c77c]">CONFECCIONES</p>
+                </div>
               </div>
-            </div>
+              <p className="mt-4 max-w-sm text-sm leading-6 text-[#e0ebe5] sm:text-base">
+                Uniformes escolares y arreglos confeccionados con cuidado en Quillota.
+              </p>
+              <a
+                href="https://wa.me/56983852967?text=Hola%2C%20necesito%20orientaci%C3%B3n%20sobre%20una%20prenda."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#d3a954] px-5 py-3 text-center text-sm font-extrabold text-[#123f3d] shadow-lg shadow-black/10 transition-colors hover:bg-[#e7c77c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d302e] sm:w-auto"
+              >
+                <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a9.9 9.9 0 0 0-8.53 14.92L2 22l5.25-1.38A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.08-1.12l-.29-.17-3.11.82.83-3.03-.19-.31A8 8 0 1 1 12 20Zm4.39-5.99c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.41-1.33-1.65-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.39-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.31.98 2.47c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.39 1.37.5.58.18 1.11.15 1.53.09.47-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
+                </svg>
+                Escríbenos por WhatsApp
+              </a>
+            </section>
 
-            <div>
-              <h3 className="text-lg font-black">Contacto</h3>
-              <div className="mt-3 space-y-2 text-sm text-[#edf3ee]">
-                <p>Pasaje Santa Olga 288, Quillota</p>
-                <p><a href="tel:+56983852967" className="rounded text-[#d7b972] underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f3d]">+56 9 8385 2967</a></p>
-                <p><MapModalTrigger /></p>
-              </div>
-            </div>
+            <section aria-labelledby="footer-contact-title" className="min-w-0 md:col-span-4">
+              <h2 id="footer-contact-title" className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#e7c77c]">Contacto</h2>
+              <address className="mt-4 space-y-3 not-italic text-sm leading-6 text-[#edf3ee]">
+                <p className="break-words">Pasaje Santa Olga 288, Quillota</p>
+                <a href="tel:+56983852967" className="inline-flex min-h-11 items-center rounded-lg font-semibold text-[#f3d79a] underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">
+                  +56 9 8385 2967
+                </a>
+                <div className="-mt-1">
+                  <MapModalTrigger />
+                </div>
+              </address>
+            </section>
 
-            <div>
-              <h3 className="text-lg font-black">Horario</h3>
-              <div className="mt-3 space-y-2 text-sm text-[#edf3ee]">
-                <p>Lunes a Viernes: 12:00 - 19:00</p>
-                <p>Sábados: 12:00 - 17:00</p>
-              </div>
-            </div>
+            <section aria-labelledby="footer-hours-title" className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] p-4 sm:p-5 md:col-span-3">
+              <h2 id="footer-hours-title" className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#e7c77c]">Horario de atención</h2>
+              <dl className="mt-4 space-y-3 text-sm">
+                <div className="flex flex-col gap-0.5 min-[360px]:flex-row min-[360px]:justify-between min-[360px]:gap-3">
+                  <dt className="text-[#c7d7d1]">Lunes a viernes</dt>
+                  <dd className="font-bold tabular-nums">12:00–19:00</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 min-[360px]:flex-row min-[360px]:justify-between min-[360px]:gap-3">
+                  <dt className="text-[#c7d7d1]">Sábado</dt>
+                  <dd className="font-bold tabular-nums">12:00–17:00</dd>
+                </div>
+                <div className="border-t border-white/10 pt-3 text-xs text-[#c7d7d1]">Domingo cerrado</div>
+              </dl>
+            </section>
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6 text-center text-sm text-[#edf3ee]/80">
-            © {new Date().getFullYear()} Angus Confecciones. Todos los derechos reservados.
-            <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1">
-              <Link href="/privacidad" className="inline-flex min-h-11 items-center rounded underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Privacidad y almacenamiento</Link>
-              <Link href="/condiciones" className="inline-flex min-h-11 items-center rounded underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Condiciones de solicitudes</Link>
-            </div>
+          <div className="flex flex-col items-center gap-3 pt-5 text-center text-xs leading-5 text-[#d4e0da] sm:flex-row sm:justify-between sm:text-left">
+            <p>© {new Date().getFullYear()} Angus Confecciones. Todos los derechos reservados.</p>
+            <nav aria-label="Información legal" className="flex w-full flex-col items-center gap-1 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-1">
+              <Link href="/privacidad" className="inline-flex min-h-11 max-w-full items-center justify-center rounded px-2 underline decoration-white/35 underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Privacidad y almacenamiento</Link>
+              <Link href="/condiciones" className="inline-flex min-h-11 max-w-full items-center justify-center rounded px-2 underline decoration-white/35 underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d79a]">Condiciones de solicitudes</Link>
+            </nav>
           </div>
         </div>
       </footer>

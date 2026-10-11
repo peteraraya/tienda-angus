@@ -173,14 +173,14 @@ export default function ProductModal({ producto, relatedProducts = [], onClose }
   if (!mounted) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[2147483647] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-[14px] cursor-pointer" onClick={handleClose} aria-hidden={false}>
+    <div className="fixed inset-0 z-[2147483647] flex items-center justify-center overflow-y-auto overscroll-contain bg-slate-950/45 p-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-[14px] cursor-pointer sm:p-4" onClick={handleClose} aria-hidden={false}>
       <div 
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-modal-title"
         tabIndex={-1}
         ref={modalRef}
-        className={`relative z-[2147483647] flex max-h-[100vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_rgba(15,24,26,0.28)] transition-all duration-300 dark:bg-gray-800 ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} cursor-default`}
+        className={`product-detail-dialog relative z-[2147483647] flex w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(15,24,26,0.28)] transition-all duration-300 dark:bg-gray-800 sm:rounded-[2rem] ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} cursor-default`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-gray-200 bg-white/90 px-4 py-4 backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/90 sm:px-6">

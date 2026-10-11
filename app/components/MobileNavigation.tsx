@@ -16,14 +16,23 @@ export default function MobileNavigation() {
 
   useEffect(() => {
     if (!open) return
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !menuRef.current?.contains(event.target)) {
+        setOpen(false)
+      }
+    }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (event.target instanceof Element && event.target.closest('#accessibility-preferences')) return
       setOpen(false)
       triggerRef.current?.focus()
     }
+    document.addEventListener('pointerdown', closeOnOutsideClick)
     window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      window.removeEventListener('keydown', closeOnEscape)
+    }
   }, [open])
 
   return (

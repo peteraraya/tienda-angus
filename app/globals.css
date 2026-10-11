@@ -182,6 +182,18 @@ html[data-contrast="high"] :where(a, button, input, select, textarea):focus-visi
   width: min(21rem, calc(100vw - 2rem));
 }
 
+.product-detail-dialog {
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1rem);
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1rem);
+}
+
+@media (min-width: 640px) {
+  .product-detail-dialog {
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+  }
+}
+
 .accessibility-preferences-panel-mobile {
   position: fixed;
   right: 1rem;

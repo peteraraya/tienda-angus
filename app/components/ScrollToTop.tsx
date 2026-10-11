@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false)
+  const pathname = usePathname()
+  const positionClasses = pathname?.startsWith('/admin')
+    ? 'bottom-6 left-6'
+    : 'bottom-20 left-4 sm:bottom-24 sm:left-6'
 
   // Ocultar/Mostrar según la posición del scroll
   useEffect(() => {
@@ -34,8 +39,9 @@ export default function ScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 left-6 z-40 p-3 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:scale-110 transition-all focus:outline-none"
+      className={`fixed z-40 rounded-full border border-gray-200 bg-white p-3 text-blue-600 shadow-lg transition-all hover:scale-110 hover:shadow-xl focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-blue-400 ${positionClasses}`}
       title="Volver arriba"
+      aria-label="Volver arriba"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
