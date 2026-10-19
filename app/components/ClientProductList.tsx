@@ -62,12 +62,13 @@ interface ColegioData {
 
 interface ClientProductListProps {
   initialCatalog: PublicCatalogPage
+  initialSearch?: string
   colegiosData?: ColegioData[]
 }
 
 
-export default function ClientProductList({ initialCatalog, colegiosData = [] }: ClientProductListProps) {
-  const [searchTerm, setSearchTerm] = useState('')
+export default function ClientProductList({ initialCatalog, initialSearch = '', colegiosData = [] }: ClientProductListProps) {
+  const [searchTerm, setSearchTerm] = useState(initialSearch)
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSort, setSelectedSort] = useState('newest')
   const [currentView, setCurrentView] = useState<'grid' | 'list'>('grid')
