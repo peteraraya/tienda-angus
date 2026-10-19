@@ -129,27 +129,15 @@ export default async function Home({
             </a>
           </div>
 
-          <div className="home-hero-art relative mx-auto mt-1 h-[330px] w-full max-w-[480px] sm:mt-2 sm:h-[390px] lg:mt-0 lg:h-[390px] lg:max-w-[560px]" role="group" aria-label="Uniformes escolares destacados">
-            <div className="home-hero-garment home-hero-garment-back absolute inset-y-[5%] left-[2%] w-[56%]">
-              <Image
-                src="/uniforme-escolar-cierre.png"
-                alt="Buzo escolar azul marino con cierre y pantalón con franjas laterales"
-                fill
-                priority
-                sizes="(max-width: 560px) 50vw, (max-width: 1023px) 270px, 25vw"
-                className="object-contain object-bottom drop-shadow-[0_14px_22px_rgba(0,0,0,0.16)]"
-              />
-            </div>
-            <div className="home-hero-garment home-hero-garment-front absolute inset-y-0 right-[1%] w-[56%]">
-              <Image
-                src="/uniforme-escolar-burdeo.png"
-                alt="Buzo escolar azul marino con pantalón burdeos"
-                fill
-                priority
-                sizes="(max-width: 560px) 50vw, (max-width: 1023px) 270px, 25vw"
-                className="object-contain object-bottom drop-shadow-[0_18px_26px_rgba(0,0,0,0.2)]"
-              />
-            </div>
+          <div className="home-hero-art relative mx-auto mt-1 h-[330px] w-full max-w-[480px] sm:mt-2 sm:h-[390px] lg:mt-0 lg:h-[420px] lg:max-w-[560px]" role="group" aria-label="Uniforme escolar mostrado de frente y por detrás">
+            <Image
+              src="/banner-uniformes-maniquies.png"
+              alt="Buzo escolar azul marino con pantalón burdeos, mostrado de frente y por detrás"
+              fill
+              priority
+              sizes="(max-width: 560px) 100vw, (max-width: 1023px) 480px, 42vw"
+              className="object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)]"
+            />
           </div>
         </div>
       </section>
